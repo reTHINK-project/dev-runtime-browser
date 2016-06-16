@@ -17,20 +17,7 @@ Addtionally to the iFrame, all the hyperties and protoStub will be executed as i
 
 #### Example of use
 
-This repository have a folder with an use example of rethink.js. 
-
-To run the demo on example folder:
-
- - check this guide https://github.com/reTHINK-project/dev-runtime-browser/blob/master/startup_guide.md
- - run start script.
-
- ```
- *(sudo) npm start
- ```
-
- - in your browser access to https://localhost.
-
-**(\*)only required on unix based OS**
+Refer to dev-hyperty-toolkit to get an example of use
 
 #### Distributable files
 * rethink.js. It is the public interface. It exposes two methods:

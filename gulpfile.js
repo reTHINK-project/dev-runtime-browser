@@ -123,22 +123,8 @@ gulp.task('bundle:context', function(){
     return bundle('./src/ContextServiceProvider.js', 'context-service', 'bin')
 });
 
-gulp.task('bundle:dist', ['bundle:rethink', 'bundle:core', 'bundle:context']);
+gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:context']);
 
-gulp.task('bundle:demo1', function(){
-    return bundle('./example/demo.js', 'demo.bundle', 'example')
-});
-gulp.task('bundle:demo2', function(){
-    return bundle('./example/demo2.js', 'demo2.bundle', 'example')
-});
-gulp.task('bundle:hello', function(){
-    return bundle('./example/hello.js', 'hello.bundle', 'example')
-});
-gulp.task('bundle:guid', function(){
-    return bundle('./example/guid.js', 'guid.bundle', 'example')
-});
-
-gulp.task('bundle:demo', ['bundle:demo1', 'bundle:demo2', 'bundle:hello']);
 /**
  * Bumping version number and tagging the repository with it.
  * Please read http://semver.org/
