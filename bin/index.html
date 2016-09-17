@@ -15,7 +15,7 @@
       <span><i class="settings-btn material-icons clickable-cell right" style="cursor: pointer; vertical-align: middle;">settings</i></span>
     </div>
 
-    <div class="admin-page hide">
+    <div class="admin-page container hide">
         <div class="card" style="margin:0;">
           <div class="card-content white-text center-align">
             <div class="row">
@@ -33,24 +33,60 @@
         </div>
 
         <div class="policies-section hide card">
-          <div class="card-content center-align">
-            <div class="row">
-              <div class="col s6 policy-active">
-              </div>
-              <div class="col s6 group-management">
-                <button type="button" class="group-management-btn btn">Manage groups</button>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col s6 push-s3">
-                <div class="policies-current"></div>
-              </div>
-            </div>
+          <div class="card-content black-text left-align">
+            <ul class="collapsible" data-collapsible="expandable">
+              <li>
+                <div class="collapsible-header"><i class="material-icons">note</i>Policies management</div>
+                <div class="collapsible-body">
+                  <div class="row">
+                    <div class="col s8 push-s2">
+                      <div class="policies-current"></div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s12 center-align">
+                      <div class="policies-no hide">
+                        <p>There are no configurations set.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s6 push-s3">
+                      <div class="policy-active"></div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s12 center-align">
+                      <button type="button" class="policy-add btn waves-effect waves-light"><i class="material-icons right">add</i>New policy</button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="collapsible-header"><i class="material-icons">group</i>Groups management</div>
+                <div class="collapsible-body center-align">
+                  <div class="groups-show">
+                    <div class="row">
+                      <div class="col s12">
+                        <p>Create groups of users and manage their members.
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col s6 push-s3">
+                        <div class="groups-current"></div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col s12">
+                        <button type="button" class="group-add btn waves-effect waves-light"><i class="material-icons right">add</i>New group</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
           </div>
 
-          <div class="card-action white-text center-align">
-            <button type="button" class="policy-add btn waves-effect waves-light"><i class="material-icons right">add</i>New policy</button>
-          </div>
         </div>
       </div>
 
@@ -128,66 +164,74 @@
               <input class="input-name" placeholder="new policy title" required aria-required="true" type="text" id="policy-new-title">
             </div>
           </div>
+          <div class="row">
+            <div class="col s6 push-s3">
+              <div class="combining"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12 left-align hide help-menu">
+              <p>- <b>Block overrides:</b> if one of your rules blocks a message, then the message is blocked.</p>
+              <p>- <b>Allow overrides:</b> if one of your rules allows a message, then the message is forwarded.</p>
+              <p>- <b>First applicable:</b> the result of the first rule that applies to a given message decides if the message is blocked of forwarded. </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12">
+              <form action="#">
+                <div class="file-field input-field">
+                  <div class="btn">
+                    <span>Import from file</span>
+                    <input id="policy-file" type="file">
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
+
         <div class="modal-footer">
           <button class="modal-close waves-effect waves-green btn-flat exit-btn" type="submit">Exit<i class="medium material-icons right">exit_to_app</i></button>
           <button class="modal-close waves-effect waves-green btn-flat policy-new-ok" type="submit">Ok<i class="medium material-icons right">done</i></button>
+          <button class="waves-effect waves-green btn-flat help-btn" type="submit">Help<i class="medium material-icons right">exit_to_app</i></button>
         </div>
       </div>
 
-      <div class="modal groups-management-modal">
+      <div class="modal modal-fixed-footer group-new-modal">
         <div class="modal-content center-align">
-          <div class="groups-show">
-            <div class="row">
-              <div class="col s12">
-                <h5>Groups of users</h5>
-                <p>Create groups of users and manage their members.
-              </div>
-            </div>
-            <div class="row">
-              <div class="col s6 push-s3">
-                <div class="groups-current"></div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col s12">
-                <button type="button" class="group-add btn waves-effect waves-light"><i class="material-icons right">add</i>New group</button>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i></button>
+          <div class="row">
+            <div class="col s12">
+              <h5>Create a new group</h5>
+              <p>Insert a name for the new group and add members to it in the groups management section.</p>
             </div>
           </div>
-          <div class="group-new hide">
-            <div class="row">
-              <div class="col s12">
-                <h5>Create a new group</h5>
-                <p>Insert a name for the new group and add members to it in the groups management section.</p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col s6 offset-s3">
-                <input class="input-name" placeholder="new group name" required aria-required="true" type="text" id="group-new-name">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i></button>
-              <button class="waves-effect waves-green btn-flat group-new-ok">Ok<i class="medium material-icons right">done</i></button>
+          <div class="row">
+            <div class="col s6 offset-s3">
+              <input class="input-name" placeholder="new group name" required aria-required="true" type="text" id="group-new-name">
             </div>
           </div>
-          <div class="member-new hide">
-            <div class="row">
-              <div class="col s12 member-new-intro"></div>
+          <div class="modal-footer">
+            <button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i></button>
+            <button class="modal-close waves-effect waves-green btn-flat group-new-ok">Ok<i class="medium material-icons right">done</i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal modal-fixed-footer member-new-modal">
+        <div class="modal-content center-align">
+          <div class="row">
+            <div class="col s12">
+              <div class="member-new-intro"></div>
             </div>
-            <div class="row">
-              <div class="col s6 offset-s3">
-                <input class="input-name" placeholder="new member email" required aria-required="true" type="email" id="member-new">
-              </div>
+          </div>
+          <div class="row">
+            <div class="col s6 offset-s3">
+              <input class="input-name" placeholder="new member email" required aria-required="true" type="email" id="member-new">
             </div>
-            <div class="modal-footer">
-              <button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i></button>
-              <button class="waves-effect waves-green btn-flat member-new-ok">Ok<i class="medium material-icons right">done</i></button>
-            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i></button>
+            <button class="modal-close waves-effect waves-green btn-flat member-new-ok">Ok<i class="medium material-icons right">done</i></button>
           </div>
         </div>
       </div>

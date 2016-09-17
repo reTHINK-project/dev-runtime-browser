@@ -6,50 +6,26 @@ class PoliciesGUI {
     if (!policyEngine) throw Error('Policy Engine is not set!');
     this.policiesManager = new PoliciesManager(policyEngine);
     this.elements = this._setElements();
-
-    $('.settings-btn').on('click', (event) => {
-      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
-      $('.admin-page').removeClass('hide');
-      document.getElementsByTagName('body')[0].style = 'background-color:white;';
-    });
-
-    $('.policies-page-show').on('click', (event) => {
-      $('.policies-section').removeClass('hide');
-      this._goHome();
-    });
-
-    $('.admin-page-exit').on('click', (event) => {
-      parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
-      $('.admin-page').addClass('hide');
-      document.getElementsByTagName('body')[0].style = 'background-color:transparent;';
-    });
-
-    $('.group-management-btn').on('click', (event) => {
-      $('.groups-management-modal').openModal();
-      this._manageGroups();
-    });
-
-    $('.exit-btn').on('click', (event) => {
-      $('.subscription-type').addClass('hide');
-    })
+    this._setListeners();
   }
 
   _addMember() {
-    $('.groups-show').addClass('hide');
-    let group = event.target.closest('tr').id;
+    let group = event.target.id;
     $('.member-new-intro').html('<h5>Add a member to a group</h5><p>Insert a user email below to add to the "' + group + '" group.</p>');
-    $('.member-new').removeClass('hide');
+    $('.member-new-modal').openModal();
+    $('.member-new-ok').off();
     $('.member-new-ok').on('click', (event) => {
       let member = $('#member-new').val();
+      $('#member-new').val('');
       this.policiesManager.addToGroup(group, member);
+      $('.member-new-modal').closeModal();
       this._manageGroups();
     });
   }
 
   _createGroup() {
-    $('.groups-show').addClass('hide');
     $('#group-new-name').val('');
-    $('.group-new').removeClass('hide');
+    $('.group-new-modal').openModal();
     $('.group-new-ok').on('click', (event) => {
       let groupName = $('#group-new-name').val();
       this.policiesManager.createGroup(groupName);
@@ -57,15 +33,25 @@ class PoliciesGUI {
     });
   }
 
-  _createPolicy() {
+  _addPolicy() {
     $('#policy-new-title').val('');
+    $('.combining').html('');
+    let algorithms = ['Block overrides', 'Allow overrides', 'First applicable'];
+    $('.combining').append(this._getOptions('comb-algorithm', 'Choose a combining algorithm', algorithms));
     $('.policy-new').openModal();
+
     $('.policy-new-ok').off();
     $('.policy-new-ok').on('click', (event) => {
       let policyTitle = $('#policy-new-title').val();
-      this.policiesManager.createPolicy(policyTitle);
+      let combiningAlgorithm = $('#comb-algorithm').val();
+      this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
+      $('.help-menu').addClass('hide');
       $('.policy-new').closeModal();
       this._goHome();
+    });
+    $('.help-btn').off();
+    $('.help-btn').on('click', (event) => {
+      $('.help-menu').removeClass('hide');
     });
   }
 
@@ -120,24 +106,16 @@ class PoliciesGUI {
   _getActivePolicy() {
     $('.policy-active').html('');
     let activeUserPolicy = this.policiesManager.getActivePolicy();
-    let radio = '<form">';
     let policies = this.policiesManager.getPoliciesTitles();
-    for (let i in policies) {
-      if (policies[i] === activeUserPolicy) {
-        radio += '<p><input name="policies-list" type="radio" id="' + policies[i] + '" checked/><label for="' + policies[i] + '" class="policies-list black-text">' + policies[i] + '</label></p>';
-      } else {
-        radio += '<p><input name="policies-list" type="radio" id="' + policies[i] + '"/><label for="' + policies[i] + '" class="policies-list black-text">' + policies[i] + '</label></p>';
+    policies.push('Deactivate all policies');
+
+    $('.policy-active').append(this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
+
+    $('#policies-list').on('click', (event) => {
+      let policyTitle = $('#policies-list').find(":selected")[0].textContent;
+      if (policyTitle === 'Deactivate all policies') {
+        policyTitle = undefined;
       }
-    }
-
-    radio += '</form>';
-
-    if (policies.length > 0) {
-      $('.policy-active').html('<p><b>Activate a policy:</b></p>' + radio);
-    }
-
-    $('.policies-list').on('click', (event) => {
-      let policyTitle = event.target.textContent;
       this.policiesManager.updateActivePolicy(policyTitle);
     });
   }
@@ -171,7 +149,7 @@ class PoliciesGUI {
           info = splitInfo[2] + '/' + splitInfo[1] + '/' + splitInfo[0];
         }
         break;
-      case 'Groups of users':
+      case 'Group of users':
         info = $('#group').find(":selected").text();
         break;
       case 'Subscription preferences':
@@ -202,11 +180,14 @@ class PoliciesGUI {
       return list;
     }
 
-  _getOptions(id, title, list) {
+  _getOptions(id, title, list, selected) {
     let options = '<select id="' + id + '" class="browser-default"><option disabled selected>' + title + '</option>';
-
     for (let i in list) {
-      options += '<option>' + list[i] + '</option>';
+      if (selected !== undefined & selected === list[i]) {
+        options += '<option selected id="' + id + '">' + list[i] + '</option>';
+      } else {
+        options += '<option id="' + id + '">' + list[i] + '</option>';
+      }
     }
     options += '</select>';
 
@@ -214,6 +195,7 @@ class PoliciesGUI {
   }
 
   _getPoliciesTable() {
+    $('.policies-no').addClass('hide');
     $('.policies-current').html('');
 
     let policies = this.policiesManager.getFormattedPolicies();
@@ -231,17 +213,18 @@ class PoliciesGUI {
     let isEmpty = policiesTitles.length === 0;
 
     for (let i in policiesTitles) {
-      table += '<thead><tr id="' + policiesTitles[i] + '"><td></td><td></td><th>' + policiesTitles[i] + '</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+      table += '<thead><tr id="' + policiesTitles[i] + '"><td></td><td></td><th class="center-align">' + policiesTitles[i] + '</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+
       for (let j in rulesTitles[i]) {
         table += '<tr id="' + ids[i][j] + '" ><td><i class="material-icons clickable-cell rule-priority-increase" style="cursor: pointer; vertical-align: middle">arrow_upward</i></td><td><i class="material-icons clickable-cell rule-priority-decrease" style="cursor: pointer; vertical-align: middle">arrow_downward</i></td><td class="rule-show clickable-cell" style="cursor: pointer">' + rulesTitles[i][j] + '</td><td><i class="material-icons clickable-cell rule-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
       }
-      table += '<tr id="' + policiesTitles[i] + '"><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell rule-add" style="cursor: pointer">add_circle</i></td></tr>';
+      table += '<tr id="' + policiesTitles[i] + '"></td><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell center-align rule-add" style="cursor: pointer">add_circle</i></td></tr>';
     }
     if (!isEmpty) {
       table += '</tbody></table>';
       $('.policies-current').append(table);
     } else {
-      $('.policies-current').append('<p>There are no configurations set.</p>');
+      $('.policies-no').removeClass('hide');
     }
     $('.rule-add').on('click', (event) => { this._showVariablesTypes(); });
     $('.rule-delete').on('click', (event) => { this._deleteRule(); });
@@ -249,7 +232,7 @@ class PoliciesGUI {
     $('.rule-priority-increase').on('click', (event) => { this._increaseRulePriority(); });
     $('.rule-priority-decrease').on('click', (event) => { this._decreaseRulePriority(); });
     $('.policy-add').off();
-    $('.policy-add').on('click', (event) => { this._createPolicy(); });
+    $('.policy-add').on('click', (event) => { this._addPolicy(); });
     $('.policy-delete').on('click', (event) => { this._deletePolicy(); });
   }
 
@@ -274,9 +257,6 @@ class PoliciesGUI {
 
   _manageGroups() {
     $('.groups-current').html('');
-    $('.group-new').addClass('hide');
-    $('.member-new').addClass('hide');
-    $('.groups-show').removeClass('hide');
     let groupsPE = this.policiesManager.getGroups();
     let groups = groupsPE.groupsNames;
     let members = groupsPE.members;
@@ -291,7 +271,7 @@ class PoliciesGUI {
         table += '<tr id="' + ids[i][j] + '" ><td style="cursor: pointer">' + members[i][j] + '</td><td style="text-align:right"><i class="material-icons clickable-cell member-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
       }
 
-      table += '<tr id="' + groups[i] + '"><td><i class="material-icons clickable-cell member-add" style="cursor: pointer">add_circle</i></td></tr>';
+      table += '<tr id="' + groups[i] + '"><td><i class="material-icons clickable-cell member-add" id="' + groups[i] + '" style="cursor: pointer">add_circle</i></td></tr>';
     }
 
     if (!isEmpty) {
@@ -301,10 +281,20 @@ class PoliciesGUI {
       $('.groups-current').append('<p>There are no groups set.</p>');
     }
 
+    $('.member-add').off();
     $('.member-add').on('click', (event) => { this._addMember(); });
     $('.member-delete').on('click', (event) => { this._deleteMember(); });
+    $('.group-add').off();
     $('.group-add').on('click', (event) => { this._createGroup(); });
     $('.group-delete').on('click', (event) => { this._deleteGroup(); });
+  }
+
+  _parseFileContent(content) {
+    let parsedContent = JSON.parse(content);
+    for (let i in parsedContent) {
+      this.policiesManager.addPolicy(i, undefined, parsedContent[i]);
+    }
+    $('.policy-new').closeModal();
   }
 
   _setElements() {
@@ -401,6 +391,48 @@ class PoliciesGUI {
     this._goHome();
   }
 
+  _setListeners() {
+    $('.settings-btn').on('click', (event) => {
+      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
+      $('.admin-page').removeClass('hide');
+      document.getElementsByTagName('body')[0].style = 'background-color:white;';
+    });
+
+    $('.policies-page-show').on('click', (event) => {
+      $('.policies-section').removeClass('hide');
+      this._goHome();
+      this._manageGroups();
+    });
+
+    $('.identities-page-show').on('click', (event) => {
+      $('.policies-section').addClass('hide');
+    });
+
+    $('.admin-page-exit').on('click', (event) => {
+      parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
+      $('.admin-page').addClass('hide');
+      document.getElementsByTagName('body')[0].style = 'background-color:transparent;';
+    });
+
+    $('.exit-btn').on('click', (event) => {
+      $('.subscription-type').addClass('hide');
+      $('.help-menu').addClass('hide');
+    });
+
+    $('#policy-file').on('change', (event) => {
+      let file = event.target.files[0];
+      let reader = new FileReader();
+      reader.readAsText(file, "UTF-8");
+      reader.onload = (event) => {
+        this._parseFileContent(event.target.result);
+        this._goHome();
+      }
+      reader.onerror = (event) => {
+        throw Error("Error reading the file");
+      }
+    });
+  }
+
   _showRule() {
     let ruleTitle = event.target.textContent;
     let id = event.target.closest('tr').id;
@@ -444,6 +476,7 @@ class PoliciesGUI {
     switch (type) {
       case 'authorisation':
         let newDecision = $("input[name='rule-update-decision']:checked")[0].id;
+
         if (newDecision === 'btn-allow') {
           splitTitle[index + 1] = 'allowed';
           newDecision = true;

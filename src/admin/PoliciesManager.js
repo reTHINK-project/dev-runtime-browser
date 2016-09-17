@@ -2,32 +2,48 @@ class PoliciesManager {
 
   constructor(policyEngine) {
     this.policyEngine = policyEngine;
-    this.policies = this.policyEngine.context.policies;
+    this.policies = this.policyEngine.context.userPolicies;
     this.variables = this.setVariables();
     this.addition = this.setAdditionMethods();
     this.validation = this.setValidationMethods();
   }
 
   addToGroup(groupName, user) {
-    this.policyEngine.addToGroup(groupName, user);
+    this.policyEngine.context.addToGroup(groupName, user);
   }
 
   createGroup(groupName) {
-    this.policyEngine.createGroup(groupName);
+    this.policyEngine.context.createGroup(groupName);
   }
 
-  createPolicy(title) {
-    this.policyEngine.addPolicy('USER', title);
+  addPolicy(title, combiningAlgorithm, policy) {
+    if (policy === undefined) {
+      switch (combiningAlgorithm) {
+        case 'Block overrides':
+          combiningAlgorithm = 'blockOverrides';
+          break;
+        case 'Allow overrides':
+          combiningAlgorithm = 'allowOverrides';
+          break;
+        case 'First applicable':
+          combiningAlgorithm = 'firstApplicable';
+          break;
+        default:
+          combiningAlgorithm = undefined;
+      }
+    }
+
+    this.policyEngine.addPolicy('USER', title, policy, combiningAlgorithm);
   }
 
   decreaseRulePriority(policyTitle, thisPriority, newPriority) {
-    this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority; //B-0
+    this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
     this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
     this.policyEngine.context.savePolicies('USER');
   }
 
   deleteGroup(groupName) {
-    this.policyEngine.deleteGroup(groupName);
+    this.policyEngine.context.deleteGroup(groupName);
   }
 
   deletePolicy(title) {
@@ -136,7 +152,6 @@ class PoliciesManager {
         userPolicies[policyTitle].createRule('simple', params[4], ['domain', 'equals', params[3]], params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
-
       'Group of users': (params) => {
         let policyTitle = params[0];
         let userPolicies = this.policyEngine.context.userPolicies;
@@ -268,6 +283,7 @@ class PoliciesManager {
 
   getFormattedPolicies() {
     let policiesPE = this.policyEngine.context.userPolicies;
+
     let policiesGUI = [];
 
     for (let i in policiesPE) {
@@ -280,7 +296,6 @@ class PoliciesManager {
       if (policiesPE[i].rules.length !== 0) {
         policiesPE[i].rules = policiesPE[i].sortRules();
         for (let j in policiesPE[i].rules) {
-          let rule = policiesPE[i].rules[j];
           let title = this._getTitle(policiesPE[i].rules[j]);
           policy.rulesTitles.push(title);
           policy.ids.push(policy.title + ':' + policiesPE[i].rules[j].priority);
@@ -314,7 +329,7 @@ class PoliciesManager {
           return 'Group \"' + condition.params + '\" is ' + authorise + ' (' + target + ')';
         } else {
           if (condition.operator === 'equals') {
-            return 'User ' + condition.params + ' is ' + authorise + '(' + target + ')';
+            return 'User ' + condition.params + ' is ' + authorise + ' (' + target + ')';
           }
         }
       case 'subscription':
@@ -333,9 +348,8 @@ class PoliciesManager {
         let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         let weekdayID = condition.params;
         return 'Weekday \"' + weekdays[weekdayID] + '\" is ' + authorise + ' (' + target + ')';
-
       default:
-        return condition + ' - ' + authorise;
+        return 'Rule ' + rule.priority + ' is ' + authorise + ' (' + target + ')';
     }
   }
 
@@ -395,7 +409,7 @@ class PoliciesManager {
   }
 
   getGroup(scope, target, groupName) {
-    return this.policyEngine.getGroup(scope, target, groupName);
+    return this.policyEngine.context.getGroup(scope, target, groupName);
   }
 
   getGroups() {
@@ -420,11 +434,11 @@ class PoliciesManager {
   }
 
   getGroupsNames() {
-    return this.policyEngine.getGroupsNames();
+    return this.policyEngine.context.getGroupsNames();
   }
 
   removeFromGroup(groupName, user) {
-    this.policyEngine.removeFromGroup(groupName, user);
+    this.policyEngine.context.removeFromGroup(groupName, user);
   }
 
   updatePolicy(policyTitle, rule, newDecision, newSubscriptionType) {
@@ -432,10 +446,15 @@ class PoliciesManager {
     userPolicies[policyTitle].deleteRule(rule);
     if (!newSubscriptionType) {
       let type;
-      if (rule.condition.attribute === 'subscription') {
-        type = 'subscription';
+
+      if (rule.condition.attribute === undefined) {
+        type = 'advanced';
       } else {
-        type = 'simple';
+        if (rule.condition.attribute === 'subscription') {
+          type = 'subscription';
+        } else {
+          type = 'simple';
+        }
       }
       userPolicies[policyTitle].createRule(type, newDecision, rule.condition, rule.scope, rule.target, rule.priority);
     } else {
