@@ -400,12 +400,9 @@ class PoliciesGUI {
 
     $('.policies-page-show').on('click', (event) => {
       $('.policies-section').removeClass('hide');
+      $('.identities-section').addClass('hide');
       this._goHome();
       this._manageGroups();
-    });
-
-    $('.identities-page-show').on('click', (event) => {
-      $('.policies-section').addClass('hide');
     });
 
     $('.admin-page-exit').on('click', (event) => {
