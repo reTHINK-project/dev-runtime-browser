@@ -11,6 +11,8 @@ class IdentitiesGUI {
     _this._messageBus = identityModule.messageBus;
     _this.identityModule.deployGUI();
 
+    _this.resultUrL  = undefined;
+
     _this._messageBus.addListener(guiURL, msg => {
       let identityInfo = msg.body.value;
       let value;
@@ -83,8 +85,8 @@ class IdentitiesGUI {
       });
 
       let callback = (value) => {
-        console.log('chosen idp: ', value);
-        resolve({type: 'idp', value: value});
+        console.log('chosen identity: ', value);
+        resolve({type: 'identity', value: value});
       };
 
       let idps = identityInfo.idps;
@@ -93,7 +95,7 @@ class IdentitiesGUI {
       $('#idproviders').on('click', (event) => _this.obtainNewIdentity(callback, toRemoveID));
       //$('.back').on('click', (event) => _this.goHome());
       $('.identities-reset').off();
-      $('.identities-reset').on('click', (event) => _this._resetIdentities());
+      $('.identities-reset').on('click', (event) => _this._resetIdentities(callback));
     });
 
   }
@@ -176,8 +178,14 @@ class IdentitiesGUI {
     let _this = this;
 
     let idToUse = event.target.innerText;
-    callback(idToUse);
-    return idToUse;
+
+    //TODO improve later.
+    //prevents when the users selects an hyperty, exit the identity page and goes again to the identity page, from selecting "settings" button as identity.
+    if(idToUse !== 'settings') {
+
+      callback(idToUse);
+      return idToUse;
+    }
   }
 
   removeID(emails) {
@@ -204,15 +212,26 @@ class IdentitiesGUI {
     let idProvider = event.target.textContent;
     let idProvider2 = event.target.text;
 
-    //if the request came from the identity administration GUI then call the method to obtain an identity
-    if(toRemoveID) {
-      _this.identityModule.callGenerateMethods(idProvider).then(() => {
-        _this.showIdentitiesGUI();
-      });
-    } else {
-      callback(idProvider);
+    _this.identityModule.crypto.generateRSAKeyPair().then(function(keyPair) {
 
-    }
+      let publicKey = btoa(keyPair.public);
+
+      _this.identityModule.sendGenerateMessage(publicKey, 'origin', undefined, idProvider).then((value) => {
+        console.log('receivedURL: ' + value.loginUrl.substring(0, 20) + '...');
+        _this.resultUrL = value.loginUrl;
+        $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
+        $('.login').removeClass('hide');
+        $('.login-btn').off();
+        $('.login-btn').on('click', (event) => {
+          $('.login').addClass('hide');
+          _this._authenticateUser(keyPair, publicKey, value, 'origin', idProvider).then((email) => {
+            callback(email);
+            _this.showIdentitiesGUI();
+          });
+        });
+      });
+    });
+
   }
 
   _getList(items) {
@@ -221,14 +240,43 @@ class IdentitiesGUI {
 
     for (let i = 0; i < numItems; i++) {
       list += '<li class="divider"></li>';
-      list += '<li><a class="center-align">' + items[i] + '</a></li>';
+        list += '<li><a class="center-align">' + items[i] + '</a></li>';
     }
 
     return list;
   }
 
+  _authenticateUser(keyPair, publicKey, value, origin, idProvider) {
+    let _this = this;
+    let url = _this.resultUrL;
+
+    return new Promise((resolve, reject) => {
+
+      _this.identityModule.openPopup(url).then((identity) => {
+
+        _this.identityModule.sendGenerateMessage(publicKey, origin, identity, idProvider).then((result) => {
+
+          if (result) {
+
+           _this.identityModule.storeIdentity(result, keyPair).then((value) => {
+             resolve(value.userProfile.username);
+           }, (err) => {
+             reject(err);
+           });
+
+          } else {
+           reject('error on obtaining identity information');
+          }
+
+          });
+         }, (err) => {
+           reject(err);
+      });
+    });
+  }
+
 _resetIdentities() {
-  console.log('clicked resetIdentities');
+  console.log('_resetIdentities');
 }
 
 

@@ -66,11 +66,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         eval.apply(window,[sourcePackage.sourceCode])
 
         let runtime = new Runtime(RuntimeFactory, window.location.host);
-        window.runtime = runtime;
+
         console.log('modified core.js.. remove window.runtime');
         new PoliciesGUI(runtime.policyEngine);
         let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
-        window.identitiesGUI = identitiesGUI;
+
         window.addEventListener('message', function(event){
             if(event.data.to==='core:loadHyperty'){
                 let descriptor = event.data.body.descriptor;
