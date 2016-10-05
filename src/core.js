@@ -67,7 +67,6 @@ catalogue.getRuntimeDescriptor(runtimeURL)
 
         let runtime = new Runtime(RuntimeFactory, window.location.host);
 
-        console.log('modified core.js.. remove window.runtime');
         new PoliciesGUI(runtime.policyEngine);
         let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
 
