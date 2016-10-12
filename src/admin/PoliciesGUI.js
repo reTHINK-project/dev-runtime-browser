@@ -43,11 +43,15 @@ class PoliciesGUI {
     $('.policy-new-ok').off();
     $('.policy-new-ok').on('click', (event) => {
       let policyTitle = $('#policy-new-title').val();
-      let combiningAlgorithm = $('#comb-algorithm').val();
-      this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
-      $('.help-menu').addClass('hide');
-      $('.policy-new').closeModal();
-      this._goHome();
+      if (!policyTitle) {
+        Materialize.toast('Invalid policy title', 4000);
+      } else {
+        let combiningAlgorithm = $('#comb-algorithm').val();
+        this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
+        $('.help-menu').addClass('hide');
+        $('.policy-new').closeModal();
+        this._goHome();
+      }
     });
     $('.help-btn').off();
     $('.help-btn').on('click', (event) => {
@@ -311,7 +315,7 @@ class PoliciesGUI {
     $('.scopes').empty().html('');
 
     let keys = ['Email', 'Hyperty', 'All'];
-    let scopes = ['user', 'hyperty', 'global'];
+    let scopes = ['identity', 'hyperty', 'global'];
     let lists = [];
 
     lists.push(this.policiesManager.getMyEmails());
@@ -442,7 +446,7 @@ class PoliciesGUI {
       $('.authorise-btns').addClass('hide');
     } else {
       let element;
-      if (rule.authorise) {
+      if (rule.decision) {
         element = document.getElementById('btn-allow');
       } else {
         element = document.getElementById('btn-block');
@@ -492,7 +496,7 @@ class PoliciesGUI {
         splitTitle = title.split('hyperties are');
         if (newSubscriptionType === 'All subscribers') {
           $('.authorise-btns').removeClass('hide');
-          newDecision = rule.authorise;
+          newDecision = rule.decision;
           newSubscriptionType = '*';
           title = 'Subscriptions from all hyperties are' + splitTitle[1];
         } else {

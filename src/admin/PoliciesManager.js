@@ -142,20 +142,20 @@ class PoliciesManager {
       Date: (params) => {
         let policyTitle = params[0];
         let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule('simple', params[4], ['date', 'equals', params[3]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'date', operator: 'equals', params: params[3] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
 
       Domain: (params) => {
         let policyTitle = params[0];
         let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule('simple', params[4], ['domain', 'equals', params[3]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'domain', operator: 'equals', params: params[3] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
       'Group of users': (params) => {
         let policyTitle = params[0];
         let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule('simple', params[4], ['source', 'in', params[3]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'source', operator: 'in', params: params[3] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
       'Subscription preferences': (params) => {
@@ -165,7 +165,7 @@ class PoliciesManager {
         if (params[3] === 'preauthorised') {
           operator = 'in';
         }
-        userPolicies[policyTitle].createRule('subscription', params[4], ['subscription', operator, params[3]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'subscription', operator: thisOperator, params: params[3] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
       'Time of the day': (params) => {
@@ -176,7 +176,7 @@ class PoliciesManager {
         start = start.join('');
         let end = params[3][1].split(':');
         end = end.join('');
-        userPolicies[policyTitle].createRule('simple', params[4], ['time', 'between', [start, end]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'time', operator: 'between', params: [start, end] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       },
 
@@ -185,7 +185,7 @@ class PoliciesManager {
         params[3] = weekdays.indexOf(params[3]);
         let policyTitle = params[0];
         let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule('simple', params[4], ['weekday', 'equals', params[3]], params[1], params[2]);
+        userPolicies[policyTitle].createRule(params[4], { attribute: 'weekday', operator: 'equals', params: params[3] }, params[1], params[2]);
         this.policyEngine.context.savePolicies('USER');
       }
     };
@@ -283,7 +283,6 @@ class PoliciesManager {
 
   getFormattedPolicies() {
     let policiesPE = this.policyEngine.context.userPolicies;
-
     let policiesGUI = [];
 
     for (let i in policiesPE) {
@@ -316,7 +315,7 @@ class PoliciesManager {
 
   _getTitle(rule) {
     let condition = rule.condition;
-    let authorise = (rule.authorise) ? 'allowed' : 'blocked';
+    let authorise = (rule.decision) ? 'allowed' : 'blocked';
     let target = rule.target === 'global' ? 'All identities and hyperties' : rule.target;
     let attribute = condition.attribute;
     switch(attribute) {
@@ -445,21 +444,10 @@ class PoliciesManager {
     let userPolicies = this.policyEngine.context.userPolicies;
     userPolicies[policyTitle].deleteRule(rule);
     if (!newSubscriptionType) {
-      let type;
-
-      if (rule.condition.attribute === undefined) {
-        type = 'advanced';
-      } else {
-        if (rule.condition.attribute === 'subscription') {
-          type = 'subscription';
-        } else {
-          type = 'simple';
-        }
-      }
-      userPolicies[policyTitle].createRule(type, newDecision, rule.condition, rule.scope, rule.target, rule.priority);
+      userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
     } else {
       let operator = (newSubscriptionType === '*') ? 'equals' : 'in';
-      userPolicies[policyTitle].createRule('subscription', newDecision, ['subscription', operator, newSubscriptionType], rule.scope, rule.target, rule.priority);
+      userPolicies[policyTitle].createRule(newDecision, [{ attribute: 'subscription', opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
     }
 
     this.policyEngine.context.savePolicies('USER');
