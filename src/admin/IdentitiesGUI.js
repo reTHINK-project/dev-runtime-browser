@@ -11,7 +11,7 @@ class IdentitiesGUI {
     _this._messageBus = identityModule.messageBus;
     _this.identityModule.deployGUI();
 
-    _this.resultUrL  = undefined;
+    _this.resultURL  = undefined;
 
     _this._messageBus.addListener(guiURL, msg => {
       let identityInfo = msg.body.value;
@@ -218,7 +218,26 @@ class IdentitiesGUI {
 
       _this.identityModule.sendGenerateMessage(publicKey, 'origin', undefined, idProvider).then((value) => {
         console.log('receivedURL: ' + value.loginUrl.substring(0, 20) + '...');
-        _this.resultUrL = value.loginUrl;
+
+        let url = value.loginUrl;
+        let finalURL;
+
+        //check if the receivedURL contains the redirect field and replace it
+        if(url.indexOf('redirect_uri') !== -1) {
+          let firstPart = url.substring(0, url.indexOf('redirect_uri'));
+          let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+
+          let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+
+          //check if the reddirect field is the last field of the URL
+          if(secondPart.indexOf('&') !== -1) {
+            finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+          } else {
+            finalURL = firstPart + 'redirect_uri=' + location.origin;
+          }
+        }
+        _this.resultURL = finalURL || url;
+
         $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
         $('.login').removeClass('hide');
         $('.login-btn').off();
@@ -248,7 +267,7 @@ class IdentitiesGUI {
 
   _authenticateUser(keyPair, publicKey, value, origin, idProvider) {
     let _this = this;
-    let url = _this.resultUrL;
+    let url = _this.resultURL;
 
     return new Promise((resolve, reject) => {
 
