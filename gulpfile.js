@@ -125,8 +125,10 @@ gulp.task('bundle:context', function(){
 gulp.task('bundle:policies-gui', function () {
   return bundle('./src/admin/PoliciesGUI.js', 'policies-gui', 'bin');
 });
-
-gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:context', 'bundle:policies-gui']);
+gulp.task('bundle:identities-gui', function () {
+  return bundle('./src/admin/IdentitiesGUI.js', 'identities-gui', 'bin');
+});
+gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui']);
 
 /**
  * Bumping version number and tagging the repository with it.

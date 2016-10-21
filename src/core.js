@@ -21,6 +21,7 @@
 * limitations under the License.
 **/
 import URI from 'urijs';
+import IdentitiesGUI from './admin/IdentitiesGUI';
 import PoliciesGUI from './admin/PoliciesGUI';
 import RuntimeFactory from './RuntimeFactory';
 
@@ -65,7 +66,9 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         eval.apply(window,[sourcePackage.sourceCode])
 
         let runtime = new Runtime(RuntimeFactory, window.location.host);
-        let gui = new PoliciesGUI(runtime.policyEngine);
+
+        new PoliciesGUI(runtime.policyEngine);
+        let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
 
         window.addEventListener('message', function(event){
             if(event.data.to==='core:loadHyperty'){

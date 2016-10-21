@@ -20,6 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
+import PersistenceManager from 'service-framework/dist/PersistenceManager';
 import SandboxWorker from './SandboxWorker';
 import SandboxApp from './SandboxApp';
 import Request from './Request';
@@ -42,12 +43,17 @@ const RuntimeFactory = Object.create({
     createRuntimeCatalogue(development){
         if(!this.catalogue)
             this.catalogue = development?new RuntimeCatalogueLocal(this):new RuntimeCatalogue(this)
-        
+
         return this.catalogue
     },
 
     atob(b64) {
       return atob(b64);
+    },
+
+    persistenceManager() {
+      let localStorage = window.localStorage;
+      return new PersistenceManager(localStorage);
     }
 })
 
