@@ -82,7 +82,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
                         .then(returnHyperty.bind(null, event.source));
                 }
             }else if(event.data.to==='core:loadStub'){
-                runtime.loadStub(event.data.body.domain)
+                runtime.loadStub(event.data.body.domain).then((result) => {
+                  console.log('Stub Loaded: ', result);
+                }).catch((error) => {
+                  console.error('Stub error:', error);
+                })
             }else if(event.data.to==='core:close'){
                 runtime.close()
                     .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))

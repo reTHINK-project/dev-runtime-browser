@@ -32,14 +32,20 @@ export default class SandboxApp extends Sandbox{
          if(!!!this.origin)
             this.origin = e.source;
 
-         if(e.data.to.startsWith('core:'))
+         if(e.data.hasOwnProperty('to') && e.data.to.startsWith('core:'))
              return;
 
-         this._onMessage(e.data);
+         this._onMessage(JSON.parse(JSON.stringify(e.data)));
      }.bind(this));
+
+     window.addEventListener('error', function(error){
+       console.error('[SANDBOX APP] - Error', error);
+       throw error;
+     }.bind(this));
+
    }
 
    _onPostMessage(msg){
-       this.origin.postMessage(msg, '*');
+     this.origin.postMessage(JSON.parse(JSON.stringify(msg)), '*');
    }
 }

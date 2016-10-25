@@ -31,8 +31,14 @@ export default class SandboxWorker extends Sandbox{
      if(!!Worker){
          this._worker = new Worker(script);
          this._worker.addEventListener('message', function(e){
-             this._onMessage(e.data);
+             this._onMessage(JSON.parse(JSON.stringify(e.data)));
          }.bind(this));
+
+         this._worker.addEventListener('error', function(error){
+           console.log("[Sandbox Worker] - Error: ", error);
+           throw JSON.stringify(error);
+         }.bind(this));
+
          this._worker.postMessage('');
      }else{
          throw new Error('Your environment does not support worker \n', e);
@@ -40,6 +46,6 @@ export default class SandboxWorker extends Sandbox{
    }
 
    _onPostMessage(msg){
-       this._worker.postMessage(msg);
+       this._worker.postMessage(JSON.parse(JSON.stringify(msg)));
    }
 }

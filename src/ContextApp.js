@@ -26,19 +26,24 @@ import MiniBus from 'runtime-core/dist/minibus';
 function create(iframe){
     window._miniBus = new MiniBus();
     window._miniBus._onPostMessage = function(msg){
-        iframe.contentWindow.postMessage(msg, '*');
+        iframe.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), '*');
     };
     window.addEventListener('message', function(event){
         if(event.data.to.startsWith('runtime:loadedHyperty') || event.data.to.endsWith('gui-manager'))
             return;
 
-        window._miniBus._onMessage(event.data);
+        window._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
     }, false);
 
     window._registry = new SandboxRegistry(window._miniBus);
     window._registry._create = function(url, sourceCode, config){
+      try {
         eval.apply(window, [sourceCode]);
         return activate(url, window._miniBus, config);
+      } catch (error) {
+        console.error("[Context APP Create] - Error: ", error);
+        throw JSON.stringify(error.message);
+      }
     };
 };
 

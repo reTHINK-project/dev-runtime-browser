@@ -24,7 +24,7 @@ import PersistenceManager from 'service-framework/dist/PersistenceManager';
 import SandboxWorker from './SandboxWorker';
 import SandboxApp from './SandboxApp';
 import Request from './Request';
-import {RuntimeCatalogueLocal, RuntimeCatalogue} from 'service-framework/dist/RuntimeCatalogue';
+import {RuntimeCatalogue} from 'service-framework/dist/RuntimeCatalogue';
 
 const RuntimeFactory = Object.create({
     createSandbox(){
@@ -42,9 +42,9 @@ const RuntimeFactory = Object.create({
 
     createRuntimeCatalogue(development){
         if(!this.catalogue)
-            this.catalogue = development?new RuntimeCatalogueLocal(this):new RuntimeCatalogue(this)
+            this.catalogue = new RuntimeCatalogue(this);
 
-        return this.catalogue
+        return this.catalogue;
     },
 
     atob(b64) {
