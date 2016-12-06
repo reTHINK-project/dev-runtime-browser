@@ -31,7 +31,8 @@
   "dependencies": {
     "runtime-core": "git+https://github.com/reTHINK-project/dev-runtime-core.git#develop",
     "service-framework": "git+https://github.com/reTHINK-project/dev-service-framework.git#develop",
-    "webrtcsupport": "2.2.0"
+    "webrtcsupport": "2.2.0",
+    "dexie": "^1.5.1"
   },
   "devDependencies": {
     "array.observe": "0.0.1",

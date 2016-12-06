@@ -52,50 +52,54 @@ let parameters = new URI(window.location).search(true)
 let runtimeURL = parameters.runtime
 let development = parameters.development === 'true'
 let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
-
+let runtimeDescriptor;
 catalogue.getRuntimeDescriptor(runtimeURL)
-	.then(function(descriptor){
-		let sourcePackageURL = descriptor.sourcePackageURL
-		if (sourcePackageURL === '/sourcePackage') {
-			return descriptor.sourcePackage
-		}
+    .then(function(descriptor){
+      runtimeDescriptor = descriptor;
+        let sourcePackageURL = descriptor.sourcePackageURL;
+        if (sourcePackageURL === '/sourcePackage') {
+            return descriptor.sourcePackage;
+        }
 
 		return catalogue.getSourcePackageFromURL(sourcePackageURL)
 	})
 .then(function(sourcePackage){
 	eval.apply(window,[sourcePackage.sourceCode])
 
-	let runtime = new Runtime(RuntimeFactory, window.location.host)
+	let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
+	window.runtime = runtime;
+	runtime.init().then( function(result){
+	  new PoliciesGUI(runtime.policyEngine);
+	  let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
 
-	new PoliciesGUI(runtime.policyEngine)
-	let identitiesGUI = new IdentitiesGUI(runtime.identityModule)
+	  window.addEventListener('message', function(event){
+		  if(event.data.to==='core:loadHyperty'){
+			  let descriptor = event.data.body.descriptor;
+			  let hyperty = searchHyperty(runtime, descriptor);
 
-	window.addEventListener('message', function(event){
-		if(event.data.to==='core:loadHyperty'){
-			let descriptor = event.data.body.descriptor
-			let hyperty = searchHyperty(runtime, descriptor)
+			  if(hyperty){
+				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+			  }else{
+				  runtime.loadHyperty(descriptor)
+					  .then(returnHyperty.bind(null, event.source));
+			  }
+		  }else if(event.data.to==='core:loadStub'){
+			  runtime.loadStub(event.data.body.domain).then((result) => {
+				console.log('Stub Loaded: ', result);
+			  }).catch((error) => {
+				console.error('Stub error:', error);
+			  })
+		  }else if(event.data.to==='core:close'){
+			  runtime.close()
+				  .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
+				  .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
+		  }
 
-			if(hyperty){
-				returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL})
-			}else{
-				runtime.loadHyperty(descriptor)
-					.then(returnHyperty.bind(null, event.source))
-			}
-		}else if(event.data.to==='core:loadStub'){
-			runtime.loadStub(event.data.body.domain).then((result) => {
-				console.log('Stub Loaded: ', result)
-			}).catch((error) => {
-				console.error('Stub error:', error)
-			})
-		}else if(event.data.to==='core:close'){
-			runtime.close()
-				.then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-				.catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
-		}
-
-	}, false)
-	window.addEventListener('beforeunload', (e) => {
-		runtime.close()
-	})
-	parent.postMessage({to:'runtime:installed', body:{}}, '*')
-})
+	  }, false);
+	  window.addEventListener('beforeunload', (e) => {
+		  runtime.close()
+	  })
+	  parent.postMessage({to:'runtime:installed', body:{}}, '*');
+	  console.log('AFTER PARENT');
+	});
+});

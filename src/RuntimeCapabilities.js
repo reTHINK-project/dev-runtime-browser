@@ -1,71 +1,113 @@
-import webrtcSupport from 'webrtcsupport'
+// TODO: import and extend the class of the service-framework
+// service-framework/dist/RuntimeCapabilities;
 
-/**
- * Proxy to get access to runtime capabilities
- * */
 class RuntimeCapabilities {
-	/**
-	 * @param {StorageManager} storageManager - StoprageManager instance
-	 */
-	constructor(storageManager) {
-		if (!storageManager) throw new Error('The Runtime Capabilities need the storageManager')
 
-		/**
-		 * @ignore
-		 */
-		this.storageManager = storageManager
-		/**
-		 * @ignore
-		 */
-		this.storageKey = 'capabilities'
-		/**
-		 * @ignore
-		 */
-		this.storageVersion = '1'
-	}
+  constructor(storageManager) {
+    if (!storageManager) throw new Error('The Runtime Capabilities need the storageManager');
 
-	/**
-	 * Get runtime capabilities
-	 * @return {Object}
-	 */
-	getRuntimeCapabilities() {
-		return this.storageManager.get(this.storageKey)
-			.then(capabilities => {
-				if (capabilities)
-					return capabilities
-				return this.update().then(key => this.storageManager.get(key))
-			})
-	}
+    this.storageManager = storageManager;
+  }
 
-	/**
-	 * Check if a capability is available
-	 * @param {string} cap - Capability
-	 * @return {boolean}
-	 */
-	isAvailable(cap) {
-		return this.getRuntimeCapabilities()
-			.then(capabilities => {
-				return capabilities[cap]
-			})
-	}
+  /**
+   * Returns as a promise RuntimeCapabilities json object with all available capabilities of the runtime.
+   * If it was not yet persisted in the Storage Manager it collects all required info from the platform and saves in the storage manager.
+   * @returns {Promise<object>}
+   */
+  getRuntimeCapabilities() {
 
-	/**
-	 * Update capabilities
-	 */
-	update() {
-		const capabilities = this._getCapabilities()
-		return this.storageManager.set(this.storageKey, this.storageVersion, capabilities)
-	}
+    return new Promise((resolve, reject) => {
 
-	_getCapabilities() {
-		return {
-			browser: !!window,
-			node: !window,
-			windowSandbox: !!window,
-			webrtc: webrtcSupport.support,
-			datachannel: webrtcSupport.supportDataChannel
-		}
-	}
+      Promise.all([this._getEnvironment(), this._getMediaDevices()]).then((result) => {
+        let capabilities = {};
+        result.forEach((capability) => {
+          Object.assign(capabilities, capability);
+        });
+
+        this.storageManager.set('capabilities', '1', capabilities);
+
+        resolve(capabilities);
+      }).catch((error) => {
+        reject(error);
+      });
+
+    });
+
+  }
+
+  /**
+   * returns as a promise a boolean according to available capabilities.
+   * @returns {Promise<boolean>}
+   */
+  isAvailable(capability) {
+    return new Promise((resolve) => {
+
+      this.storageManager.get('capabilities').then((capabilities) => {
+
+        console.log('Capability ' + capability + ' is available? ', capabilities.hasOwnProperty(capability) && capabilities[capability]);
+        if (capabilities.hasOwnProperty(capability) && capabilities[capability]) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+
+    });
+  }
+
+  /**
+   * it refreshes previously collected capabilities and updates the storage manager
+   */
+  update() {
+    return new Promise((resolve, reject) => {
+      this.getRuntimeCapabilities().then(resolve).catch(reject);
+    });
+  }
+
+  // TODO: organize the code in separated files
+  _getEnvironment() {
+
+    // TODO: this should be more effective and check the environment
+    return {
+      browser: !!(window && navigator),
+      node: !!!(window && navigator)
+    };
+  }
+
+  // TODO: organize the code in separated files
+  _getMediaDevices() {
+    return new Promise((resolve) => {
+
+      let capability = {};
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.log('enumerateDevices() not supported.');
+        resolve(capability);
+        return;
+      }
+
+      // List cameras and microphones.
+      navigator.mediaDevices.enumerateDevices()
+      .then((devices) => {
+        devices.forEach((device) => {
+          // console.log(device.kind, device.label, device.deviceId);
+          if (device.kind === 'audioinput' && device.deviceId === 'default') {
+            capability.mic = true;
+          }
+
+          if (device.kind === 'videoinput') {
+            capability.camera = true;
+          }
+        });
+        resolve(capability);
+      })
+      .catch((err) => {
+        resolve(capability);
+        console.log(err.name + ': ' + err.message);
+      });
+    });
+  }
+
 }
 
-export default RuntimeCapabilities
+export default RuntimeCapabilities;
