@@ -52,7 +52,6 @@ export default class SandboxApp extends Sandbox{
 			console.error('[SANDBOX APP] - Error', error)
 			throw error
 		}.bind(this))
-
 	}
 
 	_onPostMessage(msg){

@@ -67,8 +67,12 @@ export default {
 	},
 
 	persistenceManager() {
-		let localStorage = window.localStorage
-		return new PersistenceManager(localStorage)
+		//let localStorage = window.localStorage
+		//return new PersistenceManager(localStorage)
+		return new PersistenceManager({
+			setItem: ()=>{},
+			getItem: ()=>{ throw new Error() }
+		})
 	},
 
 	storageManager() {
