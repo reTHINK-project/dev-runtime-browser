@@ -70,6 +70,13 @@ const RethinkBrowser = {
 			messages.subscribe((m) => console.log('message', m))
 			messages.filter(e => e.data.to && e.data.to === 'runtime:installed')
 				.subscribe(() => resolve(runtimeAdapter(core.port, messages)))
+			messages.filter(e => e.data.to && e.data.to === 'runtime:createSandboxWindow')
+				.subscribe((e) => {
+					const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
+					ifr.addEventListener('load', () => {
+						ifr.contentWindow.postMessage(e.data, '*', e.ports)
+					}, false)
+				})
 			messages.filter(e => e.data.to && !e.data.to.startsWith('runtime'))
 				.subscribe((m) => app.onMessage(m))
 			//messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')

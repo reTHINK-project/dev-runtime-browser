@@ -23,6 +23,7 @@
 import PersistenceManager from 'service-framework/dist/PersistenceManager'
 import { createSandbox } from './Sandboxes'
 import SandboxApp from './SandboxApp'
+import SandboxWindow from './SandboxWindow'
 import Request from './Request'
 import RuntimeCapabilities from './RuntimeCapabilities'
 import storageManager from 'service-framework/dist/StorageManager'
@@ -41,9 +42,13 @@ import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
  * @property {function():StorageManager} storageManager Returns a new StorageManager
  * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
  */
-export default {
-	createSandbox(constraints) {
-		return createSandbox(constraints)
+const RuntimeFactory = Object.create({
+	createSandboxWindow() {
+		return new SandboxWindow()
+	},
+
+	createSandbox() {
+		return new SandboxWorker('./context-service.js')
 	},
 
 	createAppSandbox() {
@@ -85,4 +90,6 @@ export default {
 	runtimeCapabilities(storageManager) {
 		return new RuntimeCapabilities(storageManager)
 	}
-}
+})
+
+export default RuntimeFactory
