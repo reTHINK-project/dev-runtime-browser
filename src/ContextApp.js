@@ -23,36 +23,32 @@
 import { SandboxRegistry } from 'runtime-core/dist/sandbox'
 import MiniBus from 'runtime-core/dist/minibus'
 
-function init(port){
-	window._miniBus = new MiniBus()
-	window._miniBus._onPostMessage = function(msg){
+function create(port){
+	const _miniBus = new MiniBus()
+	_miniBus._onPostMessage = function(msg){
 		port.postMessage(JSON.parse(JSON.stringify(msg)))
 	}
 
-	window._registry = new SandboxRegistry(window._miniBus)
-	window._registry._create = function(url, sourceCode, config){
+	const _registry = new SandboxRegistry(_miniBus)
+	_registry._create = function(url, sourceCode, config){
 		try {
-			eval.apply(window, [sourceCode])
-			return activate(url, window._miniBus, config)
+			eval.apply(self, [sourceCode])
+			return activate(url, _miniBus, config)
 		} catch (error) {
 			console.error("[Context APP Create] - Error: ", error)
 			throw JSON.stringify(error.message)
 		}
 	}
+
+	port.onmessage = (message) => {
+		_miniBus._onMessage(JSON.parse(JSON.stringify(message.data)))
+	}
+
+	return {
+		getHyperty: (hypertyDescriptor) => {
+			return _registry.components[hypertyDescriptor]
+		}
+	}
 }
 
-function onMessage (message) {
-	if (!window._miniBus)
-		throw new Error('App context not initialized')
-
-	window._miniBus._onMessage(JSON.parse(JSON.stringify(message.data)))
-}
-
-function getHyperty(hypertyDescriptor){
-	if (!window._registry)
-		throw new Error('App context not initialized')
-
-	return window._registry.components[hypertyDescriptor]
-}
-
-export default { init, onMessage, getHyperty }
+export default { create }

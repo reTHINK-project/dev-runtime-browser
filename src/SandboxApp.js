@@ -21,23 +21,25 @@
 * limitations under the License.
 **/
 import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
-import MiniBus from 'runtime-core/dist/minibus'
 
 /**
  * Proxy for the Application context
  * */
 export default class SandboxApp extends Sandbox{
-   constructor(port){
-     super();
-	 this.port = port
-     this.type = SandboxType.NORMAL;
-   }
+	constructor(port){
+		super()
 
-   onMessage(msg) {
-	 this._onMessage(JSON.parse(JSON.stringify(msg)));
-   }
+		this.type = SandboxType.NORMAL
+		this.channel = new MessageChannel()
 
-   _onPostMessage(msg){
-     this.port.postMessage(JSON.parse(JSON.stringify(msg)));
-   }
+		this.channel.port1.onmessage = function(e){
+			this._onMessage(JSON.parse(JSON.stringify(e.data)))
+		}.bind(this)
+
+		port.postMessage({ to:'runtime:createAppSandbox' }, [this.channel.port2])
+	}
+
+	_onPostMessage(msg){
+		this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)))
+	}
 }

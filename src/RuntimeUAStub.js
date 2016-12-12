@@ -34,12 +34,13 @@ const buildMsg = (hypertyComponent, msg) => {
 	}
 }
 
+let appContext
 const runtimeAdapter = (port, messages) => {
 	return {
 		requireHyperty: (hypertyDescriptor)=>{
 			return new Promise((resolve)=>{
 				messages.filter(e => e.data.to && e.data.to === 'runtime:loadedHyperty')
-					.subscribe(e => resolve(buildMsg(app.getHyperty(e.data.body.runtimeHypertyURL), e.data)))
+					.subscribe(e => resolve(buildMsg(appContext.getHyperty(e.data.body.runtimeHypertyURL), e.data)))
 				port.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor}})
 			})
 		},
@@ -76,8 +77,10 @@ const RethinkBrowser = {
 						ifr.contentWindow.postMessage(e.data, '*', e.ports)
 					}, false)
 				})
-			messages.filter(e => e.data.to && !e.data.to.startsWith('runtime'))
-				.subscribe((m) => app.onMessage(m))
+			messages.filter(e => e.data.to && e.data.to === 'runtime:createAppSandbox')
+				.subscribe((e) => {
+					appContext = app.create(e.ports[0])
+				})
 			//messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')
 			//	.subscribe(e => {
 			//		if (e.data.body.method === 'showAdminPage') {
@@ -90,8 +93,6 @@ const RethinkBrowser = {
 			//			}
 			//		}
 			//	})
-
-			app.init(core.port)
 		})
 	},
 

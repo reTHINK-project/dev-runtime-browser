@@ -22,7 +22,7 @@
 **/
 import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
 
-export default class SandboxApp extends Sandbox{
+export default class SandboxWindow extends Sandbox{
 	constructor(port){
 		super()
 
