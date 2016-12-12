@@ -21,8 +21,6 @@
 * limitations under the License.
 **/
 import URI from 'urijs'
-import IdentitiesGUI from './admin/IdentitiesGUI'
-import PoliciesGUI from './admin/PoliciesGUI'
 import RuntimeFactory from './RuntimeFactory'
 
 function returnHyperty(source, hyperty){
@@ -110,8 +108,4 @@ onconnect = function(e) {
 	} else {
 		port.postMessage({to:'runtime:installed', body:{}})
 	}
-
-	//new PoliciesGUI(runtime.policyEngine)
-	//let identitiesGUI = new IdentitiesGUI(runtime.identityModule)
-	//window.addEventListener('beforeunload', (e) => {
 }

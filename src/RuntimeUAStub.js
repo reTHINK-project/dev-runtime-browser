@@ -63,6 +63,7 @@ const RethinkBrowser = {
 	install: function({domain, runtimeURL, development}={}){
 		return new Promise((resolve)=>{
 			const runtime = this._getRuntime(runtimeURL, domain, development)
+			const adminGUI = createIframe(`https://${runtime.domain}/.well-known/runtime/index.html`)
 			const core = new SharedWorker(`https://${runtime.domain}/.well-known/runtime/core.js?runtime=${runtime.url}&development=${development}`)
 			const messages = Rx.Observable.fromEvent(core.port, 'message')
 			core.port.start()
@@ -81,18 +82,18 @@ const RethinkBrowser = {
 				.subscribe((e) => {
 					appContext = app.create(e.ports[0])
 				})
-			//messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')
-			//	.subscribe(e => {
-			//		if (e.data.body.method === 'showAdminPage') {
-			//			iframe.style.width = '100%'
-			//			iframe.style.height = '100%'
-			//		} else {
-			//			if (e.data.body.method === 'hideAdminPage') {
-			//				iframe.style.width = '40px'
-			//				iframe.style.height = '40px'
-			//			}
-			//		}
-			//	})
+			messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')
+				.subscribe(e => {
+					if (e.data.body.method === 'showAdminPage') {
+						adminGUI.style.width = '100%'
+						adminGUI.style.height = '100%'
+					} else {
+						if (e.data.body.method === 'hideAdminPage') {
+							adminGUI.style.width = '40px'
+							adminGUI.style.height = '40px'
+						}
+					}
+				})
 		})
 	},
 

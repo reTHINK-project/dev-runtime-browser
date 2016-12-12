@@ -125,13 +125,10 @@ gulp.task('bundle:sandbox', function(){
 gulp.task('bundle:context', function(){
     return bundle('./src/ContextServiceProvider.js', 'context-service', 'bin')
 });
-gulp.task('bundle:policies-gui', function () {
-  return bundle('./src/admin/PoliciesGUI.js', 'policies-gui', 'bin');
+gulp.task('bundle:admin-gui', function () {
+  return bundle('./src/admin/index.js', 'admin-gui', 'bin');
 });
-gulp.task('bundle:identities-gui', function () {
-  return bundle('./src/admin/IdentitiesGUI.js', 'identities-gui', 'bin');
-});
-gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui']);
+gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:admin-gui']);
 
 /**
  * Bumping version number and tagging the repository with it.
