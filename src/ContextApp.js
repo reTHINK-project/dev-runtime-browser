@@ -23,10 +23,10 @@
 import { SandboxRegistry } from 'runtime-core/dist/sandbox'
 import MiniBus from 'runtime-core/dist/minibus'
 
-function init(iframe){
+function init(port){
 	window._miniBus = new MiniBus()
 	window._miniBus._onPostMessage = function(msg){
-		iframe.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), '*')
+		port.postMessage(JSON.parse(JSON.stringify(msg)))
 	}
 
 	window._registry = new SandboxRegistry(window._miniBus)

@@ -23,7 +23,7 @@
 import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
 
 export default class SandboxApp extends Sandbox{
-	constructor(){
+	constructor(port){
 		super()
 
 		this.type = SandboxType.NORMAL
@@ -33,7 +33,7 @@ export default class SandboxApp extends Sandbox{
 			this._onMessage(JSON.parse(JSON.stringify(e.data)))
 		}.bind(this)
 
-		parent.postMessage({ to:'runtime:createSandboxWindow' }, '*', [this.channel.port2])
+		port.postMessage({ to:'runtime:createSandboxWindow' }, [this.channel.port2])
 	}
 
 	_onPostMessage(msg){

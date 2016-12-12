@@ -40,19 +40,19 @@ const runtimeAdapter = (port, messages) => {
 			return new Promise((resolve)=>{
 				messages.filter(e => e.data.to && e.data.to === 'runtime:loadedHyperty')
 					.subscribe(e => resolve(buildMsg(app.getHyperty(e.data.body.runtimeHypertyURL), e.data)))
-				port.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor}}, '*')
+				port.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor}})
 			})
 		},
 
 		requireProtostub: (domain)=>{
-			port.postMessage({to:'core:loadStub', body:{'domain': domain}}, '*')
+			port.postMessage({to:'core:loadStub', body:{'domain': domain}})
 		},
 
 		close: ()=>{
 			return new Promise((resolve)=>{
 				messages.filter(e => e.data.to && e.data.to === 'runtime:runtimeClosed')
 					.subscribe(e => resolve(e.data.body))
-				port.postMessage({to:'core:close', body:{}}, '*')
+				port.postMessage({to:'core:close', body:{}})
 			})
 		}
 	}
@@ -62,8 +62,7 @@ const RethinkBrowser = {
 	install: function({domain, runtimeURL, development}={}){
 		return new Promise((resolve)=>{
 			const runtime = this._getRuntime(runtimeURL, domain, development)
-			const url = `https://${runtime.domain}/.well-known/runtime/core.js?runtime=${runtime.url}&development=${development}`
-			const core = new SharedWorker(url)
+			const core = new SharedWorker(`https://${runtime.domain}/.well-known/runtime/core.js?runtime=${runtime.url}&development=${development}`)
 			const messages = Rx.Observable.fromEvent(core.port, 'message')
 			core.port.start()
 
@@ -92,7 +91,7 @@ const RethinkBrowser = {
 			//		}
 			//	})
 
-			//app.init(iframe)
+			app.init(core.port)
 		})
 	},
 

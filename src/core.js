@@ -42,7 +42,7 @@ function searchHyperty(runtime, descriptor){
 	return hyperty
 }
 
-function loadRuntime(runtimeURL) {
+function loadRuntime(runtimeURL, runtimeFactory) {
 	return catalogue.getRuntimeDescriptor(runtimeURL)
 		.then(descriptor => {
 			let sourcePackageURL = descriptor.sourcePackageURL
@@ -55,24 +55,21 @@ function loadRuntime(runtimeURL) {
 		.then(sourcePackage => {
 			eval.apply(self,[sourcePackage.sourceCode])
 
-			return new Runtime(RuntimeFactory, self.location.host)
+			return new Runtime(runtimeFactory, self.location.host)
 		})
 }
 
+let parameters = new URI(self.location.href).search(true)
+let runtimeURL = parameters.runtime
+let development = parameters.development === 'true'
 let runtime = undefined
 let catalogue = undefined
 
 onconnect = function(e) {
-	console.log('juas')
-	console.log(this)
-
-	let parameters = new URI(self.location.href).search(true)
-	let runtimeURL = parameters.runtime
-	let development = parameters.development === 'true'
-	catalogue = RuntimeFactory.createRuntimeCatalogue(development)
 	let port = e.ports[0]
+	let runtimeFactory = RuntimeFactory(port)
 
-	port.addEventListener('message', function(e) {
+	port.onmessage = (e) => {
 		if(!runtime)
 			throw new Error('runtime not installed')
 
@@ -81,10 +78,10 @@ onconnect = function(e) {
 			let hyperty = searchHyperty(runtime, descriptor)
 
 			if (hyperty){
-				returnHyperty(e.source, {runtimeHypertyURL: hyperty.hypertyURL})
+				returnHyperty(port, {runtimeHypertyURL: hyperty.hypertyURL})
 			} else {
 				runtime.loadHyperty(descriptor)
-					.then(returnHyperty.bind(null, e.source))
+					.then(returnHyperty.bind(null, port))
 			}
 		} else if (e.data.to==='core:loadStub'){
 			runtime.loadStub(e.data.body.domain).then((result) => {
@@ -94,13 +91,18 @@ onconnect = function(e) {
 			})
 		} else if (e.data.to==='core:close'){
 			runtime.close()
-				.then(port.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-				.catch(port.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
+				.then(port.postMessage({to: 'runtime:runtimeClosed', body: true}))
+				.catch(port.postMessage({to: 'runtime:runtimeClosed', body: false}))
+		} else {
+			runtimeFactory.createAppSandbox().onMessage(e.data)
 		}
-	})
+	}
+
+	if(!catalogue)
+		catalogue = runtimeFactory.createRuntimeCatalogue(development)
 
 	if(!runtime) {
-		loadRuntime(runtimeURL)
+		loadRuntime(runtimeURL, runtimeFactory)
 		.then(rnt => {
 			runtime = rnt
 			port.postMessage({to:'runtime:installed', body:{}})

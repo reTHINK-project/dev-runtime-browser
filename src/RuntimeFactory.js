@@ -42,17 +42,22 @@ import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
  * @property {function():StorageManager} storageManager Returns a new StorageManager
  * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
  */
-const RuntimeFactory = Object.create({
+let appSandbox
+const RuntimeFactory = (port) => Object.create({
 	createSandboxWindow() {
-		return new SandboxWindow()
+		return new SandboxWindow(port)
 	},
 
 	createSandbox() {
-		return new SandboxWorker('./context-service.js')
+		return new SandboxWindow(port)
+		//return new SandboxWorker('./context-service.js')
 	},
 
 	createAppSandbox() {
-		return new SandboxApp()
+		if(!appSandbox)
+			appSandbox = new SandboxApp(port)
+
+		return appSandbox
 	},
 
 	createHttpRequest() {
