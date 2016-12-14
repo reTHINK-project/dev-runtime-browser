@@ -53,13 +53,12 @@ function loadRuntime(runtimeURL, runtimeFactory) {
 		.then(sourcePackage => {
 			eval.apply(self,[sourcePackage.sourceCode])
 
-			return new Runtime(runtimeFactory, self.location.host)
+			return new Runtime(runtimeFactory, self.runtimeURL.replace('http://','').replace('https://','').split(/[/?#]/)[0])
 		})
 }
 
-let parameters = new URI(self.location.href).search(true)
-let runtimeURL = parameters.runtime
-let development = parameters.development === 'true'
+let runtimeURL = self.runtimeURL
+let development = self.development
 let runtime = undefined
 let catalogue = undefined
 

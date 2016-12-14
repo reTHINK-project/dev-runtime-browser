@@ -22,6 +22,7 @@
  **/
 import app from './ContextApp'
 import URI from 'urijs'
+import Request from './Request'
 import { create as createIframe } from './iframe'
 import Rx from 'rx'
 
@@ -61,40 +62,45 @@ const runtimeAdapter = (port, messages) => {
 
 const RethinkBrowser = {
 	install: function({domain, runtimeURL, development}={}){
-		return new Promise((resolve)=>{
-			const runtime = this._getRuntime(runtimeURL, domain, development)
-			const adminGUI = createIframe(`https://${runtime.domain}/.well-known/runtime/index.html`)
-			const core = new SharedWorker(`https://${runtime.domain}/.well-known/runtime/core.js?runtime=${runtime.url}&development=${development}`)
-			const messages = Rx.Observable.fromEvent(core.port, 'message')
-			core.port.start()
+		const req = new Request();
+		const runtime = this._getRuntime(runtimeURL, domain, development)
+		return req.get(`https://${runtime.domain}/.well-known/runtime/core.js`)
+			.then(script => {
+				return new Promise((resolve) => {
+					const adminGUI = createIframe(`https://${runtime.domain}/.well-known/runtime/index.html`)
+					const url = URL.createObjectURL(new Blob([`self.runtimeURL='${runtime.url}';self.development=${development};${script}`], {type: 'application/javascript'}))
+					const core = new SharedWorker(`${url}`)
+					const messages = Rx.Observable.fromEvent(core.port, 'message')
+					core.port.start()
 
-			messages.subscribe((m) => console.log('message', m))
-			messages.filter(e => e.data.to && e.data.to === 'runtime:installed')
-				.subscribe(() => resolve(runtimeAdapter(core.port, messages)))
-			messages.filter(e => e.data.to && e.data.to === 'runtime:createSandboxWindow')
-				.subscribe((e) => {
-					const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
-					ifr.addEventListener('load', () => {
-						ifr.contentWindow.postMessage(e.data, '*', e.ports)
-					}, false)
+					messages.subscribe((m) => console.log('message', m))
+					messages.filter(e => e.data.to && e.data.to === 'runtime:installed')
+						.subscribe(() => resolve(runtimeAdapter(core.port, messages)))
+					messages.filter(e => e.data.to && e.data.to === 'runtime:createSandboxWindow')
+						.subscribe((e) => {
+							const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
+							ifr.addEventListener('load', () => {
+								ifr.contentWindow.postMessage(e.data, '*', e.ports)
+							}, false)
+						})
+					messages.filter(e => e.data.to && e.data.to === 'runtime:createAppSandbox')
+						.subscribe((e) => {
+							appContext = app.create(e.ports[0])
+						})
+					messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')
+						.subscribe(e => {
+							if (e.data.body.method === 'showAdminPage') {
+								adminGUI.style.width = '100%'
+								adminGUI.style.height = '100%'
+							} else {
+								if (e.data.body.method === 'hideAdminPage') {
+									adminGUI.style.width = '40px'
+									adminGUI.style.height = '40px'
+								}
+							}
+						})
 				})
-			messages.filter(e => e.data.to && e.data.to === 'runtime:createAppSandbox')
-				.subscribe((e) => {
-					appContext = app.create(e.ports[0])
-				})
-			messages.filter(e => e.data.to && e.data.to === 'runtime:gui-manager')
-				.subscribe(e => {
-					if (e.data.body.method === 'showAdminPage') {
-						adminGUI.style.width = '100%'
-						adminGUI.style.height = '100%'
-					} else {
-						if (e.data.body.method === 'hideAdminPage') {
-							adminGUI.style.width = '40px'
-							adminGUI.style.height = '40px'
-						}
-					}
-				})
-		})
+			})
 	},
 
 	_getRuntime (runtimeURL, domain, development) {
