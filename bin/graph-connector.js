@@ -320,6 +320,7 @@ function update_owner_information() {
 }
 
 function send_global_registry_record() {
+	window.runtime.runtime.setDefaults(0,0,0);
 	$.fancybox.close();
 	let result = window.runtime.runtime.signGlobalRegistryRecord();
 
