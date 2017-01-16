@@ -294,7 +294,7 @@ function get_owner_information() {
 			"<td>" + result.lastCalculationBloomFilter1Hop + "</td>" +
 			"</tr>";
 
-		html = html + "</tr><tr><td colspan=3 align='middle'><button class='btn btn-success' onclick = send_global_registry_record()><span class='glyphicon glyphicon-send'><b> send Global Registry Record</b></span></button><h6 align='left' style='color: gray;'>*Please make sure that you have already set the defaults before you send a global registry record.*</h6></td></tr>" +
+		html = html + "</tr><tr><td colspan=3 align='middle'><button class='btn btn-success' onclick = send_global_registry_record()><span class='glyphicon glyphicon-send'><b> send Global Registry Record</b></span></button></td></tr>" +
 			"</table>";
 
 		$.fancybox({
