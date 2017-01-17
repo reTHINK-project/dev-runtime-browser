@@ -320,40 +320,47 @@ function update_owner_information() {
 }
 
 function send_global_registry_record() {
-	window.runtime.runtime.setDefaults(0,0,0);
-	$.fancybox.close();
-	let result = window.runtime.runtime.signGlobalRegistryRecord();
+	if (typeof window.runtime.runtime.getOwner()._guid == "string") {
+			window.runtime.runtime.setDefaults(0,0,0);
+			$.fancybox.close();
+			let result = window.runtime.runtime.signGlobalRegistryRecord();
 
-	if (result == null) {
-		return "NO such GUID";
+			if (result == null) {
+				return "NO such GUID";
 
-	} else {
-		console.log(result);
+			} else {
+				console.log(result);
 
-		let checkPromise = new Promise(
-			function (resolve, reject) {
-				resolve(window.runtime.runtime.sendGlobalRegistryRecord(result));
-			});
-
-		checkPromise.then(
-			function (result) {
-				console.log("send #########");
-				console.log(result)
-				console.log("send #########");
-				if (result == 200) {
-					ownerguid = globalOwnerDetails._guid;
-					$.fancybox({
-						type: "html",
-						content: "<p class=" + "title0" + ">  Global Registry Record successfully sent </p>"
+				let checkPromise = new Promise(
+					function (resolve, reject) {
+						resolve(window.runtime.runtime.sendGlobalRegistryRecord(result));
 					});
-				} else {
-					$.fancybox({
-						type: "html",
-						content: "<p class=" + "title0" + ">  Error code: " + result + "  </p>"
+
+				checkPromise.then(
+					function (result) {
+						console.log("send #########");
+						console.log(result)
+						console.log("send #########");
+						if (result == 200) {
+							ownerguid = globalOwnerDetails._guid;
+							$.fancybox({
+								type: "html",
+								content: "<p class=" + "title0" + ">  Global Registry Record successfully sent </p>"
+							});
+						} else {
+							$.fancybox({
+								type: "html",
+								content: "<p class=" + "title0" + ">  Error code: " + result + "  </p>"
+							});
+						}
 					});
-				}
-			});
-	}
+			}
+}	else {
+				$.fancybox({
+					type: "html",
+					content: "<p class=" + "title0" + ">  Please generate a valid GUID first!  </p>"
+				});
+			}
 }
 
 
