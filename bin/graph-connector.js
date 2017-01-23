@@ -257,9 +257,9 @@ function get_owner_information() {
 		globalOwnerDetails = result;
 		let html = "<table class='table table-hover'><tr>" +
 			"<td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Firstname : </span></b></td>" +
-			"<td> " + result._firstName + " </td>" +
+			"<td> " + result._firstName + " </td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(1)>Edit</button></td>" + 
 			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'>Lastname : </span> </b></td>" +
-			"<td>" + result._lastName + "</td>" +
+			"<td>" + result._lastName + "</td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(2)>Edit</button></td>" +
 			"</tr>" +
 			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' > GUID : </span> </b></td>" +
 			"<td>" + result._guid + "</td>" +
@@ -301,6 +301,45 @@ function get_owner_information() {
 
 }
 
+function edit_owner_name(l){
+	$('tr:nth-child(' + l + ') td:nth-child(2)').each(function () {
+		console.log("Editing the value ");
+	let html = $(this).html();
+	if (l == 1) {
+		var input = $('<input id="efname" class="form-control" type="text" placeholder="Enter First Name" value="' + window.runtime.runtime.getOwner()._firstName + '" />');
+	} else if (l == 2) {
+		var input = $('<input id="elname" class="form-control" type="text" placeholder="Enter Last Name" value="' + window.runtime.runtime.getOwner()._lastName + '"/>');
+	}
+	input.val();
+	$(this).html(input);
+	$('tr:nth-child(' + l + ') td:nth-child(3)').html("<button class='btn btn-info' onclick=set_owner_name("+ l +")>Save</button>");
+});
+}
+
+function set_owner_name(l){
+	let error_status = false;
+	let result = window.runtime.runtime.getOwner();
+	if (l == 1 && checkLength($("#efname"), "firstname", 1, 20) && checkRegexpEdit($("#efname"), /^[a-zA-Z]*$/, "firstname can consist of a-z only")) {
+		result._firstName = $("#efname").val();
+		error_status = true;
+	}
+	if (l == 2 && checkLength($("#elname"), "Lastname", 1, 20) && checkRegexpEdit($("#elname"), /^[a-zA-Z]*$/, "Lastname can consist of a-z only")) {
+		result._lastName = $("#elname").val();
+		error_status = true;
+	}
+	if (error_status) {
+		window.runtime.runtime.setOwnerName(result._firstName, result._lastName);
+		$.fancybox({
+			type: "html",
+			content: "<p class=" + "title0" + ">  Successfully edited!  </p>"
+		});
+	} else {
+		$.fancybox({
+			type: "html",
+			content: "<p class=" + "title0" + ">  Firstname or lastname can consist of a-z only!  </p>"
+		});
+}
+}
 
 function update_owner_information() {
 	let result = window.runtime.runtime.getOwner();
