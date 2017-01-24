@@ -257,7 +257,7 @@ function get_owner_information() {
 		globalOwnerDetails = result;
 		let html = "<table class='table table-hover'><tr>" +
 			"<td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Firstname : </span></b></td>" +
-			"<td> " + result._firstName + " </td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(1)>Edit</button></td>" + 
+			"<td> " + result._firstName + " </td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(1)>Edit</button></td>" +
 			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'>Lastname : </span> </b></td>" +
 			"<td>" + result._lastName + "</td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(2)>Edit</button></td>" +
 			"</tr>" +
@@ -329,10 +329,7 @@ function set_owner_name(l){
 	}
 	if (error_status) {
 		window.runtime.runtime.setOwnerName(result._firstName, result._lastName);
-		$.fancybox({
-			type: "html",
-			content: "<p class=" + "title0" + ">  Successfully edited!  </p>"
-		});
+		get_owner_information();
 	} else {
 		$.fancybox({
 			type: "html",
