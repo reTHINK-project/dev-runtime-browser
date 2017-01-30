@@ -68,7 +68,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         let runtime = new Runtime(RuntimeFactory, window.location.host);
 
         new PoliciesGUI(runtime.policyEngine);
-        let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
+
+        // TIAGO
+        let guiURL = runtime.identityModule._runtimeURL + '/identity-gui';
+        let idmURL = runtime.identityModule._runtimeURL + '/idm';
+        let identitiesGUI = new IdentitiesGUI(guiURL, idmURL, runtime.identityModule.messageBus);
 
         window.addEventListener('message', function(event){
             if(event.data.to==='core:loadHyperty'){
