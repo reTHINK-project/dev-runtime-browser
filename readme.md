@@ -40,17 +40,24 @@ To find a more exhaustive documentation of these components, please refer to the
 ### Developer view
 #### How does it work?
 
-![Runtime Browser](runtime-browser.png)
+Before explain how all this stuff works we need to clarify a usually misunderstanding concept.
 
 ##### What is a Sandbox?
 
 From a conceptual point of view, a SandBox is an isolated place where part of the code is run without creating any side effects to the rest of the components. The problems come when we try to explain it from an implementation point of view. A Sandbox has two part, an external part, what is the real Sandbox, and an internal part what is only a proxy to deliver and recover the messages from and to the real sandbox through all the layers that compound the runtime-browser such as iframes, web workers, and shared workers.
 
-![What is a Sandbox?](sandboxes.jpg)
+![Send a message from the Runtime to a Hyperty hosted in a Sandbox](sandboxes.jpg)
 
 The communication between the MiniBus through the border is not possible, and we have to carry the communication through a open channel.
 
-#### RuntimeUAStub responsibilities:
+##### The big picture.
+
+![Runtime Browser](rethink.jpg)
+
+The RuntimeUAStub initializes the runtime browser. From this point, the runtime takes the control, creates the sandbox and loads hyperties and protostub. The MessagesBus routes all the messages to the right component.
+
+The double-arrow symbol represents an open channel between external and internal parts of a sandbox. More info about channels [MessageChannel](https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel)
+####RuntimeUAStub responsibilities:
 
 1. Expose loadHyperty and loadProtoStub to **client app**.
 2. if Core Sandbox doesn't exist it creates Core Sandbox.
