@@ -18,7 +18,7 @@
 		input[type="radio"]{
 			-webkit-appearance: radio !important;
 		}
-		</style>
+	</style>
 
 </head>
 
@@ -108,12 +108,12 @@
 
 		} else {
 			if(obj.length !=0) {
-					$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"Contact was not found, Please search with different keyword\"</b></h4> ");
-				} else {
-					$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"All the contacts have been deleted\"</b></h4> ");
-					$("#message_lbl").html('<h4 ><span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *All the contacts have been deleted</span></h4>');
-				}
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"Contact was not found, Please search with different keyword\"</b></h4> ");
+			} else {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"All the contacts have been deleted\"</b></h4> ");
+				$("#message_lbl").html('<h4 ><span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *All the contacts have been deleted</span></h4>');
 			}
+		}
 	}
 
 	function useGUID() {
@@ -135,35 +135,35 @@
 					resolve( window.runtime.runtime.getContact(name));
 				});
 
-				getContactPromise.then(
-						function(body) {
-						console.log(body);
+		getContactPromise.then(
+				function(body) {
+					console.log(body);
 
-						let tempObj = [];
-						let index = 0;
-						let userList = body;
+					let tempObj = [];
+					let index = 0;
+					let userList = body;
 
-						if (name == "") {
-							getAllContacts();
-						} else if (body.length == 0) {
-							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No such contact with name \"' + name + '\" </span>');
+					if (name == "") {
+						getAllContacts();
+					} else if (body.length == 0) {
+						$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No such contact with name \"' + name + '\" </span>');
+						createFriendListGC(tempObj, 0);
+						detailsGC(tempObj, 0);
+					} else {
+						for (let i = 0; i < userList.length; i++) {
+							console.log('In AddressBook: Found a contact with name' + userList[i].firstName);
+							tempObj.push(userList[i]);
+							index = i;
+						}
+						if (tempObj.length == 0) {
+							$('#left-div').html("<h3 align='center'> <b>No such contact with name </b> \"" + name + "\"</h3>");
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No Such contact with name \"' + name + '\"</span>');
+						} else {
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *Found  \"' + tempObj.length + '\" contacts</span>');
 							createFriendListGC(tempObj, 0);
 							detailsGC(tempObj, 0);
-						} else {
-							for (let i = 0; i < userList.length; i++) {
-								console.log('In AddressBook: Found a contact with name' + userList[i].firstName);
-								tempObj.push(userList[i]);
-								index = i;
-							}
-							if (tempObj.length == 0) {
-								$('#left-div').html("<h3 align='center'> <b>No such contact with name </b> \"" + name + "\"</h3>");
-								$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No Such contact with name \"' + name + '\"</span>');
-							} else {
-								$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *Found  \"' + tempObj.length + '\" contacts</span>');
-								createFriendListGC(tempObj, 0);
-								detailsGC(tempObj, 0);
-							}
 						}
+					}
 				});
 	}
 
@@ -486,6 +486,19 @@
 			</form>
 		</div>
 
+		<div style="display:none;">
+			<form method="post" id="discover_form" name="discover_form" action=""
+				  autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Name</label>
+				<input name="discover_name" type="text" id="discover_name" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Search"/>
+			</form>
+		</div>
+
 		<!--CONTAINER-->
 		<div id="container">
 			<!--HEADER-->
@@ -533,7 +546,11 @@
 									   href="#query_global_registry_form"><b><span
 										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Query Global
 									Registry</b></a></li>
+								<li><a class="btn btn-default" id="discover_button"
+									   href="#discover_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Search Profile </b></a></li>
 							</ul>
+
 						</div>
 					</div>
 					<!-- Row5: Account split button-->
@@ -604,17 +621,17 @@
 				<div class="row" id="heading" style="border-top: 2px solid maroon;">
 					<div class="col-sm-6">
 						<div class="row" >
-								<div class="col-sm-6">
-									<p style="text-align:right;">
-										<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contacts</u></span>
-									</p>
-								</div>
-								<div class="col-sm-6">
-									<select id="selectElementId" class="form-control" onchange="get_group_users(this.value)" style="width: 150px;" >
-										<option value="all"><b>Select Group..</b></option>
-									</select>
-								</div>
+							<div class="col-sm-6">
+								<p style="text-align:right;">
+									<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contacts</u></span>
+								</p>
 							</div>
+							<div class="col-sm-6">
+								<select id="selectElementId" class="form-control" onchange="get_group_users(this.value)" style="width: 150px;" >
+									<option value="all"><b>Select Group..</b></option>
+								</select>
+							</div>
+						</div>
 
 						<div align="center" id="left-div"
 							 style="overflow: auto; height: 500px; border: 4px solid maroon"><h2>

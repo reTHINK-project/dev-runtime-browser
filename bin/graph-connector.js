@@ -109,8 +109,8 @@ function createFriendListGC(obj1, index) {
 		let table = '<table class="table table-hover" id="mytable">';
 		let i = index;
 		$.each(obj1, function () {
-				table += '<tr><td><button type="button" class="btn btn-primary btn-lg btn-block" data-toggle="button" aria-pressed="false" autocomplete="off" id="button' + i + '" onclick=details(' + i + ')><b>' + this['_firstName'] + '\t' + this['_lastName'] + '</b></button></td></tr>';
-				i++;
+			table += '<tr><td><button type="button" class="btn btn-primary btn-lg btn-block" data-toggle="button" aria-pressed="false" autocomplete="off" id="button' + i + '" onclick=details(' + i + ')><b>' + this['_firstName'] + '\t' + this['_lastName'] + '</b></button></td></tr>';
+			i++;
 		});
 		table += '</table>';
 		$("#left-div").html(table);
@@ -245,6 +245,66 @@ $(document).ready(function () {
 
 });
 
+//by clicking in the add button show the fancybox
+$('#discover_button').click(function () {
+	console.log(" 11111 discover_button");
+	$.fancybox({
+		type: 'inline',
+		content: jQuery('#discover_button').html()
+	});
+});
+
+$(document).ready(function () {
+
+	$("#discover_button").fancybox({
+		'transitionIn': 'fade',
+		'transitionOut': 'fade',
+		'speedIn': 600,
+		'speedOut': 200,
+		'onClosed': function () {
+		}
+	});
+
+	$("#discover_form").bind("submit", function () {
+		$.fancybox.showLoading();
+		//by clicking in the submit button send a request....
+		let data = $(this).serializeArray();
+		let name = data[0]["value"];
+
+		$.ajax({
+			url: "https://rethink.tlabscloud.com/discovery/rest/discover/lookup",
+			type: "get",
+			data: {
+				searchquery: name
+			},
+			success: function(response) {
+				let results = response.results;
+				for (i = 0; i < results.length; i++) {
+
+					console.log(results[i]);
+					contentHTML = "<p class=" + "title0" + "><h3><span class='glyphicon glyphicon-user' aria-hidden='true'></span> "+ results[i].headline ;
+					contentHTML += "<br><br><b> Rethink ID: "  + results[i].rethinkID + "</b><br>";
+					contentHTML += "<br><b> Description: "  + results[i].description + "</b><br>";
+					contentHTML += "<br><b> Hashtags: "  + results[i].hashtags + "</b><br>";
+					contentHTML += "<br><b> Instance ID: "  + results[i].instanceID + "</b><br>";
+					contentHTML += "</p>";
+				}
+				$.fancybox({
+					type: "html",
+					content: contentHTML
+				});
+			},
+			error: function(xhr) {
+				console.log(" discover_button");
+			}
+		});
+
+		return false;
+
+	});
+
+});
+
 function get_owner_information() {
 
 	let result = window.runtime.runtime.getOwner();
@@ -304,16 +364,16 @@ function get_owner_information() {
 function edit_owner_name(l){
 	$('tr:nth-child(' + l + ') td:nth-child(2)').each(function () {
 		console.log("Editing the value ");
-	let html = $(this).html();
-	if (l == 1) {
-		var input = $('<input id="efname" class="form-control" type="text" placeholder="Enter First Name" value="' + window.runtime.runtime.getOwner()._firstName + '" />');
-	} else if (l == 2) {
-		var input = $('<input id="elname" class="form-control" type="text" placeholder="Enter Last Name" value="' + window.runtime.runtime.getOwner()._lastName + '"/>');
-	}
-	input.val();
-	$(this).html(input);
-	$('tr:nth-child(' + l + ') td:nth-child(3)').html("<button class='btn btn-info' onclick=set_owner_name("+ l +")>Save</button>");
-});
+		let html = $(this).html();
+		if (l == 1) {
+			var input = $('<input id="efname" class="form-control" type="text" placeholder="Enter First Name" value="' + window.runtime.runtime.getOwner()._firstName + '" />');
+		} else if (l == 2) {
+			var input = $('<input id="elname" class="form-control" type="text" placeholder="Enter Last Name" value="' + window.runtime.runtime.getOwner()._lastName + '"/>');
+		}
+		input.val();
+		$(this).html(input);
+		$('tr:nth-child(' + l + ') td:nth-child(3)').html("<button class='btn btn-info' onclick=set_owner_name("+ l +")>Save</button>");
+	});
 }
 
 function set_owner_name(l){
@@ -335,7 +395,7 @@ function set_owner_name(l){
 			type: "html",
 			content: "<p class=" + "title0" + ">  Firstname or lastname can consist of a-z only!  </p>"
 		});
-}
+	}
 }
 
 function update_owner_information() {
@@ -353,46 +413,46 @@ function update_owner_information() {
 
 function send_global_registry_record() {
 	if (typeof window.runtime.runtime.getOwner()._guid == "string") {
-			window.runtime.runtime.setDefaults(0,0,0);
-			$.fancybox.close();
-			let result = window.runtime.runtime.signGlobalRegistryRecord();
+		window.runtime.runtime.setDefaults(0,0,0);
+		$.fancybox.close();
+		let result = window.runtime.runtime.signGlobalRegistryRecord();
 
-			if (result == null) {
-				return "NO such GUID";
+		if (result == null) {
+			return "NO such GUID";
 
-			} else {
-				console.log(result);
+		} else {
+			console.log(result);
 
-				let checkPromise = new Promise(
-					function (resolve, reject) {
-						resolve(window.runtime.runtime.sendGlobalRegistryRecord(result));
-					});
-
-				checkPromise.then(
-					function (result) {
-						console.log("send #########");
-						console.log(result)
-						console.log("send #########");
-						if (result == 200) {
-							ownerguid = globalOwnerDetails._guid;
-							$.fancybox({
-								type: "html",
-								content: "<p class=" + "title0" + ">  Global Registry Record successfully sent </p>"
-							});
-						} else {
-							$.fancybox({
-								type: "html",
-								content: "<p class=" + "title0" + ">  Error code: " + result + "  </p>"
-							});
-						}
-					});
-			}
-}	else {
-				$.fancybox({
-					type: "html",
-					content: "<p class=" + "title0" + ">  Please generate a valid GUID first!  </p>"
+			let checkPromise = new Promise(
+				function (resolve, reject) {
+					resolve(window.runtime.runtime.sendGlobalRegistryRecord(result));
 				});
-			}
+
+			checkPromise.then(
+				function (result) {
+					console.log("send #########");
+					console.log(result)
+					console.log("send #########");
+					if (result == 200) {
+						ownerguid = globalOwnerDetails._guid;
+						$.fancybox({
+							type: "html",
+							content: "<p class=" + "title0" + ">  Global Registry Record successfully sent </p>"
+						});
+					} else {
+						$.fancybox({
+							type: "html",
+							content: "<p class=" + "title0" + ">  Error code: " + result + "  </p>"
+						});
+					}
+				});
+		}
+	}	else {
+		$.fancybox({
+			type: "html",
+			content: "<p class=" + "title0" + ">  Please generate a valid GUID first!  </p>"
+		});
+	}
 }
 
 
