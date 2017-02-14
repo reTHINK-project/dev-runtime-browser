@@ -316,14 +316,14 @@ function get_owner_information() {
 	} else {
 		globalOwnerDetails = result;
 		let html = "<table class='table table-hover'><tr>" +
-			"<td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Firstname : </span></b></td>" +
+			"<td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Firstname: </span></b></td>" +
 			"<td> " + result._firstName + " </td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(1)>Edit</button></td>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'>Lastname : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'>Lastname: </span> </b></td>" +
 			"<td>" + result._lastName + "</td>" + "<td><button class='btn btn-info' onclick=edit_owner_name(2)>Edit</button></td>" +
 			"</tr>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' > GUID : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' > GUID: </span> </b></td>" +
 			"<td>" + result._guid + "</td>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> User IDs : </span> </b></td><td>";
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> User IDs: </span> </b></td><td>";
 
 		for (let i = 0; i < result._userIDs.length; i++) {
 
@@ -331,22 +331,32 @@ function get_owner_information() {
 				"<span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'> Domain:</span>" + result._userIDs[i].domain + "</div>";
 		}
 
+		html = html + "<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Legacy IDs: </span> </b></td><td>";
+
+		for (let i = 0; i < result._legacyIDs.length; i++) {
+
+			html = html + "<div><span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'>Type:</span>" + result._legacyIDs[i].type +
+				"<span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'> Category:</span>" + result._legacyIDs[i].category +
+				"<span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'> Description:</span>" + result._legacyIDs[i].description +
+				"<span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'> ID:</span>" + result._legacyIDs[i].id +
+				"</div>";
+		}
 		html = html + "</td></tr>" +
 			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' > Defaults: </span> </b></td>" +
 			"<td><div><span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'>voice:</span>" + result._defaults.voice + "</div>" +
 			"<div><span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'>chat:</span>" + result._defaults.chat + "</div>" +
 			"<div><span style='font-family:Arial;font-size:14px;font-weight:bold;color:black;'>video:</span>" + result._defaults.video + "</div>" +
 			"</td>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastSyncBloomFilter1Hop : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastSyncBloomFilter1Hop: </span> </b></td>" +
 			"<td>" + result._lastSyncBloomFilter1Hop + "</td>" +
 			"</tr>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastSyncDomainUserIDs : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastSyncDomainUserIDs: </span> </b></td>" +
 			"<td>" + result._lastSyncDomainUserIDs + "</td>" +
 			"</tr>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Groups : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> Groups: </span> </b></td>" +
 			"<td>" + result._groups + "</td>" +
 			"</tr>" +
-			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastCalculationBloomFilter1Hop : </span> </b></td>" +
+			"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;'> LastCalculationBloomFilter1Hop: </span> </b></td>" +
 			"<td>" + result.lastCalculationBloomFilter1Hop + "</td>" +
 			"</tr>";
 
@@ -358,7 +368,6 @@ function get_owner_information() {
 			content: html
 		});
 	}
-
 }
 
 function edit_owner_name(l){

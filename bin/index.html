@@ -451,6 +451,34 @@
 		</div>
 
 		<div style="display:none;">
+			<form method="post" id="add_legacy_id_form" name="add_legacy_id_form" action="" autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Type</label>
+				<input name="type" type="text" id="type" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Category</label>
+				<input name="category" type="text" id="category" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Description</label>
+				<input name="description" type="text" id="description" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">ID</label>
+				<input name="legacyid" type="text" id="legacyid" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Add Legacy id"/>
+			</form>
+		</div>
+
+
+		<div style="display:none;">
 			<form method="post" id="set_defaults_form" name="set_defaults_form" action="" autocomplete="off">
 
 				<p>&nbsp;</p>
@@ -576,8 +604,14 @@
 								<li><a class="btn btn-default" id="add_user_id" href="#add_user_id_form"><b><span
 										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add User ID</b></a>
 								</li>
+								<li><a class="btn btn-default" id="add_legacy_id" href="#add_legacy_id_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Legacy ID</b></a>
+								</li>
 								<li><a class="btn btn-default" id="remove_user_id" onclick="remove_user_id()"><b><span
 										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove User
+									ID</b></a></li>
+								<li><a class="btn btn-default" id="remove_user_legacy" onclick="remove_user_legacy()"><b><span
+										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove Legacy
 									ID</b></a></li>
 								<li><a class="btn btn-default" id="add_group_name_button"
 									   href="#add_group_name_form"><b><span
