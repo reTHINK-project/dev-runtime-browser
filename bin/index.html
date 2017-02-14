@@ -89,7 +89,6 @@
 			} else {
 				html = html + "<label class='radio-inline'><input type='radio' name='optradio'>Yes</label><label class='radio-inline'><input type='radio' name='optradio' checked>No</label>";
 			}
-			;
 			html = html + "</td></tr><tr>" +
 					"<td colspan=3 align='middle'><button class='btn btn-success' onclick=call(" + j + ")><span class='glyphicon glyphicon-earphone'> <b>Call</b></span></button></td></tr><tr>" +
 					"<td colspan=3 align='middle'><button class='btn btn-warning' onclick=call(" + j + ")><span class='glyphicon glyphicon-envelope'> <b>Text</b></span></button></td></tr><tr>" +
@@ -243,7 +242,6 @@
 						for (let j = 0; j < importedContacts[i]._groups.length; j++) {
 							window.runtime.runtime.addGroupName(importedContacts[i]._guid, importedContacts[i]._groups[j]);
 						}
-						;
 					}
 					//adding all the userIDs of a contact
 					if (importedContacts[i]._userIDs.length != 0) {
@@ -251,7 +249,6 @@
 							console.log('user id is ' + importedContacts[i]._userIDs[k]);
 							window.runtime.runtime.setContactUserIDs(importedContacts[i]._guid, importedContacts[i]._userIDs[k]);
 						}
-						;
 					}
 					//calculates the bloom filter of the contact if it doesn't have
 					if (importedContacts[i]._contactsBloomFilter1Hop == undefined) {

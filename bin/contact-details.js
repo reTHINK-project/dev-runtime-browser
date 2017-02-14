@@ -36,6 +36,18 @@ function details(j) {
 			}
 		}
 		html = html + '</div></div><td></tr>';
+
+		html = html + "<tr><td></td><td>";
+		html = html + '<div class="dropdown open">' +
+			'<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+			'Contact\'s Legacy IDs </button>  <ul class="dropdown-menu" style="border: 1px solid black;">';
+		if (obj[j]._legacyIDs.length > 0) {
+			for (var i = 0; i < obj[j]._legacyIDs.length; i++) {
+				html = html + '<li><a class="btn btn-default"><b><u>Type : ' + obj[j]._legacyIDs[i].type + ' Category: ' + obj[j]._legacyIDs[i].category +' Description: ' + obj[j]._legacyIDs[i].description +' ID: ' + obj[j]._legacyIDs[i].id + '</u></b></a></li>';
+			}
+		}
+		html = html + '</div></div><td></tr>';
+
 		html = html + "</td></tr><tr>" +
 			"<td colspan=3 align='middle'><button class='btn btn-success' onclick=call(" + j + ")><span class='glyphicon glyphicon-earphone'> <b>Call</b></span></button></td></tr><tr>" +
 			"<td colspan=3 align='middle'><button class='btn btn-warning' onclick=call(" + j + ")><span class='glyphicon glyphicon-envelope'> <b>Text</b></span></button></td></tr><tr>" +

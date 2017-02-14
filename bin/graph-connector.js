@@ -279,15 +279,21 @@ $(document).ready(function () {
 			},
 			success: function(response) {
 				let results = response.results;
+				let contentHTML = "";
 				for (i = 0; i < results.length; i++) {
 
 					console.log(results[i]);
-					contentHTML = "<p class=" + "title0" + "><h3><span class='glyphicon glyphicon-user' aria-hidden='true'></span> "+ results[i].headline ;
+					contentHTML += "<p class=" + "title0" + "><h3><span class='glyphicon glyphicon-user' aria-hidden='true'></span> "+ results[i].headline ;
+					contentHTML += "&nbsp &nbsp &nbsp <button class='btn bn-info' id='add_contact_button' href='#add_contact' style='height:30px; color:white; width:170px'>Add as a contact</button>";
 					contentHTML += "<br><br><b> Rethink ID: "  + results[i].rethinkID + "</b><br>";
 					contentHTML += "<br><b> Description: "  + results[i].description + "</b><br>";
 					contentHTML += "<br><b> Hashtags: "  + results[i].hashtags + "</b><br>";
 					contentHTML += "<br><b> Instance ID: "  + results[i].instanceID + "</b><br>";
+					contentHTML += "<br><b> contacts: "  + results[i].contacts + "</b><br>";
+					document.getElementById("guid").value= results[i].rethinkID;
+					document.getElementById("fname").value= results[i].headline;
 					contentHTML += "</p>";
+
 				}
 				$.fancybox({
 					type: "html",
