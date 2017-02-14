@@ -1,19 +1,40 @@
 class PoliciesManager {
 
-  constructor(policyEngine) {
+  constructor(pepGuiURL, pepURL, messageBus, policyEngine) {
     this.policyEngine = policyEngine;
+    this._guiURL = pepGuiURL;
+    this._pepURL = pepURL;
+    this._messageBus = messageBus;
     this.policies = this.policyEngine.context.userPolicies;
     this.variables = this.setVariables();
     this.addition = this.setAdditionMethods();
     this.validation = this.setValidationMethods();
   }
 
+  callPolicyEngineFunc(methodName, parameters) {
+    let _this = this;
+    let message;
+
+    return new Promise((resolve, reject) => {
+      message = { type: 'execute', to: _this._pepURL, from: _this._guiURL,
+        body: { resource: 'policy', method: methodName, params: parameters }, };
+      _this._messageBus.postMessage(message, (res) => {
+        let result = res.body.value;
+
+        //console.log('TIAGO: return from callIdentityModuleFunc ', result);
+        resolve(result);
+      });
+    });
+  }
+
   addToGroup(groupName, user) {
-    this.policyEngine.context.addToGroup(groupName, user);
+    return this.callPolicyEngineFunc('addToGroup', {groupName: groupName, userEmail: user});
+    //this.policyEngine.context.addToGroup(groupName, user);
   }
 
   createGroup(groupName) {
-    this.policyEngine.context.createGroup(groupName);
+    return this.callPolicyEngineFunc('createGroup', {groupName: groupName});
+    //this.policyEngine.context.createGroup(groupName);
   }
 
   addPolicy(title, combiningAlgorithm, policy) {
@@ -33,46 +54,67 @@ class PoliciesManager {
       }
     }
 
-    this.policyEngine.addPolicy('USER', title, policy, combiningAlgorithm);
+    return this.callPolicyEngineFunc('addPolicy',
+      {source: 'USER', key: title, policy: policy, combiningAlgorithm: combiningAlgorithm});
+    //this.policyEngine.addPolicy('USER', title, policy, combiningAlgorithm);
   }
 
   decreaseRulePriority(policyTitle, thisPriority, newPriority) {
     this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
     this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
-    this.policyEngine.context.savePolicies('USER');
+    return this.callPolicyEngineFunc('savePolicies', {source: 'USER'});
+    //this.policyEngine.context.savePolicies('USER');
   }
 
   deleteGroup(groupName) {
-    this.policyEngine.context.deleteGroup(groupName);
+    return this.callPolicyEngineFunc('deleteGroup', {groupName: groupName});
+    //this.policyEngine.context.deleteGroup(groupName);
   }
 
   deletePolicy(title) {
-    this.policyEngine.removePolicy('USER', title);
+    return this.callPolicyEngineFunc('removePolicy', {source: 'USER', key: title});
+    //this.policyEngine.removePolicy('USER', title);
   }
 
   deleteRule(policyTitle, rule) {
-    let userPolicies = this.policyEngine.context.userPolicies;
-    userPolicies[policyTitle].deleteRule(rule);
-    this.policyEngine.context.savePolicies('USER');
+    //let userPolicies = this.policyEngine.context.userPolicies;
+    let _this = this;
+
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+        userPolicies[policyTitle].deleteRule(rule);
+        //_this.policyEngine.context.savePolicies('USER')
+        _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+          resolve();
+        });
+      });
+    });
   }
 
   getActivePolicy() {
-    return this.policyEngine.context.activeUserPolicy;
+    //return this.policyEngine.context.activeUserPolicy;
+    return this.callPolicyEngineFunc('activeUserPolicy', {});
   }
 
   getPolicy(key) {
-    return this.policyEngine.context.userPolicies[key];
+    return this.callPolicyEngineFunc('userPolicy', {key: key});
+    //return this.policyEngine.context.userPolicies[key];
   }
 
   getPoliciesTitles() {
-    let policies = this.policyEngine.context.userPolicies;
-    let titles = [];
+    let _this = this;
+    //let policies = this.policyEngine.context.userPolicies;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
+        let titles = [];
 
-    for (let i in policies) {
-      titles.push(i);
-    }
+        for (let i in policies) {
+          titles.push(i);
+        }
 
-    return titles;
+        resolve(titles);
+      });
+    });
   }
 
   getTargets(scope) {

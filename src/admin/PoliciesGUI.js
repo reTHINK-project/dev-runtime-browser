@@ -2,14 +2,15 @@ import PoliciesManager from './PoliciesManager';
 
 class PoliciesGUI {
 
-  constructor(policyEngine) {
+  constructor(pepGuiURL, pepURL, messageBus, policyEngine) {
     if (!policyEngine) throw Error('Policy Engine is not set!');
-    this.policiesManager = new PoliciesManager(policyEngine);
+    this.policiesManager = new PoliciesManager(pepGuiURL, pepURL, messageBus, policyEngine);
     this.elements = this._setElements();
     this._setListeners();
   }
 
   _addMember() {
+    let _this = this;
     let group = event.target.id;
     $('.member-new-intro').html('<h5>Add a member to a group</h5><p>Insert a user email below to add to the "' + group + '" group.</p>');
     $('.member-new-modal').openModal();
@@ -17,23 +18,27 @@ class PoliciesGUI {
     $('.member-new-ok').on('click', (event) => {
       let member = $('#member-new').val();
       $('#member-new').val('');
-      this.policiesManager.addToGroup(group, member);
-      $('.member-new-modal').closeModal();
-      this._manageGroups();
+      _this.policiesManager.addToGroup(group, member).then(() => {
+        $('.member-new-modal').closeModal();
+        _this._manageGroups();
+      });
     });
   }
 
   _createGroup() {
+    let _this = this;
     $('#group-new-name').val('');
     $('.group-new-modal').openModal();
     $('.group-new-ok').on('click', (event) => {
       let groupName = $('#group-new-name').val();
-      this.policiesManager.createGroup(groupName);
-      this._manageGroups();
+      _this.policiesManager.createGroup(groupName).then(() => {
+        _this._manageGroups();
+      });
     });
   }
 
   _addPolicy() {
+    let _this = this;
     $('#policy-new-title').val('');
     $('.combining').html('');
     let algorithms = ['Block overrides', 'Allow overrides', 'First applicable'];
@@ -47,10 +52,11 @@ class PoliciesGUI {
         Materialize.toast('Invalid policy title', 4000);
       } else {
         let combiningAlgorithm = $('#comb-algorithm').val();
-        this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
-        $('.help-menu').addClass('hide');
-        $('.policy-new').closeModal();
-        this._goHome();
+        _this.policiesManager.addPolicy(policyTitle, combiningAlgorithm).then(() => {
+          $('.help-menu').addClass('hide');
+          $('.policy-new').closeModal();
+          _this._goHome();
+        });
       }
     });
     $('.help-btn').off();
@@ -60,17 +66,21 @@ class PoliciesGUI {
   }
 
   _decreaseRulePriority() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');
     let thisPriority = parseInt(splitId[splitId.length - 1]);
     splitId.pop();
     let policyTitle = splitId.join(':');
-    let lastPriority = this.policiesManager.getPolicy(policyTitle).getLastPriority();
-    if (lastPriority != thisPriority) {
-      let newPriority = parseInt(thisPriority + 1);
-      this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority);
-      this._goHome();
-    }
+    _this.policiesManager.getPolicy(policyTitle).then((policy) => {
+      let lastPriority = policy.getLastPriority();
+      if (lastPriority != thisPriority) {
+        let newPriority = parseInt(thisPriority + 1);
+        _this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority).then(() => {
+          _this._goHome();
+        });
+      }
+    });
   }
 
   _deleteMember() {
@@ -84,43 +94,52 @@ class PoliciesGUI {
   }
 
   _deleteGroup() {
+    let _this = this;
     let groupName = event.target.closest('tr').children[0].id;
-    this.policiesManager.deleteGroup(groupName);
-    this._manageGroups();
+    _this.policiesManager.deleteGroup(groupName).then(() => {
+      _this._manageGroups();
+    });
   }
 
   _deletePolicy() {
+    let _this = this;
     let policyTitle = event.target.closest('tr').id;
-    this.policiesManager.deletePolicy(policyTitle);
-    this._goHome();
+    _this.policiesManager.deletePolicy(policyTitle).then(() => {
+      _this._goHome();
+    });
   }
 
   _deleteRule() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');
     let priority = splitId[splitId.length - 1];
     splitId.pop();
     let policyTitle = splitId.join(':');
-    let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
+    let rule = _this.policiesManager.getRuleOfPolicy(policyTitle, priority);
 
-    this.policiesManager.deleteRule(policyTitle, rule);
-    this._goHome();
+    _this.policiesManager.deleteRule(policyTitle, rule).then(() => {
+      _this._goHome();
+    });
   }
 
   _getActivePolicy() {
+    let _this = this;
     $('.policy-active').html('');
-    let activeUserPolicy = this.policiesManager.getActivePolicy();
-    let policies = this.policiesManager.getPoliciesTitles();
-    policies.push('Deactivate all policies');
+    _this.policiesManager.getActivePolicy().then((activeUserPolicy) => {
+      _this.policiesManager.getPoliciesTitles().then((policies) => {
+        policies.push('Deactivate all policies');
 
-    $('.policy-active').append(this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
+        $('.policy-active').append(_this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
 
-    $('#policies-list').on('click', (event) => {
-      let policyTitle = $('#policies-list').find(":selected")[0].textContent;
-      if (policyTitle === 'Deactivate all policies') {
-        policyTitle = undefined;
-      }
-      this.policiesManager.updateActivePolicy(policyTitle);
+        $('#policies-list').on('click', (event) => {
+          let policyTitle = $('#policies-list').find(":selected")[0].textContent;
+          if (policyTitle === 'Deactivate all policies') {
+            policyTitle = undefined;
+          }
+          _this.policiesManager.updateActivePolicy(policyTitle);
+        });
+      });
     });
   }
 
