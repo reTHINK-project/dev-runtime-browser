@@ -26,7 +26,6 @@ class PoliciesManager {
   prepareAttributes() {
     return new Promise((resolve, reject) => {
       let _this = this;
-      //_this.policies = this.policyEngine.context.userPolicies;
       _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
         _this.policies = userPolicies;
         _this.variables = _this.setVariables();
@@ -39,12 +38,10 @@ class PoliciesManager {
 
   addToGroup(groupName, user) {
     return this.callPolicyEngineFunc('addToGroup', {groupName: groupName, userEmail: user});
-    //this.policyEngine.context.addToGroup(groupName, user);
   }
 
   createGroup(groupName) {
     return this.callPolicyEngineFunc('createGroup', {groupName: groupName});
-    //this.policyEngine.context.createGroup(groupName);
   }
 
   addPolicy(title, combiningAlgorithm, policy) {
@@ -66,34 +63,28 @@ class PoliciesManager {
 
     return this.callPolicyEngineFunc('addPolicy',
       {source: 'USER', key: title, policy: policy, combiningAlgorithm: combiningAlgorithm});
-    //this.policyEngine.addPolicy('USER', title, policy, combiningAlgorithm);
   }
 
   decreaseRulePriority(policyTitle, thisPriority, newPriority) {
     this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
     this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
     return this.callPolicyEngineFunc('savePolicies', {source: 'USER'});
-    //this.policyEngine.context.savePolicies('USER');
   }
 
   deleteGroup(groupName) {
     return this.callPolicyEngineFunc('deleteGroup', {groupName: groupName});
-    //this.policyEngine.context.deleteGroup(groupName);
   }
 
   deletePolicy(title) {
     return this.callPolicyEngineFunc('removePolicy', {source: 'USER', key: title});
-    //this.policyEngine.removePolicy('USER', title);
   }
 
   deleteRule(policyTitle, rule) {
-    //let userPolicies = this.policyEngine.context.userPolicies;
     let _this = this;
 
     return new Promise((resolve, reject) => {
       _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
         userPolicies[policyTitle].deleteRule(rule);
-        //_this.policyEngine.context.savePolicies('USER')
         _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
           resolve();
         });
@@ -102,18 +93,15 @@ class PoliciesManager {
   }
 
   getActivePolicy() {
-    //return this.policyEngine.context.activeUserPolicy;
     return this.callPolicyEngineFunc('activeUserPolicy', {});
   }
 
   getPolicy(key) {
     return this.callPolicyEngineFunc('userPolicy', {key: key});
-    //return this.policyEngine.context.userPolicies[key];
   }
 
   getPoliciesTitles() {
     let _this = this;
-    //let policies = this.policyEngine.context.userPolicies;
     return new Promise((resolve, reject) => {
       _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
         let titles = [];
@@ -143,7 +131,6 @@ class PoliciesManager {
     let _this = this;
     _this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
     _this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
-    //this.policyEngine.context.savePolicies('USER');
     return _this.callPolicyEngineFunc('savePolicies', {source: 'USER'});
   }
 
@@ -197,10 +184,8 @@ class PoliciesManager {
       Date: (params) => {
         return new Promise((resolve, reject) => {
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             userPolicies[policyTitle].createRule(params[4], { attribute: 'date', operator: 'equals', params: params[3] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -210,10 +195,8 @@ class PoliciesManager {
       Domain: (params) => {
         return new Promise((resolve, reject) => {
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             userPolicies[policyTitle].createRule(params[4], { attribute: 'domain', operator: 'equals', params: params[3] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -223,10 +206,8 @@ class PoliciesManager {
       'Group of users': (params) => {
         return new Promise((resolve, reject) => {
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             userPolicies[policyTitle].createRule(params[4], { attribute: 'source', operator: 'in', params: params[3] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -236,7 +217,6 @@ class PoliciesManager {
       'Subscription preferences': (params) => {
         return new Promise((resolve, reject) => {
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             let operator = 'equals';
             if (params[3] === 'preauthorised') {
@@ -245,7 +225,6 @@ class PoliciesManager {
 
             // TIAGO: this is giving me an error...
             userPolicies[policyTitle].createRule(params[4], { attribute: 'subscription', operator: operator, params: params[3] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -255,7 +234,6 @@ class PoliciesManager {
       'Time of the day': (params) => {
         return new Promise((resolve, reject) => {
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             params[3] = params[3].split(' to ');
             let start = params[3][0].split(':');
@@ -263,7 +241,6 @@ class PoliciesManager {
             let end = params[3][1].split(':');
             end = end.join('');
             userPolicies[policyTitle].createRule(params[4], { attribute: 'time', operator: 'between', params: [start, end] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -276,10 +253,8 @@ class PoliciesManager {
           let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
           params[3] = weekdays.indexOf(params[3]);
           let policyTitle = params[0];
-          //let userPolicies = this.policyEngine.context.userPolicies;
           _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
             userPolicies[policyTitle].createRule(params[4], { attribute: 'weekday', operator: 'equals', params: params[3] }, params[1], params[2]);
-            //this.policyEngine.context.savePolicies('USER');
             _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
               resolve();
             });
@@ -303,9 +278,7 @@ class PoliciesManager {
   updateActivePolicy(title) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      //this.policyEngine.context.activeUserPolicy = title;
       _this.callPolicyEngineFunc('activeUserPolicy', {userPolicy: title}).then(() => {
-        //this.policyEngine.context.saveActivePolicy();
         _this.callPolicyEngineFunc('saveActivePolicy', {}).then(() => {
           resolve();
         });
@@ -390,7 +363,6 @@ class PoliciesManager {
   getFormattedPolicies() {
     let _this = this;
     return new Promise((resolve, reject) => {
-      //let policiesPE = this.policyEngine.context.userPolicies;
       _this.callPolicyEngineFunc('userPolicies', {}).then((policiesPE) => {
         let policiesGUI = [];
 
@@ -421,7 +393,6 @@ class PoliciesManager {
   getRuleOfPolicy(title, priority) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      //let policies = this.policyEngine.context.userPolicies;
       _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
         let policy = policies[title];
         resolve(policy.getRuleByPriority(priority));
@@ -481,12 +452,10 @@ class PoliciesManager {
   }
 
   getMyEmails() {
-    //return this.policyEngine.context.getMyEmails();
     return this.callPolicyEngineFunc('getMyEmails', {});
   }
 
   getMyHyperties() {
-    //return this.policyEngine.context.getMyHyperties();
     return this.callPolicyEngineFunc('getMyHyperties', {});
   }
 
@@ -500,33 +469,9 @@ class PoliciesManager {
         });
       } else {
         reject('Invalid configuration');
-        //throw Error('Invalid configuration');
       }
     });
   }
-
-  /*getInfo(scope, title) {
-    let _this = this;
-    return new Promise((resolve, reject) => {
-      let policies = _this.policies[scope];
-      let policy = {};
-      for (let i in policies) {
-        if (policies[i].condition === title) {
-          policy = policies[i];
-        }
-      }
-      if (policy !== {}) {
-        let condition = policy.condition.split(' ');
-        //return _this.policyEngine.getList(scope, condition[2]);
-        _this.callPolicyEngineFunc('getList', {scope: scope, condition: condition[2]}).then((result) => {
-          resolve(result);
-        });
-      } else {
-        //throw Error('Policy <' + title + '> not found!');
-        reject('Policy <' + title + '> not found!');
-      }
-    });
-  }*/
 
   deleteInfo(variable, scope, target, info) {
     let params = [scope, target, info];
@@ -538,14 +483,9 @@ class PoliciesManager {
     this.deletion[variable](params);
   }
 
-  /*getGroup(scope, target, groupName) {
-    return this.policyEngine.context.getGroup(scope, target, groupName);
-  }*/
-
   getGroups() {
     let _this = this;
     return new Promise((resolve, reject) => {
-      //let groups = this.policyEngine.context.groups;
       _this.callPolicyEngineFunc('groups', {}).then((groups) => {
         let groupsGUI = {
           groupsNames: [],
@@ -570,19 +510,16 @@ class PoliciesManager {
   }
 
   getGroupsNames() {
-    //return this.policyEngine.context.getGroupsNames();
     return this.callPolicyEngineFunc('getGroupsNames', {});
   }
 
   removeFromGroup(groupName, user) {
     return this.callPolicyEngineFunc('removeFromGroup', {groupName: groupName, userEmail: user});
-    //this.policyEngine.context.removeFromGroup(groupName, user);
   }
 
   updatePolicy(policyTitle, rule, newDecision, newSubscriptionType) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      //let userPolicies = this.policyEngine.context.userPolicies;
       _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
         userPolicies[policyTitle].deleteRule(rule);
         if (!newSubscriptionType) {
@@ -592,7 +529,6 @@ class PoliciesManager {
           userPolicies[policyTitle].createRule(newDecision, [{ attribute: 'subscription', opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
         }
 
-        //this.policyEngine.context.savePolicies('USER');
         _this.callPolicyEngineFunc('saveActivePolicy', {}).then(() => {
           resolve();
         });

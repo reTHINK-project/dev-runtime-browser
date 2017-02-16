@@ -296,7 +296,6 @@ class PoliciesGUI {
 
   _manageGroups() {
     let _this = this;
-    //let groupsPE = _this.policiesManager.getGroups();
     _this.policiesManager.getGroups().then((groupsPE) => {
       $('.groups-current').html('');
       let groups = groupsPE.groupsNames;
@@ -395,7 +394,6 @@ class PoliciesGUI {
         _this.policiesManager.getGroupsNames().then((groupsNames) => {
           if (variable === 'Group of users') {
             tags[i][1].push(groupsNames);
-            //tags[i][1].push(_this.policiesManager.getGroupsNames());
           }
           $('.config').append(_this.elements[tags[i][0]](tags[i][1]));
           if (variable === 'Group of users') {
@@ -488,7 +486,6 @@ class PoliciesGUI {
     let priority = splitId[splitId.length - 1];
     splitId.pop();
     let policyTitle = splitId.join(':');
-    //let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
     this.policiesManager.getRuleOfPolicy(policyTitle, priority).then((rule) => {
       if (rule.condition.attribute === 'subscription' && rule.condition.params === 'preauthorised') {
         $('.authorise-btns').addClass('hide');
