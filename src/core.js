@@ -62,20 +62,22 @@ catalogue.getRuntimeDescriptor(runtimeURL)
 
         return catalogue.getSourcePackageFromURL(sourcePackageURL);
     })
-    .then(function(sourcePackage){
+    .then(function(sourcePackage) {
         eval.apply(window,[sourcePackage.sourceCode])
 
         let runtime = new Runtime(RuntimeFactory, window.location.host);
 
         // TIAGO
+        if (!runtime.policyEngine) throw Error('Policy Engine is not set!');
         let pepGuiURL = runtime.policyEngine.context.guiURL;
         let pepURL = runtime.policyEngine.context.pepURL;
-        new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
-
-        // TIAGO
-        let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
-        let idmURL = runtime.identityModule._runtimeURL + '/idm';
-        let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
+        let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
+        
+        pepGUI.prepareAttributes().then(() => {
+            let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
+            let idmURL = runtime.identityModule._runtimeURL + '/idm';
+            let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
+        });
 
         window.addEventListener('message', function(event){
             if(event.data.to==='core:loadHyperty'){

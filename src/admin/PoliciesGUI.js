@@ -2,17 +2,20 @@ import PoliciesManager from './PoliciesManager';
 
 class PoliciesGUI {
 
-  constructor(pepGuiURL, pepURL, messageBus, policyEngine) {
+  constructor(pepGuiURL, pepURL, messageBus) {
     let _this = this;
-    if (!policyEngine) throw Error('Policy Engine is not set!');
-    _this.policiesManager = new PoliciesManager(pepGuiURL, pepURL, messageBus, policyEngine);
-    /*_this.policiesManager.prepareAttributes().then(() => {
-      console.log('TIAGO prepareAttributes.then')
-      _this.elements = _this._setElements();
-      _this._setListeners();
-    });*/
-    _this.elements = _this._setElements();
-    _this._setListeners();
+    _this.policiesManager = new PoliciesManager(pepGuiURL, pepURL, messageBus);
+    // assume prepareAttributes is called after this
+  }
+
+  prepareAttributes() {
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.policiesManager.prepareAttributes().then(() => {
+        _this.elements = _this._setElements();
+        _this._setListeners();
+      });
+    });
   }
 
   _addMember() {
@@ -133,8 +136,8 @@ class PoliciesGUI {
 
   _getActivePolicy() {
     let _this = this;
-    $('.policy-active').html('');
     _this.policiesManager.getActivePolicy().then((activeUserPolicy) => {
+      $('.policy-active').html('');
       _this.policiesManager.getPoliciesTitles().then((policies) => {
         policies.push('Deactivate all policies');
 
@@ -227,10 +230,11 @@ class PoliciesGUI {
 
   _getPoliciesTable() {
     let _this = this;
-    $('.policies-no').addClass('hide');
-    $('.policies-current').html('');
 
     _this.policiesManager.getFormattedPolicies().then((policies) => {
+      $('.policies-no').addClass('hide');
+      $('.policies-current').html('');
+
       let policiesTitles = [];
       let rulesTitles = [];
       let ids = [];

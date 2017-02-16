@@ -1,15 +1,12 @@
 class PoliciesManager {
 
-  constructor(pepGuiURL, pepURL, messageBus, policyEngine) {
+  constructor(pepGuiURL, pepURL, messageBus) {
     let _this = this;
-    _this.policyEngine = policyEngine;
     _this._guiURL = pepGuiURL;
     _this._pepURL = pepURL;
     _this._messageBus = messageBus;
-    _this.policies = this.policyEngine.context.userPolicies;
-    _this.variables = _this.setVariables();
-    _this.addition = _this.setAdditionMethods();
-    _this.validation = _this.setValidationMethods();
+
+    // assume prepare attributes is called after this
   }
 
   callPolicyEngineFunc(methodName, parameters) {
@@ -22,6 +19,20 @@ class PoliciesManager {
       _this._messageBus.postMessage(message, (res) => {
         let result = res.body.value;
         resolve(result);
+      });
+    });
+  }
+
+  prepareAttributes() {
+    return new Promise((resolve, reject) => {
+      let _this = this;
+      //_this.policies = this.policyEngine.context.userPolicies;
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+        _this.policies = userPolicies;
+        _this.variables = _this.setVariables();
+        _this.addition = _this.setAdditionMethods();
+        _this.validation = _this.setValidationMethods();
+        resolve();
       });
     });
   }
@@ -572,7 +583,7 @@ class PoliciesManager {
     let _this = this;
     return new Promise((resolve, reject) => {
       //let userPolicies = this.policyEngine.context.userPolicies;
-      _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
         userPolicies[policyTitle].deleteRule(rule);
         if (!newSubscriptionType) {
           userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
