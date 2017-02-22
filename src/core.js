@@ -75,12 +75,13 @@ catalogue.getRuntimeDescriptor(runtimeURL)
 	  window.addEventListener('message', function(event){
 		  if(event.data.to==='core:loadHyperty'){
 			  let descriptor = event.data.body.descriptor;
+			  let reuseAddress = event.data.body.reuseAddress
 			  let hyperty = searchHyperty(runtime, descriptor);
 
 			  if(hyperty){
 				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
 			  }else{
-				  runtime.loadHyperty(descriptor)
+				  runtime.loadHyperty(descriptor, reuseAddress)
 					  .then(returnHyperty.bind(null, event.source));
 			  }
 		  }else if(event.data.to==='core:loadStub'){

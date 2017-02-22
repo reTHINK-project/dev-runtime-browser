@@ -49,12 +49,12 @@ let buildMsg = (hypertyComponent, msg) => {
 
 /**
  * @typedef {Object} RuntimeAdapter
- * @property {function(Hyperty descriptor: string): Promise<Hyperty>} requireHyperty - Loads and returns a Hyperty
+ * @property {function(Hyperty descriptor: string, set if Hyperty addresses are to be reused: boolean): Promise<Hyperty>} requireHyperty - Loads and returns a Hyperty
  * @property {function(Domain: string)} requireProtostub - Loads a protostub from the given domain
  * @property {function(): Promise} close - Unloads and closes the installed runtime
  */
 let runtimeAdapter = {
-	requireHyperty: (hypertyDescriptor)=>{
+	requireHyperty: (hypertyDescriptor, reuseAddress = false)=>{
 		return new Promise((resolve, reject)=>{
 			let loaded = (e)=>{
 				if(e.data.to === 'runtime:loadedHyperty'){
@@ -63,7 +63,7 @@ let runtimeAdapter = {
 				}
 			}
 			window.addEventListener('message', loaded)
-			iframe.contentWindow.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor}}, '*')
+			iframe.contentWindow.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor, reuseAddress}}, '*')
 		})
 	},
 
