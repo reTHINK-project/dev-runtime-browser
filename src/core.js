@@ -20,82 +20,82 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import URI from 'urijs';
-import IdentitiesGUI from './admin/IdentitiesGUI';
-import PoliciesGUI from './admin/PoliciesGUI';
-import RuntimeFactory from './RuntimeFactory';
+import URI from 'urijs'
+import IdentitiesGUI from './admin/IdentitiesGUI'
+import PoliciesGUI from './admin/PoliciesGUI'
+import RuntimeFactory from './RuntimeFactory'
 
 try{
-    window.cordova = parent.cordova !== undefined
-    if(window.cordova)
-        window.open = function(url){ return parent.cordova.InAppBrowser.open(url, '_blank', 'location=no,toolbar=no')};
+	window.cordova = parent.cordova !== undefined
+	if(window.cordova)
+		window.open = function(url){ return parent.cordova.InAppBrowser.open(url, '_blank', 'location=no,toolbar=no')}
 }catch(err){ console.log('cordova not supported') }
 
 function returnHyperty(source, hyperty){
-    source.postMessage({to: 'runtime:loadedHyperty', body: hyperty}, '*')
+	source.postMessage({to: 'runtime:loadedHyperty', body: hyperty}, '*')
 }
 
 function searchHyperty(runtime, descriptor){
-    let hyperty = undefined;
-    let index = 0;
-    while(!hyperty && index<runtime.registry.hypertiesList.length){
-        if(runtime.registry.hypertiesList[index].descriptor === descriptor)
-            hyperty = runtime.registry.hypertiesList[index]
+	let hyperty = undefined
+	let index = 0
+	while(!hyperty && index<runtime.registry.hypertiesList.length){
+		if(runtime.registry.hypertiesList[index].descriptor === descriptor)
+			hyperty = runtime.registry.hypertiesList[index]
 
-        index++
-    }
+		index++
+	}
 
-    return hyperty;
+	return hyperty
 }
 
 let parameters = new URI(window.location).search(true)
 let runtimeURL = parameters.runtime
-let development = parameters.development === "true"
+let development = parameters.development === 'true'
 let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
 
 catalogue.getRuntimeDescriptor(runtimeURL)
-    .then(function(descriptor){
-        let sourcePackageURL = descriptor.sourcePackageURL;
-        if (sourcePackageURL === '/sourcePackage') {
-            return descriptor.sourcePackage;
-        }
+	.then(function(descriptor){
+		let sourcePackageURL = descriptor.sourcePackageURL
+		if (sourcePackageURL === '/sourcePackage') {
+			return descriptor.sourcePackage
+		}
 
-        return catalogue.getSourcePackageFromURL(sourcePackageURL);
-    })
-    .then(function(sourcePackage){
-        eval.apply(window,[sourcePackage.sourceCode])
+		return catalogue.getSourcePackageFromURL(sourcePackageURL)
+	})
+.then(function(sourcePackage){
+	eval.apply(window,[sourcePackage.sourceCode])
 
-        let runtime = new Runtime(RuntimeFactory, window.location.host);
+	let runtime = new Runtime(RuntimeFactory, window.location.host)
 
-        new PoliciesGUI(runtime.policyEngine);
-        let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
+	new PoliciesGUI(runtime.policyEngine)
+	let identitiesGUI = new IdentitiesGUI(runtime.identityModule)
 
-        window.addEventListener('message', function(event){
-            if(event.data.to==='core:loadHyperty'){
-                let descriptor = event.data.body.descriptor;
-                let hyperty = searchHyperty(runtime, descriptor);
+	window.addEventListener('message', function(event){
+		if(event.data.to==='core:loadHyperty'){
+			let descriptor = event.data.body.descriptor
+			let hyperty = searchHyperty(runtime, descriptor)
 
-                if(hyperty){
-                    returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
-                }else{
-                    runtime.loadHyperty(descriptor)
-                        .then(returnHyperty.bind(null, event.source));
-                }
-            }else if(event.data.to==='core:loadStub'){
-                runtime.loadStub(event.data.body.domain).then((result) => {
-                  console.log('Stub Loaded: ', result);
-                }).catch((error) => {
-                  console.error('Stub error:', error);
-                })
-            }else if(event.data.to==='core:close'){
-                runtime.close()
-                    .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-                    .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
-            }
+			if(hyperty){
+				returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL})
+			}else{
+				runtime.loadHyperty(descriptor)
+					.then(returnHyperty.bind(null, event.source))
+			}
+		}else if(event.data.to==='core:loadStub'){
+			runtime.loadStub(event.data.body.domain).then((result) => {
+				console.log('Stub Loaded: ', result)
+			}).catch((error) => {
+				console.error('Stub error:', error)
+			})
+		}else if(event.data.to==='core:close'){
+			runtime.close()
+				.then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
+				.catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
+		}
 
-        }, false);
-        window.addEventListener('beforeunload', (e) => {
-            runtime.close()
-        })
-        parent.postMessage({to:'runtime:installed', body:{}}, '*');
-    });
+	}, false)
+	window.addEventListener('beforeunload', (e) => {
+		runtime.close()
+	})
+	parent.postMessage({to:'runtime:installed', body:{}}, '*')
+})

@@ -20,32 +20,42 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox';
-import MiniBus from 'runtime-core/dist/minibus';
+import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
+import MiniBus from 'runtime-core/dist/minibus'
 
+/**
+ * Proxy for the Application context
+ * */
 export default class SandboxApp extends Sandbox{
-   constructor(){
-     super();
+	constructor(){
+		super()
 
-     this.type = SandboxType.NORMAL;
-     window.addEventListener('message', function(e){
-         if(!!!this.origin)
-            this.origin = e.source;
+		/**
+		 * @type {runtime-core/dist/sandbox/SandboxType}
+		 */
+		this.type = SandboxType.NORMAL
+		window.addEventListener('message', function(e){
+			if(!this.origin){
+				/**
+				 * @type {Window}
+				 */
+				this.origin = e.source
+			}
 
-         if(e.data.hasOwnProperty('to') && e.data.to.startsWith('core:'))
-             return;
+			if(e.data.hasOwnProperty('to') && e.data.to.startsWith('core:'))
+				return
 
-         this._onMessage(JSON.parse(JSON.stringify(e.data)));
-     }.bind(this));
+			this._onMessage(JSON.parse(JSON.stringify(e.data)))
+		}.bind(this))
 
-     window.addEventListener('error', function(error){
-       console.error('[SANDBOX APP] - Error', error);
-       throw error;
-     }.bind(this));
+		window.addEventListener('error', function(error){
+			console.error('[SANDBOX APP] - Error', error)
+			throw error
+		}.bind(this))
 
-   }
+	}
 
-   _onPostMessage(msg){
-     this.origin.postMessage(JSON.parse(JSON.stringify(msg)), '*');
-   }
+	_onPostMessage(msg){
+		this.origin.postMessage(JSON.parse(JSON.stringify(msg)), '*')
+	}
 }

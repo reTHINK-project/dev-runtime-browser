@@ -20,32 +20,41 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox';
-import MiniBus from 'runtime-core/dist/minibus';
+import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
+import MiniBus from 'runtime-core/dist/minibus'
 
+/**
+ * Proxy for a WebWorker
+ * */
 export default class SandboxWorker extends Sandbox{
-   constructor(script){
-     super(script);
+	/**
+	 * @param {string} script - Script that will be loaded in the web worker
+	 */
+	constructor(script){
+		super(script)
 
-     this.type = SandboxType.NORMAL;
-     if(!!Worker){
-         this._worker = new Worker(script);
-         this._worker.addEventListener('message', function(e){
-             this._onMessage(JSON.parse(JSON.stringify(e.data)));
-         }.bind(this));
+		/**
+		 * @type {runtime-core/dist/sandbox/SandboxType}
+		 */
+		this.type = SandboxType.NORMAL
+		if(Worker){
+			this._worker = new Worker(script)
+			this._worker.addEventListener('message', function(e){
+				this._onMessage(JSON.parse(JSON.stringify(e.data)))
+			}.bind(this))
 
-         this._worker.addEventListener('error', function(error){
-           console.log("[Sandbox Worker] - Error: ", error);
-           throw JSON.stringify(error);
-         }.bind(this));
+			this._worker.addEventListener('error', function(error){
+				console.log('[Sandbox Worker] - Error: ', error)
+				throw JSON.stringify(error)
+			}.bind(this))
 
-         this._worker.postMessage('');
-     }else{
-         throw new Error('Your environment does not support worker \n', e);
-     }
-   }
+			this._worker.postMessage('')
+		}else{
+			throw new Error('Your environment does not support worker \n')
+		}
+	}
 
-   _onPostMessage(msg){
-       this._worker.postMessage(JSON.parse(JSON.stringify(msg)));
-   }
+	_onPostMessage(msg){
+		this._worker.postMessage(JSON.parse(JSON.stringify(msg)))
+	}
 }
