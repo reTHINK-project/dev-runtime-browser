@@ -21,7 +21,7 @@
 * limitations under the License.
 **/
 import PersistenceManager from 'service-framework/dist/PersistenceManager'
-import SandboxWorker from './SandboxWorker'
+import { SandboxWorker, createSandbox } from './Sandboxes'
 import SandboxApp from './SandboxApp'
 import Request from './Request'
 import RuntimeCapabilities from './RuntimeCapabilities'
@@ -42,8 +42,8 @@ import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
  * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
  */
 export default {
-	createSandbox() {
-		return new SandboxWorker('./context-service.js')
+	createSandbox(constraints) {
+		return createSandbox(constraints)
 	},
 
 	createAppSandbox() {

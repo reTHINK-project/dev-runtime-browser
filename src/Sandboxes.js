@@ -22,11 +22,21 @@
 **/
 import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
 import MiniBus from 'runtime-core/dist/minibus'
+import RuntimeFactory from './RuntimeFactory'
 
 /**
  * Proxy for a WebWorker
  * */
-export default class SandboxWorker extends Sandbox{
+export class SandboxWorker extends Sandbox{
+	static capabilities() {
+		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+			.then(capabilities =>Object.assign(capabilities, { mic:false, camera:false }))
+	}
+
+	static new() {
+		return new SandboxWorker('./context-service.js')
+	}
+
 	/**
 	 * @param {string} script - Script that will be loaded in the web worker
 	 */
@@ -57,4 +67,20 @@ export default class SandboxWorker extends Sandbox{
 	_onPostMessage(msg){
 		this._worker.postMessage(JSON.parse(JSON.stringify(msg)))
 	}
+}
+
+export function createSandbox(constraints) {
+	const sandboxes = [SandboxWorker]
+	let i = 0
+	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
+	return sandboxes[i].capabilities()
+		.then(capabilities => {
+			while(i<sandboxes.length) {
+				if(diff(constraints, capabilities).length === 0)
+					return sandboxes[i].new()
+				i++
+			}
+
+			throw new Error('None of supported sandboxes match your constraints')
+		})
 }
