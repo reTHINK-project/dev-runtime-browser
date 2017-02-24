@@ -1,10 +1,11 @@
 import { expect } from 'chai'
 import runtimeFactory from '../src/RuntimeFactory'
-import { SandboxWorker } from '../src/Sandboxes'
+import { SandboxWindow, SandboxWorker } from '../src/Sandboxes'
 
 describe('RuntimeFactory', () => {
 	const data = [
-		{sandbox_name: 'SandboxWorker', sandbox: SandboxWorker, constraints: { mic: false, camera: false }}
+		{sandbox_name: 'SandboxWorker', sandbox: SandboxWorker, constraints: { mic: false, camera: false }},
+		{sandbox_name: 'SandboxWindow', sandbox: SandboxWindow, constraints: { mic: true, camera: true }}
 	]
 
 	describe('createSandbox', () => {
@@ -19,7 +20,7 @@ describe('RuntimeFactory', () => {
 		}
 
 		it('should throw an error if none sandbox match the constraints', (done) => {
-			runtimeFactory.createSandbox({mic:true})
+			runtimeFactory.createSandbox({mic:true, camera:false})
 				.catch(() => {
 						done()
 				})

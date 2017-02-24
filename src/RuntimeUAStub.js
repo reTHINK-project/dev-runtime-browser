@@ -119,6 +119,14 @@ let RethinkBrowser = {
 				}
 			}
 			window.addEventListener('message', installed)
+			window.addEventListener('message', (e) => {
+				if(e.data.to && e.data.to === 'runtime:createSandboxWindow'){
+					const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
+					ifr.addEventListener('load', () => {
+						ifr.contentWindow.postMessage(e.data, '*', e.ports)
+					}, false)
+				}
+			})
 			app.create(iframe)
 			GuiManager()
 		})

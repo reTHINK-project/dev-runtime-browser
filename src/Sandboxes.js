@@ -69,18 +69,45 @@ export class SandboxWorker extends Sandbox{
 	}
 }
 
+export class SandboxWindow extends Sandbox{
+	static capabilities() {
+		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+	}
+
+	static new() {
+		return new SandboxWindow()
+	}
+
+	constructor(){
+		super()
+
+		this.type = SandboxType.NORMAL
+		this.channel = new MessageChannel()
+
+		this.channel.port1.onmessage = function(e){
+			this._onMessage(JSON.parse(JSON.stringify(e.data)))
+		}.bind(this)
+
+		parent.postMessage({ to:'runtime:createSandboxWindow' }, '*', [this.channel.port2])
+	}
+
+	_onPostMessage(msg){
+		this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)))
+	}
+}
+
 export function createSandbox(constraints) {
-	const sandboxes = [SandboxWorker]
-	let i = 0
+	const sandboxes = [SandboxWorker, SandboxWindow]
 	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
-	return sandboxes[i].capabilities()
-		.then(capabilities => {
-			while(i<sandboxes.length) {
-				if(diff(constraints, capabilities).length === 0)
-					return sandboxes[i].new()
+
+	return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{return {capabilities:c, sandbox:s}})))
+		.then(sbs => {
+			let i = 0
+			while(i<sbs.length) {
+				if(diff(constraints, sbs[i].capabilities).length === 0)
+					return sbs[i].sandbox.new()
 				i++
 			}
-
 			throw new Error('None of supported sandboxes match your constraints')
 		})
 }

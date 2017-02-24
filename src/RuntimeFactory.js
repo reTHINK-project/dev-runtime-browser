@@ -21,7 +21,7 @@
 * limitations under the License.
 **/
 import PersistenceManager from 'service-framework/dist/PersistenceManager'
-import { SandboxWorker, createSandbox } from './Sandboxes'
+import { createSandbox } from './Sandboxes'
 import SandboxApp from './SandboxApp'
 import Request from './Request'
 import RuntimeCapabilities from './RuntimeCapabilities'
@@ -32,7 +32,7 @@ import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
 /**
  * Is a bridge to isolate the runtime from the specific platform
  * @typedef {Object} RuntimeFactory
- * @property {function():SandboxWorker} createSandbox Creates a new SandboxWorker
+ * @property {function():Sandbox} createSandbox Creates a new Sandbox
  * @property {function():SandboxApp} createAppSandbox Creates a new SandboxApp
  * @property {function():Request} createHttpRequest Creates a new Request object
  * @property {function():RuntimeCatalogue} createRuntimeCatalogue Creates a new RuntimeCatalogue
