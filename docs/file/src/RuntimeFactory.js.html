@@ -35,7 +35,9 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxWorker.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
@@ -76,7 +78,7 @@
 * limitations under the License.
 **/
 import PersistenceManager from &apos;service-framework/dist/PersistenceManager&apos;
-import SandboxWorker from &apos;./SandboxWorker&apos;
+import { createSandbox } from &apos;./Sandboxes&apos;
 import SandboxApp from &apos;./SandboxApp&apos;
 import Request from &apos;./Request&apos;
 import RuntimeCapabilities from &apos;./RuntimeCapabilities&apos;
@@ -87,7 +89,7 @@ import { RuntimeCatalogue } from &apos;service-framework/dist/RuntimeCatalogue&a
 /**
  * Is a bridge to isolate the runtime from the specific platform
  * @typedef {Object} RuntimeFactory
- * @property {function():SandboxWorker} createSandbox Creates a new SandboxWorker
+ * @property {function():Sandbox} createSandbox Creates a new Sandbox
  * @property {function():SandboxApp} createAppSandbox Creates a new SandboxApp
  * @property {function():Request} createHttpRequest Creates a new Request object
  * @property {function():RuntimeCatalogue} createRuntimeCatalogue Creates a new RuntimeCatalogue
@@ -97,8 +99,8 @@ import { RuntimeCatalogue } from &apos;service-framework/dist/RuntimeCatalogue&a
  * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
  */
 export default {
-	createSandbox() {
-		return new SandboxWorker(&apos;./context-service.js&apos;)
+	createSandbox(constraints) {
+		return createSandbox(constraints)
 	},
 
 	createAppSandbox() {

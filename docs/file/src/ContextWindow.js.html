@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">test/SandboxIframeIntegration.spec.js | Runtime Browser API Document</title>
+  <title data-ice="title">src/ContextWindow.js | Runtime Browser API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -54,19 +54,54 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">test/SandboxIframeIntegration.spec.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Sandbox from &apos;../src/SandboxIframe&apos;;
+<div class="content" data-ice="content"><h1 data-ice="title">src/ContextWindow.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * Copyright 2016 PT Inova&#xE7;&#xE3;o e Sistemas SA
+ * Copyright 2016 INESC-ID
+ * Copyright 2016 QUOBIS NETWORKS SL
+ * Copyright 2016 FRAUNHOFER-GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG E.V
+ * Copyright 2016 ORANGE SA
+ * Copyright 2016 Deutsche Telekom AG
+ * Copyright 2016 Apizee
+ * Copyright 2016 TECHNISCHE UNIVERSITAT BERLIN
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+import { Sandbox, SandboxRegistry } from &apos;runtime-core/dist/sandbox&apos;
+import MiniBus from &apos;runtime-core/dist/minibus&apos;
 
-describe(&apos;SandboxIframe&apos;, function(){
-    //TODO: this test is a fake, only an example. Waiting for other components to be completed.
-    xit(&apos;should load RuntimeUA context&apos;, function(){
-        var sandbox = new Sandbox(&apos;base/test/resources/core.js&apos;);
-        setTimeout(()=&gt;{
-            sandbox.postMessage({to:&apos;ua.me&apos;, body: { config:&apos;&apos;, url: &apos;ua.me&apos;, sourceCode: &apos;&apos;}} );
-        }, 1200);
-    });
-});
+self._miniBus = new MiniBus()
+self._miniBus._onPostMessage = function(msg){
+	self.port.postMessage(JSON.parse(JSON.stringify(msg)))
+}
 
+self.addEventListener(&apos;message&apos;, function(event){
+	self.port = event.ports[0]
+	self.port.onmessage = (event) =&gt; {
+		self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)))
+	}
+})
+
+self._registry = new SandboxRegistry(self._miniBus)
+self._registry._create = function(url, sourceCode, config){
+	try {
+		eval.apply(self, [sourceCode])
+		return activate(url, self._miniBus, config)
+	} catch (error) {
+		console.error(&quot;[Context Window] - Error: &quot;, error)
+		throw JSON.stringify(error.message)
+	}
+}
 </code></pre>
 
 </div>

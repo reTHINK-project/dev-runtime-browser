@@ -35,7 +35,9 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxWorker.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
@@ -107,53 +109,58 @@ let parameters = new URI(window.location).search(true)
 let runtimeURL = parameters.runtime
 let development = parameters.development === &apos;true&apos;
 let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
-
+let runtimeDescriptor;
 catalogue.getRuntimeDescriptor(runtimeURL)
-	.then(function(descriptor){
-		let sourcePackageURL = descriptor.sourcePackageURL
-		if (sourcePackageURL === &apos;/sourcePackage&apos;) {
-			return descriptor.sourcePackage
-		}
+    .then(function(descriptor){
+      runtimeDescriptor = descriptor;
+        let sourcePackageURL = descriptor.sourcePackageURL;
+        if (sourcePackageURL === &apos;/sourcePackage&apos;) {
+            return descriptor.sourcePackage;
+        }
 
 		return catalogue.getSourcePackageFromURL(sourcePackageURL)
 	})
 .then(function(sourcePackage){
 	eval.apply(window,[sourcePackage.sourceCode])
 
-	let runtime = new Runtime(RuntimeFactory, window.location.host)
+	let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
+	window.runtime = runtime;
+	runtime.init().then( function(result){
+	  new PoliciesGUI(runtime.policyEngine);
+	  let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
 
-	new PoliciesGUI(runtime.policyEngine)
-	let identitiesGUI = new IdentitiesGUI(runtime.identityModule)
+	  window.addEventListener(&apos;message&apos;, function(event){
+		  if(event.data.to===&apos;core:loadHyperty&apos;){
+			  let descriptor = event.data.body.descriptor;
+			  let reuseAddress = event.data.body.reuseAddress
+			  let hyperty = searchHyperty(runtime, descriptor);
 
-	window.addEventListener(&apos;message&apos;, function(event){
-		if(event.data.to===&apos;core:loadHyperty&apos;){
-			let descriptor = event.data.body.descriptor
-			let hyperty = searchHyperty(runtime, descriptor)
+			  if(hyperty){
+				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+			  }else{
+				  runtime.loadHyperty(descriptor, reuseAddress)
+					  .then(returnHyperty.bind(null, event.source));
+			  }
+		  }else if(event.data.to===&apos;core:loadStub&apos;){
+			  runtime.loadStub(event.data.body.domain).then((result) =&gt; {
+				console.log(&apos;Stub Loaded: &apos;, result);
+			  }).catch((error) =&gt; {
+				console.error(&apos;Stub error:&apos;, error);
+			  })
+		  }else if(event.data.to===&apos;core:close&apos;){
+			  runtime.close()
+				  .then(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: true}, &apos;*&apos;))
+				  .catch(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: false}, &apos;*&apos;))
+		  }
 
-			if(hyperty){
-				returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL})
-			}else{
-				runtime.loadHyperty(descriptor)
-					.then(returnHyperty.bind(null, event.source))
-			}
-		}else if(event.data.to===&apos;core:loadStub&apos;){
-			runtime.loadStub(event.data.body.domain).then((result) =&gt; {
-				console.log(&apos;Stub Loaded: &apos;, result)
-			}).catch((error) =&gt; {
-				console.error(&apos;Stub error:&apos;, error)
-			})
-		}else if(event.data.to===&apos;core:close&apos;){
-			runtime.close()
-				.then(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: true}, &apos;*&apos;))
-				.catch(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: false}, &apos;*&apos;))
-		}
-
-	}, false)
-	window.addEventListener(&apos;beforeunload&apos;, (e) =&gt; {
-		runtime.close()
-	})
-	parent.postMessage({to:&apos;runtime:installed&apos;, body:{}}, &apos;*&apos;)
-})
+	  }, false);
+	  window.addEventListener(&apos;beforeunload&apos;, (e) =&gt; {
+		  runtime.close()
+	  })
+	  parent.postMessage({to:&apos;runtime:installed&apos;, body:{}}, &apos;*&apos;);
+	  console.log(&apos;AFTER PARENT&apos;);
+	});
+});
 </code></pre>
 
 </div>

@@ -1,21 +1,21 @@
 {
-  "coverage": "18.05%",
-  "expectCount": 72,
-  "actualCount": 13,
+  "coverage": "13.41%",
+  "expectCount": 82,
+  "actualCount": 11,
   "files": {
     "src/admin/IdentitiesGUI.js": {
       "expectCount": 9,
       "actualCount": 0,
       "undocumentLines": [
         3,
-        177,
+        183,
         5,
-        142,
-        155,
-        210,
-        191,
+        148,
+        161,
+        216,
+        197,
         63,
-        103
+        109
       ]
     },
     "src/admin/PoliciesGUI.js": {
@@ -86,9 +86,13 @@
       ]
     },
     "src/RuntimeCapabilities.js": {
-      "expectCount": 5,
-      "actualCount": 5,
-      "undocumentLines": []
+      "expectCount": 6,
+      "actualCount": 3,
+      "undocumentLines": [
+        4,
+        6,
+        9
+      ]
     },
     "src/SandboxApp.js": {
       "expectCount": 4,
@@ -97,10 +101,20 @@
         30
       ]
     },
-    "src/SandboxWorker.js": {
-      "expectCount": 3,
+    "src/Sandboxes.js": {
+      "expectCount": 12,
       "actualCount": 3,
-      "undocumentLines": []
+      "undocumentLines": [
+        72,
+        31,
+        73,
+        85,
+        81,
+        99,
+        36,
+        77,
+        84
+      ]
     },
     "src/iframe.js": {
       "expectCount": 1,

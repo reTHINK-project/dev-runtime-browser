@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">test/SandboxIframeIntegration.spec.js | Runtime Browser API Document</title>
+  <title data-ice="title">test/RuntimeFactory.spec.js | Runtime Browser API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -54,19 +54,36 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">test/SandboxIframeIntegration.spec.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Sandbox from &apos;../src/SandboxIframe&apos;;
+<div class="content" data-ice="content"><h1 data-ice="title">test/RuntimeFactory.spec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { expect } from &apos;chai&apos;
+import runtimeFactory from &apos;../src/RuntimeFactory&apos;
+import { SandboxWindow, SandboxWorker } from &apos;../src/Sandboxes&apos;
 
-describe(&apos;SandboxIframe&apos;, function(){
-    //TODO: this test is a fake, only an example. Waiting for other components to be completed.
-    xit(&apos;should load RuntimeUA context&apos;, function(){
-        var sandbox = new Sandbox(&apos;base/test/resources/core.js&apos;);
-        setTimeout(()=&gt;{
-            sandbox.postMessage({to:&apos;ua.me&apos;, body: { config:&apos;&apos;, url: &apos;ua.me&apos;, sourceCode: &apos;&apos;}} );
-        }, 1200);
-    });
-});
+describe(&apos;RuntimeFactory&apos;, () =&gt; {
+	const data = [
+		{sandbox_name: &apos;SandboxWorker&apos;, sandbox: SandboxWorker, constraints: { mic: false, camera: false }},
+		{sandbox_name: &apos;SandboxWindow&apos;, sandbox: SandboxWindow, constraints: { mic: true, camera: true }}
+	]
 
+	describe(&apos;createSandbox&apos;, () =&gt; {
+		for(let d of data) {
+			it(`should return ${d.sandbox_name} for a component with this constraints ${JSON.stringify(d.constraints)}`, (done) =&gt; {
+				runtimeFactory.createSandbox(d.constraints)
+					.then(sandbox =&gt; {
+						expect(sandbox).to.be.an.instanceof(d.sandbox)
+						done()
+					})
+			})
+		}
+
+		it(&apos;should throw an error if none sandbox match the constraints&apos;, (done) =&gt; {
+			runtimeFactory.createSandbox({mic:true, camera:false})
+				.catch(() =&gt; {
+						done()
+				})
+		})
+	})
+})
 </code></pre>
 
 </div>

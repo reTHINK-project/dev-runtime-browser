@@ -35,7 +35,9 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxWorker.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
@@ -61,15 +63,15 @@ let storageManager, runtimeCapabilities
 const caps = {
 	browser: true,
 	node: false,
-	windowSandbox: true,
-	webrtc: true,
-	datachannel: true
+	mic: true,
+	camera: true
 }
 
 describe(&apos;RuntimeCapabilities&apos;, () =&gt; {
 	beforeEach(() =&gt; {
 		storageManager = {
-			get: () =&gt; when(caps)
+			get: () =&gt; when(caps),
+			set: (key, version, value) =&gt; {}
 		}
 		runtimeCapabilities = new RuntimeCapabilities(storageManager)
 	})
@@ -85,7 +87,7 @@ describe(&apos;RuntimeCapabilities&apos;, () =&gt; {
 				.then(capabilities =&gt; {
 					expect(capabilities).to.be.eql(caps)
 					done()
-				})
+				}).catch(console.log)
 		})
 
 		it(&apos;should persist the capabilities in the storagemanager&apos;, (done) =&gt; {

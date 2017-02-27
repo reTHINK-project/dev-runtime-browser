@@ -36,15 +36,27 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "runtime-browser/src/sandboxworker.js~sandboxworker",
-    "class/src/SandboxWorker.js~SandboxWorker.html",
-    "<span>SandboxWorker</span> <span class=\"search-result-import-path\">runtime-browser/src/SandboxWorker.js</span>",
+    "runtime-browser/src/sandboxes.js~sandboxwindow",
+    "class/src/Sandboxes.js~SandboxWindow.html",
+    "<span>SandboxWindow</span> <span class=\"search-result-import-path\">runtime-browser/src/Sandboxes.js</span>",
+    "class"
+  ],
+  [
+    "runtime-browser/src/sandboxes.js~sandboxworker",
+    "class/src/Sandboxes.js~SandboxWorker.html",
+    "<span>SandboxWorker</span> <span class=\"search-result-import-path\">runtime-browser/src/Sandboxes.js</span>",
     "class"
   ],
   [
     "runtime-browser/src/iframe.js~create",
     "function/index.html#static-function-create",
     "<span>create</span> <span class=\"search-result-import-path\">runtime-browser/src/iframe.js</span>",
+    "function"
+  ],
+  [
+    "runtime-browser/src/sandboxes.js~createsandbox",
+    "function/index.html#static-function-createSandbox",
+    "<span>createSandbox</span> <span class=\"search-result-import-path\">runtime-browser/src/Sandboxes.js</span>",
     "function"
   ],
   [
@@ -427,7 +439,7 @@ window.esdocSearchIndex = [
   ],
   [
     "",
-    "test-file/test/RuntimeCapabilities.spec.js.html#lineNumber14",
+    "test-file/test/RuntimeCapabilities.spec.js.html#lineNumber13",
     "RuntimeCapabilities",
     "test"
   ],
@@ -471,6 +483,30 @@ window.esdocSearchIndex = [
     "",
     "test-file/test/RuntimeCapabilities.spec.js.html#lineNumber67",
     "RuntimeCapabilities update should refresh previously collected values",
+    "test"
+  ],
+  [
+    "",
+    "test-file/test/RuntimeFactory.spec.js.html#lineNumber5",
+    "RuntimeFactory",
+    "test"
+  ],
+  [
+    "",
+    "test-file/test/RuntimeFactory.spec.js.html#lineNumber11",
+    "RuntimeFactory createSandbox",
+    "test"
+  ],
+  [
+    "",
+    "test-file/test/RuntimeFactory.spec.js.html#lineNumber13",
+    "RuntimeFactory createSandbox ",
+    "test"
+  ],
+  [
+    "",
+    "test-file/test/RuntimeFactory.spec.js.html#lineNumber22",
+    "RuntimeFactory createSandbox should throw an error if none sandbox match the constraints",
     "test"
   ],
   [
@@ -606,6 +642,12 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/contextwindow.js",
+    "file/src/ContextWindow.js.html",
+    "src/ContextWindow.js",
+    "file"
+  ],
+  [
     "src/request.js",
     "file/src/Request.js.html",
     "src/Request.js",
@@ -646,6 +688,12 @@ window.esdocSearchIndex = [
     "class/src/RuntimeCapabilities.js~RuntimeCapabilities.html#instance-method-isAvailable",
     "src/RuntimeCapabilities.js~RuntimeCapabilities#isAvailable",
     "method"
+  ],
+  [
+    "src/runtimecapabilities.js~runtimecapabilities#storagemanager",
+    "class/src/RuntimeCapabilities.js~RuntimeCapabilities.html#instance-member-storageManager",
+    "src/RuntimeCapabilities.js~RuntimeCapabilities#storageManager",
+    "member"
   ],
   [
     "src/runtimecapabilities.js~runtimecapabilities#update",
@@ -726,22 +774,64 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
-    "src/sandboxworker.js",
-    "file/src/SandboxWorker.js.html",
-    "src/SandboxWorker.js",
+    "src/sandboxes.js",
+    "file/src/Sandboxes.js.html",
+    "src/Sandboxes.js",
     "file"
   ],
   [
-    "src/sandboxworker.js~sandboxworker#constructor",
-    "class/src/SandboxWorker.js~SandboxWorker.html#instance-constructor-constructor",
-    "src/SandboxWorker.js~SandboxWorker#constructor",
+    "src/sandboxes.js~sandboxwindow#channel",
+    "class/src/Sandboxes.js~SandboxWindow.html#instance-member-channel",
+    "src/Sandboxes.js~SandboxWindow#channel",
+    "member"
+  ],
+  [
+    "src/sandboxes.js~sandboxwindow#constructor",
+    "class/src/Sandboxes.js~SandboxWindow.html#instance-constructor-constructor",
+    "src/Sandboxes.js~SandboxWindow#constructor",
     "method"
   ],
   [
-    "src/sandboxworker.js~sandboxworker#type",
-    "class/src/SandboxWorker.js~SandboxWorker.html#instance-member-type",
-    "src/SandboxWorker.js~SandboxWorker#type",
+    "src/sandboxes.js~sandboxwindow#type",
+    "class/src/Sandboxes.js~SandboxWindow.html#instance-member-type",
+    "src/Sandboxes.js~SandboxWindow#type",
     "member"
+  ],
+  [
+    "src/sandboxes.js~sandboxwindow.capabilities",
+    "class/src/Sandboxes.js~SandboxWindow.html#static-method-capabilities",
+    "src/Sandboxes.js~SandboxWindow.capabilities",
+    "method"
+  ],
+  [
+    "src/sandboxes.js~sandboxwindow.new",
+    "class/src/Sandboxes.js~SandboxWindow.html#static-method-new",
+    "src/Sandboxes.js~SandboxWindow.new",
+    "method"
+  ],
+  [
+    "src/sandboxes.js~sandboxworker#constructor",
+    "class/src/Sandboxes.js~SandboxWorker.html#instance-constructor-constructor",
+    "src/Sandboxes.js~SandboxWorker#constructor",
+    "method"
+  ],
+  [
+    "src/sandboxes.js~sandboxworker#type",
+    "class/src/Sandboxes.js~SandboxWorker.html#instance-member-type",
+    "src/Sandboxes.js~SandboxWorker#type",
+    "member"
+  ],
+  [
+    "src/sandboxes.js~sandboxworker.capabilities",
+    "class/src/Sandboxes.js~SandboxWorker.html#static-method-capabilities",
+    "src/Sandboxes.js~SandboxWorker.capabilities",
+    "method"
+  ],
+  [
+    "src/sandboxes.js~sandboxworker.new",
+    "class/src/Sandboxes.js~SandboxWorker.html#static-method-new",
+    "src/Sandboxes.js~SandboxWorker.new",
+    "method"
   ],
   [
     "src/admin/identitiesgui.js",
@@ -1113,6 +1203,12 @@ window.esdocSearchIndex = [
     "test/runtimecapabilities.spec.js",
     "test-file/test/RuntimeCapabilities.spec.js.html",
     "test/RuntimeCapabilities.spec.js",
+    "testFile"
+  ],
+  [
+    "test/runtimefactory.spec.js",
+    "test-file/test/RuntimeFactory.spec.js.html",
+    "test/RuntimeFactory.spec.js",
     "testFile"
   ],
   [

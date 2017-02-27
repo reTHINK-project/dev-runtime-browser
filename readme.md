@@ -21,21 +21,34 @@ Refer to dev-hyperty-toolkit to get an example of use
 
 #### Distributable files
 * rethink.js. It is the public interface. It exposes two methods:
-    * requireHyperty(hypertyDescriptor)
+    * requireHyperty(hypertyDescriptor, reuseAddress)
     * requireProtoStub(domain)
 
     Moreover it create the ContextApp, where the hyperties are loaded and the iframe where the core is loaded.
 
-* context-core.js. It includes the runtime core (RuntimeUA, MiniBus and SandBox) and defines browser implementations of SandboxFactory, SandboxWorker and SandboxApp. SandboxWorker and SandboxApp are responsibles for manage communication between boundaries.
+* index.html and core.js. It includes the runtime core (RuntimeUA, MiniBus and SandBox) and defines browser implementations
 
 * context-service.js It is responsible for load hyperties and protostub like ContextApp but in an isolated way.
 
-* index.html
+* sandbox.html and sandbox.js It is responsible for load hyperties and protostub like context-service but with DOM access.
+
+* indentities-gui.js, policiew-gui.js... Responsible to manage the logic associated to admin GUIs.
+
+To find a more exhaustive documentation of these components, please refer to the api documentation inside the doc folder.
+
 
 ### Developer view
 #### How does it work?
 
 ![Runtime Browser](runtime-browser.png)
+
+##### What is a Sandbox?
+
+From a conceptual point of view, a SandBox is an isolated place where part of the code is run without creating any side effects to the rest of the components. The problems come when we try to explain it from an implementation point of view. A Sandbox has two part, an external part, what is the real Sandbox, and an internal part what is only a proxy to deliver and recover the messages from and to the real sandbox through all the layers that compound the runtime-browser such as iframes, web workers, and shared workers.
+
+![What is a Sandbox?](sandboxes.jpg)
+
+The communication between the MiniBus through the border is not possible, and we have to carry the communication through a open channel.
 
 #### RuntimeUAStub responsibilities:
 
