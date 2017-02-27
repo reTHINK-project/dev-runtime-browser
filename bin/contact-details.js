@@ -60,6 +60,7 @@ function details(j) {
 			}
 		}
 		html = html + "<button class='btn btn-danger' onclick = add_to_group(" + j + ")><span class='glyphicon glyphicon-plus'><b> add to group</b></span></button></td></tr>" +
+			"<td colspan=3 align='middle'><button class='btn btn-success' onclick= update_contact(" + j + ")><span class='glyphicon glyphicon-refresh'> <b>Update contact Info</b></span></button></td></tr><tr>" +
 			"</table>";
 
 		$("#right-div").html(html);
@@ -71,7 +72,7 @@ function details(j) {
 }
 
 function detailsOwner(j) {
-console.log("Owner Details");
+	console.log("Owner Details");
 	if (globalOwnerDetails.length !== 0) {
 
 		var html = "<table class='table table-hover'><tr>" +
@@ -267,6 +268,36 @@ function add_to_group(i) {
 			});
 		}
 	});
+}
+
+function update_contact(i) {
+
+	let checkPromise = new Promise(
+		function (resolve, reject) {
+			resolve(window.runtime.runtime.updateContactInfo(obj[i]._guid));
+		});
+
+	checkPromise.then(
+		function (result) {
+
+			console.log("send #########");
+			console.log(result)
+			console.log("send #########");
+			if (result == true) {
+				getAllContacts();
+				details(i);
+				$.fancybox({
+					type: "html",
+					content: "<p class=" + "title0" + ">  Contact was updated </p>"
+				});
+			} else {
+				$.fancybox({
+					type: "html",
+					content: "<p class=" + "title0" + ">  Nothing to update  </p>"
+				});
+			}
+		});
+
 }
 
 

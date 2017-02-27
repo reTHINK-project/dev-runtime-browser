@@ -14,7 +14,11 @@
 	<title>reTHINK Address Book Application</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href="uploadfile.css" rel="stylesheet">
-
+	<style>
+		input[type="radio"]{
+			-webkit-appearance: radio !important;
+		}
+	</style>
 
 </head>
 
@@ -35,7 +39,6 @@
 
 <script src="graph-connector.js"></script>
 <script src="contact-details.js"></script>
-<script src="seeding.js"></script>
 <script src="calculateBloomFilter.js"></script>
 <script src="BloomFilter.js"></script>
 <script src="groups.js"></script>
@@ -59,7 +62,6 @@
 	$(document).ready(function () {
 		$('#login').html('<div class="container">' + '<!-- Trigger the modal with a button -->' + '' + '<!-- Modal -->' + '<div class="modal fade" id="myLogin" role="dialog">' + '<div class="modal-dialog">' + '<!-- Modal content-->' + '<div class="modal-content" align="left">' + '<div class="modal-header">' + '<button type="button" class="close" data-dismiss="modal">&times;</button>' + '<h4 class="modal-title"><b>Login using Mnemonic</b></h4>' + '</div>' + '<div class="modal-body">' + '<label align="left">Please enter your 16 word mnemonic</label>' + '<input name="seed" type="text" id="seed" style=" width: 500px;" placeholder="Enter mnemonic..."/>' + '</div>' + '<div class="modal-footer">' + '<button type="button" class="btn btn-default" onclick=useGUID() data-dismiss="modal" >login</button><button type="button" class="btn btn-default" data-dismiss="modal">close</button>' + '</div>' + '</div>' + '</div>' + '</div>' + '</div>');
 	});
-
 
 	function createDialog(title, text, options) {
 		return $("<div class='dialog' style='text-align: center;' title='" + title + "'><p>Write down these words to login with the same GUID later. Do not give your private mnemonic to anyone else.</p><br\><strong>" + text + "</strong></div>").dialog(options);
@@ -87,7 +89,6 @@
 			} else {
 				html = html + "<label class='radio-inline'><input type='radio' name='optradio'>Yes</label><label class='radio-inline'><input type='radio' name='optradio' checked>No</label>";
 			}
-			;
 			html = html + "</td></tr><tr>" +
 					"<td colspan=3 align='middle'><button class='btn btn-success' onclick=call(" + j + ")><span class='glyphicon glyphicon-earphone'> <b>Call</b></span></button></td></tr><tr>" +
 					"<td colspan=3 align='middle'><button class='btn btn-warning' onclick=call(" + j + ")><span class='glyphicon glyphicon-envelope'> <b>Text</b></span></button></td></tr><tr>" +
@@ -105,8 +106,12 @@
 			$("#right-div").html(html);
 
 		} else {
-			$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"All the contacts have been deleted\"</b></h4> ");
-			$("#message_lbl").html('<h4 ><span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *All the contacts have been deleted</span></h4>');
+			if(obj.length !=0) {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"Contact was not found, Please search with different keyword\"</b></h4> ");
+			} else {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"All the contacts have been deleted\"</b></h4> ");
+				$("#message_lbl").html('<h4 ><span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *All the contacts have been deleted</span></h4>');
+			}
 		}
 	}
 
@@ -123,32 +128,42 @@
 
 	function search_friend() {
 		let name = $("#searchBox").val();
-		let body = window.runtime.runtime.getContact(name);
-		console.log(body);
-		let tempObj = [];
-		let index = 0;
-		let userList = body.userList;
-		let userExist = body.found;
 
-		if (name == "") {
-			getAllContacts();
-		} else if (!userExist) {
-			$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No such contact with name \"' + name + '\" </span>');
-		} else {
-			for (let i = 0; i < userList.length; i++) {
-				console.log('In AddressBook: Found a contact with name' + userList[i]._firstName);
-				tempObj.push(userList[i]);
-				index = i;
-			}
-			if (tempObj.length == 0) {
-				$('#left-div').html("<h3 align='center'> <b>No such contact with name </b> \"" + name + "\"</h3>");
-				$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No Such contact with name \"' + name + '\"</span>');
-			} else {
-				$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *Found  \"' + tempObj.length + '\" contacts</span>');
-				createFriendListGC(tempObj, 0);
-				detailsGC(tempObj, 0);
-			}
-		}
+		var getContactPromise = new Promise(
+				function(resolve, reject) {
+					resolve( window.runtime.runtime.getContact(name));
+				});
+
+		getContactPromise.then(
+				function(body) {
+					console.log(body);
+
+					let tempObj = [];
+					let index = 0;
+					let userList = body;
+
+					if (name == "") {
+						getAllContacts();
+					} else if (body.length == 0) {
+						$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No such contact with name \"' + name + '\" </span>');
+						createFriendListGC(tempObj, 0);
+						detailsGC(tempObj, 0);
+					} else {
+						for (let i = 0; i < userList.length; i++) {
+							console.log('In AddressBook: Found a contact with name' + userList[i].firstName);
+							tempObj.push(userList[i]);
+							index = i;
+						}
+						if (tempObj.length == 0) {
+							$('#left-div').html("<h3 align='center'> <b>No such contact with name </b> \"" + name + "\"</h3>");
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No Such contact with name \"' + name + '\"</span>');
+						} else {
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *Found  \"' + tempObj.length + '\" contacts</span>');
+							createFriendListGC(tempObj, 0);
+							detailsGC(tempObj, 0);
+						}
+					}
+				});
 	}
 
 
@@ -165,55 +180,6 @@
 			content: "<p class=" + "title0" + "> Copy and save this Mnemonic :   " + userGUID + "  </p>"
 		});
 
-	}
-
-	function checkGUIDRuntime() {
-		let body = window.runtime.runtime.checkGUID(`se23ghd7899dfnf99i3n3mo039hii93jtest123`);
-		window.addEventListener("message", printContact, false);
-	}
-
-
-	function printContact(event) {
-		if (event.data.to == "runtime:getContact") {
-			let userFirstName = body.firstName;
-			let userLastName = body.lastName;
-			$('.testResult').append("<h3>The user's firstName is <u>" + userFirstName + "<h3></u> and Last Name is <u>" + userLastName + "</u></h3>");
-		} else if (event.data.to == 'runtime:checkGUID') {
-			//let found = event.data.check;
-			let foundContacts = event.data.body.result;
-			console.info(foundContacts);
-			console.log('@@ Recrevived message from ' + event.data.to);
-			let DirectContact = foundContacts[0];
-			let FoF = foundContacts[1];
-
-			if (event.data.body.found) {
-				console.log('FoF : ' + FoF);
-				console.log(' DirectContact : ' + DirectContact);
-				if (typeof FoF !== 'undefined') {
-					console.log('AddressBook Log: Found Mutual Friend');
-					console.info(FoF);
-					contentHTML += "<br><h3><span class='glyphicon glyphicon-star' aria-hidden='true'></span> Found Mutual Contact: <b><u>\"" + FoF[0]._firstName + "\"</u> with GUID: <u>\"" + FoF[0]._guid + "\"</u></b></h3><br>";
-				} else if (typeof DirectContact !== 'undefined') {
-					console.log('AddressBook Log: Found Direct Friend');
-					console.info(DirectContact);
-					contentHTML += "<br><h3><span class='glyphicon glyphicon-star' aria-hidden='true'></span>Found Mutual Contact: <b><u>\"" + DirectContact[0]._firstName + "\"</u> with GUID: <u>\"" + DirectContact[0]._guid + "\"</u></b></h3><br>";
-				} else {
-					console.log('AddressBook Log: No direct or mutual Friend');
-					contentHTML += "<br><h3><span class='glyphicon glyphicon-remove-sign' aria-hidden='true'></span><b> Not in Direct Contacts and no mutual friend found </b></h3><br> ";
-				}
-				$.fancybox({
-					type: "html",
-					content: contentHTML
-				});
-			} else {
-				console.log('User with no contacts \n GUID: ' + event.data.body.GUID)
-				contentHTML += "<br><h3><span class='glyphicon glyphicon-remove-sign' aria-hidden='true'></span><b> Not in Direct Contacts and no mutual friend found </b></h3><br> ";
-				$.fancybox({
-					type: "html",
-					content: contentHTML
-				});
-			}
-		} 
 	}
 
 	function checkGUIDLocal() {
@@ -241,10 +207,12 @@
 	function getAllContacts() {
 
 		let allContacts = window.runtime.runtime.getAllContacts();
+
 		if (allContacts == null) {
 			$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> * Contact List is empty, Please add your contacts </span>');
 		} else {
 			$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> * You have ' + allContacts.length + ' contacts </span>');
+
 			console.info(allContacts);
 			createFriendListGC(allContacts, 0);
 			obj = allContacts;
@@ -274,7 +242,6 @@
 						for (let j = 0; j < importedContacts[i]._groups.length; j++) {
 							window.runtime.runtime.addGroupName(importedContacts[i]._guid, importedContacts[i]._groups[j]);
 						}
-						;
 					}
 					//adding all the userIDs of a contact
 					if (importedContacts[i]._userIDs.length != 0) {
@@ -282,7 +249,6 @@
 							console.log('user id is ' + importedContacts[i]._userIDs[k]);
 							window.runtime.runtime.setContactUserIDs(importedContacts[i]._guid, importedContacts[i]._userIDs[k]);
 						}
-						;
 					}
 					//calculates the bloom filter of the contact if it doesn't have
 					if (importedContacts[i]._contactsBloomFilter1Hop == undefined) {
@@ -305,7 +271,7 @@
 
 <body>
 <div class="white-text">
-	<span><i class="settings-btn material-icons clickable-cell right" style="cursor: pointer; vertical-align: middle;">settings</i></span>
+	<span><i class="settings-btn material-icons clickable-cell right" style="color: black;font-size: 40px;cursor: pointer; vertical-align: middle;">settings</i></span>
 </div>
 
 <div class="admin-page container hide">
@@ -319,7 +285,7 @@
 					<button class="identities-page-show btn-flat">Identities</button>
 				</div>
 				<div class="col s4">
-					<button class="graphConnector-page-show btn-flat">Graph Connector</button>
+					<button class="graphConnector-page-show btn-flat">Address Book</button>
 				</div>
 				<div class="col s4">
 					<button class="admin-page-exit btn-flat">Exit<i class="medium material-icons right">exit_to_app</i>
@@ -430,20 +396,19 @@
 
 <div class="graphConnector-section hide card">
 	<div class="card-content black-text">
-		<span class="card-title">MY Graph Connector</span>
 
 		<div style="display:none;">
 			<form method="post" id="add_contact" title="Add new contact" name="add_contact" action=""
 				  autocomplete="off">
 
-				<p class="validateTips">All form fields are required.</p>
-				<label>First Name</label>
+				<p class="validateTips" style="font-size:20px">All form fields are required.</p>
+				<label style="font-size:18px">First Name</label>
 				<input name="fname" type="text" id="fname" class="text ui-widget-content ui-corner-all"/>
 				<p>&nbsp;</p>
-				<label>Last Name</label>
+				<label style="font-size:18px">Last Name</label>
 				<input name="lname" type="text" id="lname" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
-				<label for="guid">GUID</label>
+				<label for="guid" style="font-size:18px">GUID</label>
 				<input name="guid" type="text" id="guid" class="text ui-widget-content ui-corner-all"/>
 				<!-- Allow form submission with keyboard without duplicating the dialog button -->
 
@@ -457,7 +422,7 @@
 
 
 				<p>&nbsp;</p>
-				<label>Group name</label>
+				<label style="font-size:18px">Group name</label>
 				<input name="group_name" type="text" id="group_name" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
@@ -469,12 +434,12 @@
 			<form method="post" id="add_user_id_form" name="add_user_id_form" action="" autocomplete="off">
 
 				<p>&nbsp;</p>
-				<label>Uid</label>
+				<label style="font-size:18px">Uid</label>
 				<input name="uid" type="text" id="uid" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
 				<p>&nbsp;</p>
-				<label>Domain</label>
+				<label style="font-size:18px">Domain</label>
 				<input name="domain" type="text" id="domain" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
@@ -483,20 +448,48 @@
 		</div>
 
 		<div style="display:none;">
+			<form method="post" id="add_legacy_id_form" name="add_legacy_id_form" action="" autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Type</label>
+				<input name="type" type="text" id="type" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Category</label>
+				<input name="category" type="text" id="category" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Description</label>
+				<input name="description" type="text" id="description" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">ID</label>
+				<input name="legacyid" type="text" id="legacyid" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Add Legacy id"/>
+			</form>
+		</div>
+
+
+		<div style="display:none;">
 			<form method="post" id="set_defaults_form" name="set_defaults_form" action="" autocomplete="off">
 
 				<p>&nbsp;</p>
-				<label>Voice</label>
+				<label style="font-size:18px">Voice</label>
 				<input name="voice" type="text" id="voice" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
 				<p>&nbsp;</p>
-				<label>Chat</label>
+				<label style="font-size:18px">Chat</label>
 				<input name="chat" type="text" id="chat" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
 				<p>&nbsp;</p>
-				<label>Video</label>
+				<label style="font-size:18px">Video</label>
 				<input name="video" type="text" id="video" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
@@ -510,11 +503,24 @@
 				  autocomplete="off">
 
 				<p>&nbsp;</p>
-				<label>GUID</label>
+				<label style="font-size:18px">GUID</label>
 				<input name="query_guid" type="text" id="query_guid" class="text ui-widget-content ui-corner-all"/><br>
 				<p>&nbsp;</p>
 
 				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Query Global Registry"/>
+			</form>
+		</div>
+
+		<div style="display:none;">
+			<form method="post" id="discover_form" name="discover_form" action=""
+				  autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Name</label>
+				<input name="discover_name" type="text" id="discover_name" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Search"/>
 			</form>
 		</div>
 
@@ -545,7 +551,7 @@
 					<!-- Row2: Add Contact button -->
 					<div class="col-sm-2" style="padding-top: 2px;">
 						<button class="btn btn-info" id="add_contact_button" href="#add_contact"
-								style="height:33px; color:white; width:145px "><span class="glyphicon glyphicon-plus"
+								style="height:35px; color:white; width:170px "><span class="glyphicon glyphicon-plus"
 																					 aria-hidden="true"><span
 								class="glyphicon glyphicon-user" aria-hidden="true"></span></span> Add a contact
 						</button>
@@ -553,7 +559,7 @@
 					<!-- Row4: Generate split button-->
 					<div id="search_div" class="col-sm-2" style="padding-top: 2px">
 						<div class="btn-group">
-							<button type="button" style="width:145px;" class="btn btn-success dropdown-toggle"
+							<button type="button" style="height:35px;width:150px;" class="btn btn-success dropdown-toggle"
 									data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
 									title="Please select the option from the dropdown">
 								<span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span> Query <span
@@ -565,13 +571,17 @@
 									   href="#query_global_registry_form"><b><span
 										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Query Global
 									Registry</b></a></li>
+								<li><a class="btn btn-default" id="discover_button"
+									   href="#discover_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Search Profile </b></a></li>
 							</ul>
+
 						</div>
 					</div>
 					<!-- Row5: Account split button-->
 					<div id="add_new_div" class="col-sm-2" style="padding-bottom: 2px">
 						<div class="dropdown">
-							<button type="button" style="width:145px;" class="btn btn-danger dropdown-toggle"
+							<button type="button" style="height:35px;width:150px;" class="btn btn-danger dropdown-toggle"
 									data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
 									title="Please select the option from the dropdown"><span
 									class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
@@ -579,9 +589,6 @@
 								<span class="sr-only"></span>
 							</button>
 							<ul class="dropdown-menu" style="border: 1px solid black;">
-								<li><a class="btn btn-default" onclick="seeding()"><b><span
-										class="glyphicon glyphicon-triangle-right" aria-hidden="true"></span>seeding</b></a>
-								</li>
 								<li><a class="btn btn-default" onclick="get_owner_information()"><b><span
 										class="glyphicon glyphicon-triangle-right" aria-hidden="true"></span>Get my
 									information</b></a>
@@ -594,8 +601,14 @@
 								<li><a class="btn btn-default" id="add_user_id" href="#add_user_id_form"><b><span
 										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add User ID</b></a>
 								</li>
+								<li><a class="btn btn-default" id="add_legacy_id" href="#add_legacy_id_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Legacy ID</b></a>
+								</li>
 								<li><a class="btn btn-default" id="remove_user_id" onclick="remove_user_id()"><b><span
 										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove User
+									ID</b></a></li>
+								<li><a class="btn btn-default" id="remove_user_legacy" onclick="remove_user_legacy()"><b><span
+										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove Legacy
 									ID</b></a></li>
 								<li><a class="btn btn-default" id="add_group_name_button"
 									   href="#add_group_name_form"><b><span
@@ -616,13 +629,13 @@
 					<!--Row2: search button and Box -->
 					<div class="col-sm-3" align="right">
 						<div class="input-group" style="padding-top: 2px;">
-							<input type="text" class="form-control" style="height:30px;" placeholder="Filter contacts"
+							<input type="text" class="form-control" style="font-size:18px;height:35px;width:150px;" placeholder="Filter contacts"
 								   id="searchBox">
 							<span class="input-group-btn">
-                      <button class="btn btn-primary" style="height:30px; width:50px; color:white;" type="button"
+                      <button class="btn btn-primary" style="height:35px; width:50px; color:white;" type="button"
 							  id="searchBtn" onclick="search_friend()"><span class="glyphicon glyphicon-search"
 																			 aria-hidden="true"></span> </button> &nbsp;
-                       <button class="btn btn-success" style="height:30px; width:120px; color:white;" type="button"
+                       <button class="btn btn-success" style="height:35px; width:150px; color:white;" type="button"
 							   id="get_all" onclick="getAllContacts()"><span class="glyphicon glyphicon-flash"
 																			 aria-hidden="true"></span>All Contacts</button>
                     </span>
@@ -638,33 +651,34 @@
 				</div>
 				<div class="row" id="heading" style="border-top: 2px solid maroon;">
 					<div class="col-sm-6">
-						<p style="text-align:center;">
-							<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contacts</u></span>
-
-							<select id="selectElementId" onchange="get_group_users(this.value)">
-								<option value="all">select Group</option>
-							</select>
-
-						</p>
+						<div class="row" >
+							<div class="col-sm-6">
+								<p style="text-align:right;">
+									<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contacts</u></span>
+								</p>
+							</div>
+							<div class="col-sm-6">
+								<select id="selectElementId" class="form-control" onchange="get_group_users(this.value)" style="width: 150px;" >
+									<option value="all"><b>Select Group..</b></option>
+								</select>
+							</div>
+						</div>
 
 						<div align="center" id="left-div"
 							 style="overflow: auto; height: 500px; border: 4px solid maroon"><h2>
                     <span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;"
-						  class="label label-info"> Please import contacts using the import button</span></h2><img
-								src="/importContacts.jpeg" alt="Contact import">
+						  class="label label-info"> Please import contacts using the import button</span></h2><i class="material-icons" style="font-size:350px;color:lightblue;">people</i>
 						</div>
 					</div>
 					<div class="col-sm-6">
 						<p style="text-align:center;">
 							<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contact's Details</u></span>
-
 						</p>
-
+						<br>
 						<div align="center" id="right-div"
 							 style="overflow: auto; height: 500px;border: 4px solid maroon"><h2>
                     <span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;"
-						  class="label label-info"> Please import contacts using the import button</span></h2><img
-								src="/contact-det.jpeg" alt="Contact Details">
+						  class="label label-info"> Please import contacts using the import button</span></h2><i class="material-icons" style="font-size:350px;color:lightblue;">import_contacts</i>
 						</div>
 					</div>
 				</div>
