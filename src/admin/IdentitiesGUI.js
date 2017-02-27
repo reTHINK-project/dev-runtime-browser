@@ -13,7 +13,6 @@ class IdentitiesGUI {
     //console.log('TIAGO: Calling deployGUI');
     //_this.identityModule.deployGUI();
     _this.callIdentityModuleFunc('deployGUI', {}).then(() => {
-
       _this.resultURL  = undefined;
 
       _this._messageBus.addListener(guiURL, msg => {

@@ -14,6 +14,7 @@ class PoliciesGUI {
       _this.policiesManager.prepareAttributes().then(() => {
         _this.elements = _this._setElements();
         _this._setListeners();
+        resolve();
       });
     });
   }

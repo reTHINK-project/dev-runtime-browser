@@ -503,7 +503,7 @@ class PoliciesManager {
           groupsGUI.ids.push(ids);
         }
 
-        console.log('TIAGO groups', groupsGUI)
+        //console.log('TIAGO groups', groupsGUI)
         resolve(groupsGUI);
       });
     });

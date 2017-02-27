@@ -77,9 +77,8 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
             let idmURL = runtime.identityModule._runtimeURL + '/idm';
             let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
-        });
 
-        window.addEventListener('message', function(event){
+            window.addEventListener('message', function(event){
             if(event.data.to==='core:loadHyperty'){
                 let descriptor = event.data.body.descriptor;
                 let hyperty = searchHyperty(runtime, descriptor);
@@ -107,4 +106,5 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             runtime.close()
         })
         parent.postMessage({to:'runtime:installed', body:{}}, '*');
+        });
     });
