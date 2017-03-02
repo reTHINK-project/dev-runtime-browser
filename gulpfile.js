@@ -119,8 +119,26 @@ gulp.task('bundle:rethink', function(){
 gulp.task('bundle:core', function(){
     return bundle('./src/core.js', 'core', 'bin')
 });
+gulp.task('bundle:sandbox', function(){
+    return bundle('./src/ContextWindow.js', 'sandbox', 'bin')
+});
 gulp.task('bundle:context', function(){
     return bundle('./src/ContextServiceProvider.js', 'context-service', 'bin')
+});
+
+gulp.task('bundle:dist', ['bundle:rethink', 'bundle:core', 'bundle:context']);
+
+gulp.task('bundle:demo1', function(){
+    return bundle('./example/demo.js', 'demo.bundle', 'example')
+});
+gulp.task('bundle:demo2', function(){
+    return bundle('./example/demo2.js', 'demo2.bundle', 'example')
+});
+gulp.task('bundle:hello', function(){
+    return bundle('./example/hello.js', 'hello.bundle', 'example')
+});
+gulp.task('bundle:guid', function(){
+    return bundle('./example/guid.js', 'guid.bundle', 'example')
 });
 gulp.task('bundle:policies-gui', function () {
   return bundle('./src/admin/PoliciesGUI.js', 'policies-gui', 'bin');
@@ -128,7 +146,12 @@ gulp.task('bundle:policies-gui', function () {
 gulp.task('bundle:identities-gui', function () {
   return bundle('./src/admin/IdentitiesGUI.js', 'identities-gui', 'bin');
 });
-gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui']);
+
+gulp.task('bundle:graphConnector-gui', function () {
+	return bundle('./src/admin/graphConnectorGUI.js', 'graphConnector-gui', 'bin');
+});
+
+gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui','bundle:graphConnector-gui']);
 
 /**
  * Bumping version number and tagging the repository with it.

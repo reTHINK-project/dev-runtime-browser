@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/RuntimeUAStub.js | Runtime Browser API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeFactory">RuntimeFactory</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Hyperty">Hyperty</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeAdapter">RuntimeAdapter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeUA">RuntimeUA</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework">MSG_STATUS</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">admin</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html">IdentitiesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html">PoliciesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesManager.js~PoliciesManager.html">PoliciesManager</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/RuntimeUAStub.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+* Copyright 2016 PT Inova&#xE7;&#xE3;o e Sistemas SA
+* Copyright 2016 INESC-ID
+* Copyright 2016 QUOBIS NETWORKS SL
+* Copyright 2016 FRAUNHOFER-GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG E.V
+* Copyright 2016 ORANGE SA
+* Copyright 2016 Deutsche Telekom AG
+* Copyright 2016 Apizee
+* Copyright 2016 TECHNISCHE UNIVERSITAT BERLIN
+*
+* Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
+
+/**
+ * @external {MSG_STATUS} https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework
+ */
+
+import app from &apos;./ContextApp&apos;
+import URI from &apos;urijs&apos;
+import { create as createIframe } from &apos;./iframe&apos;
+
+let iframe = undefined
+
+/**
+ * @typedef {Object} Hyperty
+ * @property {string} runtimeHypertyURL - Hyperty address
+ * @property {MSG_STATUS} status - Hyperty status
+ * @property {Object} instance - Hyperty object
+ * @property {string} name - Hyperty name
+ */
+let buildMsg = (hypertyComponent, msg) =&gt; {
+	return {
+		runtimeHypertyURL: msg.body.runtimeHypertyURL,
+		status: msg.body.status,
+		instance: hypertyComponent.instance,
+		name: hypertyComponent.name
+	}
+}
+
+/**
+ * @typedef {Object} RuntimeAdapter
+ * @property {function(Hyperty descriptor: string, Hyperty addresses to be reused or empty in other case: string): Promise&lt;Hyperty&gt;} requireHyperty - Loads and returns a Hyperty
+ * @property {function(Domain: string)} requireProtostub - Loads a protostub from the given domain
+ * @property {function(): Promise} close - Unloads and closes the installed runtime
+ */
+let runtimeAdapter = {
+	requireHyperty: (hypertyDescriptor, reuseAddress = false)=&gt;{
+		return new Promise((resolve, reject)=&gt;{
+			let loaded = (e)=&gt;{
+				if(e.data.to === &apos;runtime:loadedHyperty&apos;){
+					window.removeEventListener(&apos;message&apos;, loaded)
+					resolve(buildMsg(app.getHyperty(e.data.body.runtimeHypertyURL), e.data))
+				}
+			}
+			window.addEventListener(&apos;message&apos;, loaded)
+			iframe.contentWindow.postMessage({to:&apos;core:loadHyperty&apos;, body:{descriptor: hypertyDescriptor, reuseAddress}}, &apos;*&apos;)
+		})
+	},
+
+	requireProtostub: (domain)=&gt;{
+		iframe.contentWindow.postMessage({to:&apos;core:loadStub&apos;, body:{&apos;domain&apos;: domain}}, &apos;*&apos;)
+	},
+
+	close: ()=&gt;{
+		return new Promise((resolve, reject)=&gt;{
+			let loaded = (e)=&gt;{
+				if(e.data.to === &apos;runtime:runtimeClosed&apos;){
+					window.removeEventListener(&apos;message&apos;, loaded)
+					resolve(resolve(e.data.body))
+				}
+			}
+			window.addEventListener(&apos;message&apos;, loaded)
+			iframe.contentWindow.postMessage({to:&apos;core:close&apos;, body:{}}, &apos;*&apos;)
+		})
+	},
+}
+
+let GuiManager = function(){
+	window.addEventListener(&apos;message&apos;, (e) =&gt; {
+		if(e.data.to === &apos;runtime:gui-manager&apos;) {
+
+			if (e.data.body.method === &apos;showAdminPage&apos;) {
+				iframe.style.width = &apos;100%&apos;
+				iframe.style.height = &apos;100%&apos;
+			} else {
+				if (e.data.body.method === &apos;hideAdminPage&apos;) {
+					iframe.style.width = &apos;40px&apos;
+					iframe.style.height = &apos;40px&apos;
+				}
+			}
+
+		}
+	})
+}
+
+/**
+ * @typedef {Object} RuntimeUA
+ * @property {function(Runtime domain: string, Runtime url: string, Development mode: boolean): Promise&lt;RuntimeAdapter&gt;} install - Installs a runtime locally
+ */
+let RethinkBrowser = {
+	install: function({domain, runtimeURL, development}={}){
+		return new Promise((resolve, reject)=&gt;{
+			let runtime = this._getRuntime(runtimeURL, domain, development)
+			iframe = createIframe(`https://${runtime.domain}/.well-known/runtime/index.html?runtime=${runtime.url}&amp;development=${development}`)
+			let installed = (e)=&gt;{
+				if(e.data.to === &apos;runtime:installed&apos;){
+					window.removeEventListener(&apos;message&apos;, installed)
+					resolve(runtimeAdapter)
+				}
+			}
+			window.addEventListener(&apos;message&apos;, installed)
+			window.addEventListener(&apos;message&apos;, (e) =&gt; {
+				if(e.data.to &amp;&amp; e.data.to === &apos;runtime:createSandboxWindow&apos;){
+					const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
+					ifr.addEventListener(&apos;load&apos;, () =&gt; {
+						ifr.contentWindow.postMessage(e.data, &apos;*&apos;, e.ports)
+					}, false)
+				}
+			})
+			app.create(iframe)
+			GuiManager()
+		})
+	},
+
+	_getRuntime (runtimeURL, domain, development) {
+		if(!!development){
+			runtimeURL = runtimeURL || &apos;hyperty-catalogue://catalogue.&apos; + domain + &apos;/.well-known/runtime/Runtime&apos;
+			domain = domain || new URI(runtimeURL).host()
+		}else{
+			runtimeURL = runtimeURL || `https://catalogue.${domain}/.well-known/runtime/default`
+			domain = domain || new URI(runtimeURL).host().replace(&apos;catalogue.&apos;, &apos;&apos;)
+		}
+
+		return {
+			url: runtimeURL,
+			domain: domain
+		}
+	}
+}
+
+export default RethinkBrowser
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

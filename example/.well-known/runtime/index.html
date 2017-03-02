@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+	<meta charset="UTF-8">
+	<title></title>
+
+	<!-- Compiled and minified CSS -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<title>reTHINK Address Book Application</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link href="uploadfile.css" rel="stylesheet">
+	<style>
+		input[type="radio"]{
+			-webkit-appearance: radio !important;
+		}
+	</style>
+
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+	  integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+		crossorigin="anonymous"></script>
+<!-- For Upload file -->
+<script type="text/javascript"
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/1.2.1/bootstrap-filestyle.min.js"></script>
+<!-- For Pop up window-->
+
+
+<script src="graph-connector.js"></script>
+<script src="contact-details.js"></script>
+<script src="calculateBloomFilter.js"></script>
+<script src="BloomFilter.js"></script>
+<script src="groups.js"></script>
+<script src="user-id.js"></script>
+
+
+<!-- Add fancyBox main JS and CSS files -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.css"
+	  media="screen"/>
+
+<!--script src="https://rethink.quobis.com/.well-known/runtime/rethink.js"></script-->
+<script type="text/javascript">
+	let obj = [];
+	let result = [];
+	let ownerguid;
+	let contentHTML;
+	let globalOwnerDetails;
+	let tempGroups = [];
+
+	$(document).ready(function () {
+		$('#login').html('<div class="container">' + '<!-- Trigger the modal with a button -->' + '' + '<!-- Modal -->' + '<div class="modal fade" id="myLogin" role="dialog">' + '<div class="modal-dialog">' + '<!-- Modal content-->' + '<div class="modal-content" align="left">' + '<div class="modal-header">' + '<button type="button" class="close" data-dismiss="modal">&times;</button>' + '<h4 class="modal-title"><b>Login using Mnemonic</b></h4>' + '</div>' + '<div class="modal-body">' + '<label align="left">Please enter your 16 word mnemonic</label>' + '<input name="seed" type="text" id="seed" style=" width: 500px;" placeholder="Enter mnemonic..."/>' + '</div>' + '<div class="modal-footer">' + '<button type="button" class="btn btn-default" onclick=useGUID() data-dismiss="modal" >login</button><button type="button" class="btn btn-default" data-dismiss="modal">close</button>' + '</div>' + '</div>' + '</div>' + '</div>' + '</div>');
+	});
+
+	function createDialog(title, text, options) {
+		return $("<div class='dialog' style='text-align: center;' title='" + title + "'><p>Write down these words to login with the same GUID later. Do not give your private mnemonic to anyone else.</p><br\><strong>" + text + "</strong></div>").dialog(options);
+	}
+
+	function detailsGC(contact, j) {
+		console.log(obj);
+		if (contact.length !== 0) {
+			console.log("helloValue from obj " + contact[j]._firstName);
+
+			var html = "<table class='table table-hover'><tr>" +
+					"<td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' class='label label-info'> Firstname : </span></b></td>" +
+					"<td><input class='form-control' style='font-weight:bold; background:lightgrey;' type='text' placeholder='Enter First Name' value='" + contact[j]._firstName + "' readonly/></td>" +
+					"<td><button class='btn btn-info' onclick=edit_values(1," + j + ")>Edit</button></td>" +
+					"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' class='label label-info'>Lastname : </span> </b></td>" +
+					"<td><input class='form-control' type='text' style='font-weight:bold; background:lightgrey;' placeholder='Enter Last Name' value='" + contact[j]._lastName + "' readonly/></span></td>" +
+					"<td><button class='btn btn-info' onclick=edit_values(2," + j + ")>Edit</button></td></tr>" +
+					"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' class='label label-info'> GUID : </span> </b></td>" +
+					"<td><input class='form-control' type='text' placeholder='Enter GUID' style='font-weight:bold; background:lightgrey;' value='" + contact[j]._guid + "' readonly/></span></td>" +
+					"<td><button class='btn btn-info' onclick=edit_values(3," + j + ")>Edit</button></td></tr> " +
+					"<tr><td><b><span style='font-family:Arial;font-size:18px;font-weight:bold;color:black;' class='label label-info'> Private Contact: </span> </b></td><td>";
+			console.log('Privacy: ' + contact[j]._privateContact);
+			if (contact[j]._privateContact) {
+				html = html + "<label class='radio-inline'><input type='radio' name='optradio' checked>Yes</label><label class='radio-inline'><input type='radio' name='optradio'>No</label>";
+			} else {
+				html = html + "<label class='radio-inline'><input type='radio' name='optradio'>Yes</label><label class='radio-inline'><input type='radio' name='optradio' checked>No</label>";
+			}
+			html = html + "</td></tr><tr>" +
+					"<td colspan=3 align='middle'><button class='btn btn-success' onclick=call(" + j + ")><span class='glyphicon glyphicon-earphone'> <b>Call</b></span></button></td></tr><tr>" +
+					"<td colspan=3 align='middle'><button class='btn btn-warning' onclick=call(" + j + ")><span class='glyphicon glyphicon-envelope'> <b>Text</b></span></button></td></tr><tr>" +
+					"<td colspan=3 align='middle'><button class='btn btn-danger' onclick = removeFriend(" + j + ")><span class='glyphicon glyphicon-trash'><b>Remove</b></span></button></td></tr><tr>" +
+					"<td colspan=3 align='middle'> ";
+			if (contact[j]._groups.length > 0) {
+				for (var i = 0; i < contact[j]._groups.length; i++) {
+
+					html = html + "<button class='btn btn-primary' type='button'> " + contact[j]._groups[i] + "  </button> ";
+				}
+			}
+			html = html + "<button class='btn btn-danger' onclick = add_to_group(" + j + ")><span class='glyphicon glyphicon-plus'><b> add to group</b></span></button></td></tr>" +
+					"</table>";
+
+			$("#right-div").html(html);
+
+		} else {
+			if(obj.length !=0) {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"Contact was not found, Please search with different keyword\"</b></h4> ");
+			} else {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"All the contacts have been deleted\"</b></h4> ");
+				$("#message_lbl").html('<h4 ><span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *All the contacts have been deleted</span></h4>');
+			}
+		}
+	}
+
+	function useGUID() {
+		let seed = $("#seed").val();
+		if (seed == "" || seed == null) {
+			alert("please enter seed");
+		} else {
+			console.log("mnemonic is" + seed);
+			window.runtime.runtime.useGUID(seed);
+		}
+	}
+
+
+	function search_friend() {
+		let name = $("#searchBox").val();
+
+		var getContactPromise = new Promise(
+				function(resolve, reject) {
+					resolve( window.runtime.runtime.getContact(name));
+				});
+
+		getContactPromise.then(
+				function(body) {
+					console.log(body);
+
+					let tempObj = [];
+					let index = 0;
+					let userList = body;
+
+					if (name == "") {
+						getAllContacts();
+					} else if (body.length == 0) {
+						$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No such contact with name \"' + name + '\" </span>');
+						createFriendListGC(tempObj, 0);
+						detailsGC(tempObj, 0);
+					} else {
+						for (let i = 0; i < userList.length; i++) {
+							console.log('In AddressBook: Found a contact with name' + userList[i].firstName);
+							tempObj.push(userList[i]);
+							index = i;
+						}
+						if (tempObj.length == 0) {
+							$('#left-div').html("<h3 align='center'> <b>No such contact with name </b> \"" + name + "\"</h3>");
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *No Such contact with name \"' + name + '\"</span>');
+						} else {
+							$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *Found  \"' + tempObj.length + '\" contacts</span>');
+							createFriendListGC(tempObj, 0);
+							detailsGC(tempObj, 0);
+						}
+					}
+				});
+	}
+
+
+	function generate_guid() {
+
+		let userGUID = window.runtime.runtime.generateGUID();
+		console.log(userGUID);
+
+		update_owner_information();
+		$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> *GUID was generated and your mnemonic is \"' + userGUID + '\"</span>');
+
+		$.fancybox({
+			type: "html",
+			content: "<p class=" + "title0" + "> Copy and save this Mnemonic :   " + userGUID + "  </p>"
+		});
+
+	}
+
+	function checkGUIDLocal() {
+		let guid = prompt('Please enter GUID of the contact you want to search ', 'se23ghd7899dfnf99i3n3mo039hii93jtest777');
+		let rtnArray = checkGUID(obj, guid);
+		console.info(rtnArray);
+		let alertText = '';
+		if (rtnArray[0].length !== 0) {
+			$("#message_lbl")
+					.html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *Found a direct contact with first name: \"' + rtnArray[0][0]._firstName + '\" </span>');
+			alertText = '* Found a direct contact with first name: \"' + rtnArray[0][0]._firstName + '\"';
+		} else if (rtnArray[1].length !== 0) {
+			$("#message_lbl")
+					.html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> *Found a mutual contact with first name: \"' + rtnArray[1][0]._firstName + '\" </span>');
+			alertText = '* Found a mutual contact with first name: \"' + rtnArray[1][0]._firstName + '\"';
+		} else {
+			$("#message_lbl")
+					.html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-danger"> * The contact with GUID:  \"' + guid + '\" is not in your Direct Contact and not a mutual friend as well </span>');
+			alertText = '* The contact with GUID:  \"' + guid + '\" is not in your Direct Contact and you don\'t have any mutual friends';
+		}
+		alert(alertText);
+	}
+
+
+	function getAllContacts() {
+
+		let allContacts = window.runtime.runtime.getAllContacts();
+
+		if (allContacts == null) {
+			$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> * Contact List is empty, Please add your contacts </span>');
+		} else {
+			$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> * You have ' + allContacts.length + ' contacts </span>');
+
+			console.info(allContacts);
+			createFriendListGC(allContacts, 0);
+			obj = allContacts;
+			details(0);
+			export_list(allContacts);
+			getGroups();
+		}
+	}
+
+	$(document).on('change', '.filestyle', function (event) {
+		let reader = new FileReader();
+		reader.onload = function (event) {
+			var importedContacts = JSON.parse(event.target.result);
+			console.log("uploading contacts..");
+			//createFriendList(obj, 0);
+
+			//export_list(importedContacts);
+			if (importedContacts.length != 0) {
+				window.runtime.runtime.calculateBloomFilter1Hop();
+				for (let i = 0; i < importedContacts.length; i++) {
+					window.runtime.runtime.addContact(importedContacts[i]._guid, importedContacts[i]._firstName, importedContacts[i]._lastName);
+					window.runtime.runtime.setLocation(importedContacts[i]._guid, importedContacts[i]._residenceLocation);
+					window.runtime.runtime.editContact(importedContacts[i]._guid, importedContacts[i]._firstName, importedContacts[i]._lastName, importedContacts[i]._guid, importedContacts[i]._privateContact);
+
+					//adding all the group names of a contact
+					if (importedContacts[i]._groups.length != 0) {
+						for (let j = 0; j < importedContacts[i]._groups.length; j++) {
+							window.runtime.runtime.addGroupName(importedContacts[i]._guid, importedContacts[i]._groups[j]);
+						}
+					}
+					//adding all the userIDs of a contact
+					if (importedContacts[i]._userIDs.length != 0) {
+						for (let k = 0; k < importedContacts[i]._userIDs.length; k++) {
+							console.log('user id is ' + importedContacts[i]._userIDs[k]);
+							window.runtime.runtime.setContactUserIDs(importedContacts[i]._guid, importedContacts[i]._userIDs[k]);
+						}
+					}
+					//calculates the bloom filter of the contact if it doesn't have
+					if (importedContacts[i]._contactsBloomFilter1Hop == undefined) {
+						calculateBloomFilter1Hop(importedContacts[i]._guid, importedContacts[i]);
+					} else {
+						window.runtime.runtime.setBloomFilter1HopContact(importedContacts[i]._guid, importedContacts[i]._contactsBloomFilter1Hop);
+					}
+				}
+				$("#message_lbl").html('<span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;" class="label label-success"> * ' + importedContacts.length + ' contacts have been imported</span>');
+				getAllContacts();
+				export_list(importedContacts);
+			} else {
+				$("#right-div").html("<br><br><br><h3 align='center' style='color:red;'><b>\"No contacts in the imported file\"</b></h4> ");
+			}
+		}
+		reader.readAsText(event.target.files[0]);
+	});
+
+</script>
+
+<body>
+<div class="white-text">
+	<span><i class="settings-btn material-icons clickable-cell right" style="color: black;font-size: 40px;cursor: pointer; vertical-align: middle;">settings</i></span>
+</div>
+
+<div class="admin-page container hide">
+	<div class="card" style="margin:0;">
+		<div class="card-content white-text center-align">
+			<div class="row">
+				<div class="col s4">
+					<button type="button" class="policies-page-show btn-flat">Policies</button>
+				</div>
+				<div class="col s4">
+					<button class="identities-page-show btn-flat">Identities</button>
+				</div>
+				<div class="col s4">
+					<button class="graphConnector-page-show btn-flat">Address Book</button>
+				</div>
+				<div class="col s4">
+					<button class="admin-page-exit btn-flat">Exit<i class="medium material-icons right">exit_to_app</i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="policies-section hide card">
+		<div class="card-content black-text left-align">
+			<ul class="collapsible" data-collapsible="expandable">
+				<li>
+					<div class="collapsible-header"><i class="material-icons">note</i>Policies management</div>
+					<div class="collapsible-body">
+						<div class="row">
+							<div class="col s8 push-s2">
+								<div class="policies-current"></div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col s12 center-align">
+								<div class="policies-no hide">
+									<p>There are no configurations set.</p>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col s6 push-s3">
+								<div class="policy-active"></div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col s12 center-align">
+								<button type="button" class="policy-add btn waves-effect waves-light"><i
+										class="material-icons right">add</i>New policy
+								</button>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="collapsible-header"><i class="material-icons">group</i>Groups management</div>
+					<div class="collapsible-body center-align">
+						<div class="groups-show">
+							<div class="row">
+								<div class="col s12">
+									<p>Create groups of users and manage their members.
+								</div>
+							</div>
+							<div class="row">
+								<div class="col s6 push-s3">
+									<div class="groups-current"></div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col s12">
+									<button type="button" class="group-add btn waves-effect waves-light"><i
+											class="material-icons right">add</i>New group
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+
+	</div>
+
+	<div class="identities-section hide card">
+		<div class="card-content black-text">
+			<span class="card-title">MY IDENTITIES</span>
+			<div class="row">
+				<div class="col s12">
+					<p>Select the identity to be used or add a new one:</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col s12">
+					<div id="my-ids">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col s4">
+					<a class='dropdown-button btn' data-activates='idproviders'>Add an identity</a>
+					<ul id='idproviders' class='dropdown-content'></ul>
+				</div>
+				<div class="login hide">
+					<div class="col s5 push-s2 login-idp"></div>
+					<div class="col s1">
+						<button type="button" class="login-btn btn waves-effect waves-light">Login</button>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col s12">
+					<button type="button" class="hide identities-reset btn waves-effect waves-light"><i
+							class="material-icons right">settings_backup_restore</i>Reset identities
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="graphConnector-section hide card">
+	<div class="card-content black-text">
+
+		<div style="display:none;">
+			<form method="post" id="add_contact" title="Add new contact" name="add_contact" action=""
+				  autocomplete="off">
+
+				<p class="validateTips" style="font-size:20px">All form fields are required.</p>
+				<label style="font-size:18px">First Name</label>
+				<input name="fname" type="text" id="fname" class="text ui-widget-content ui-corner-all"/>
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Last Name</label>
+				<input name="lname" type="text" id="lname" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+				<label for="guid" style="font-size:18px">GUID</label>
+				<input name="guid" type="text" id="guid" class="text ui-widget-content ui-corner-all"/>
+				<!-- Allow form submission with keyboard without duplicating the dialog button -->
+
+				<p>&nbsp;</p>
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Create Contact"/>
+			</form>
+		</div>
+
+		<div style="display:none;">
+			<form method="post" id="add_group_name_form" name="add_group_name_form" action="" autocomplete="off">
+
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Group name</label>
+				<input name="group_name" type="text" id="group_name" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Create group"/>
+			</form>
+		</div>
+
+		<div style="display:none;">
+			<form method="post" id="add_user_id_form" name="add_user_id_form" action="" autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Uid</label>
+				<input name="uid" type="text" id="uid" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Domain</label>
+				<input name="domain" type="text" id="domain" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Add user id"/>
+			</form>
+		</div>
+
+		<div style="display:none;">
+			<form method="post" id="add_legacy_id_form" name="add_legacy_id_form" action="" autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Type</label>
+				<input name="type" type="text" id="type" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Category</label>
+				<input name="category" type="text" id="category" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Description</label>
+				<input name="description" type="text" id="description" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">ID</label>
+				<input name="legacyid" type="text" id="legacyid" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Add Legacy id"/>
+			</form>
+		</div>
+
+
+		<div style="display:none;">
+			<form method="post" id="set_defaults_form" name="set_defaults_form" action="" autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Voice</label>
+				<input name="voice" type="text" id="voice" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Chat</label>
+				<input name="chat" type="text" id="chat" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Video</label>
+				<input name="video" type="text" id="video" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Set Defaults"/>
+			</form>
+		</div>
+
+
+		<div style="display:none;">
+			<form method="post" id="query_global_registry_form" name="query_global_registry_form" action=""
+				  autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">GUID</label>
+				<input name="query_guid" type="text" id="query_guid" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Query Global Registry"/>
+			</form>
+		</div>
+
+		<div style="display:none;">
+			<form method="post" id="discover_form" name="discover_form" action=""
+				  autocomplete="off">
+
+				<p>&nbsp;</p>
+				<label style="font-size:18px">Name</label>
+				<input name="discover_name" type="text" id="discover_name" class="text ui-widget-content ui-corner-all"/><br>
+				<p>&nbsp;</p>
+
+				<input type="submit" name="submit" class="btn btn-success btn-sm" value="Search"/>
+			</form>
+		</div>
+
+		<!--CONTAINER-->
+		<div id="container">
+			<!--HEADER-->
+			<!--div id="header">
+                <div id="logo"><img src="images/logo.jpg" alt="reTHINK logo" height="50" width="300"></div>
+
+
+            </div -->
+			<!--CONTENT AREA-->
+			<div id='body'>
+				<div id="div1">
+					<div id="content_area" class="col-sm-12">
+						<p style="text-align:center;">
+							<span style="font-family:Verdana;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF; ">Address Book</span>
+						</p>
+					</div>
+				</div>
+
+				<!-- All the links and search button-->
+				<div class="row" id="exp_imp">
+					<!-- Row1: Upload button -->
+					<div id="import_div" class="col-sm-2">
+						<input type="file" class="filestyle" data-input="false" text="Import">
+					</div>
+					<!-- Row2: Add Contact button -->
+					<div class="col-sm-2" style="padding-top: 2px;">
+						<button class="btn btn-info" id="add_contact_button" href="#add_contact"
+								style="height:35px; color:white; width:170px "><span class="glyphicon glyphicon-plus"
+																					 aria-hidden="true"><span
+								class="glyphicon glyphicon-user" aria-hidden="true"></span></span> Add a contact
+						</button>
+					</div>
+					<!-- Row4: Generate split button-->
+					<div id="search_div" class="col-sm-2" style="padding-top: 2px">
+						<div class="btn-group">
+							<button type="button" style="height:35px;width:150px;" class="btn btn-success dropdown-toggle"
+									data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+									title="Please select the option from the dropdown">
+								<span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span> Query <span
+									class="caret"></span>
+								<span class="sr-only"></span>
+							</button>
+							<ul class="dropdown-menu" border: 1px solid black;>
+								<li><a class="btn btn-default" id="query_global_registry_button"
+									   href="#query_global_registry_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Query Global
+									Registry</b></a></li>
+								<li><a class="btn btn-default" id="discover_button"
+									   href="#discover_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Search Profile </b></a></li>
+							</ul>
+
+						</div>
+					</div>
+					<!-- Row5: Account split button-->
+					<div id="add_new_div" class="col-sm-2" style="padding-bottom: 2px">
+						<div class="dropdown">
+							<button type="button" style="height:35px;width:150px;" class="btn btn-danger dropdown-toggle"
+									data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+									title="Please select the option from the dropdown"><span
+									class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
+								Account <span class="caret"></span>
+								<span class="sr-only"></span>
+							</button>
+							<ul class="dropdown-menu" style="border: 1px solid black;">
+								<li><a class="btn btn-default" onclick="get_owner_information()"><b><span
+										class="glyphicon glyphicon-triangle-right" aria-hidden="true"></span>Get my
+									information</b></a>
+								</li>
+								<li><a class="btn btn-default" onclick="generate_guid()"><b><span
+										class="glyphicon glyphicon-triangle-right" aria-hidden="true"></span>Generate
+									GUID</b></a></li>
+								<li><a class="btn btn-default" data-toggle="modal" data-target="#myLogin"><b><span
+										class="glyphicon glyphicon-log-in"> </span> Use existing GUID</b></a></li>
+								<li><a class="btn btn-default" id="add_user_id" href="#add_user_id_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add User ID</b></a>
+								</li>
+								<li><a class="btn btn-default" id="add_legacy_id" href="#add_legacy_id_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Legacy ID</b></a>
+								</li>
+								<li><a class="btn btn-default" id="remove_user_id" onclick="remove_user_id()"><b><span
+										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove User
+									ID</b></a></li>
+								<li><a class="btn btn-default" id="remove_user_legacy" onclick="remove_user_legacy()"><b><span
+										class="glyphicon glyphicon-minus" aria-hidden="true"></span>Remove Legacy
+									ID</b></a></li>
+								<li><a class="btn btn-default" id="add_group_name_button"
+									   href="#add_group_name_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add myself to group</b></a>
+								</li>
+								<li><a class="btn btn-default" id="remove_owner_from_group"
+									   onclick="remove_owner_from_group()"><b><span class="glyphicon glyphicon-minus"
+																					aria-hidden="true"></span>Remove
+									Owner From
+									Group</b></a></li>
+								<li><a class="btn btn-default" id="set_defaults" href="#set_defaults_form"><b><span
+										class="glyphicon glyphicon-plus" aria-hidden="true"></span> Set Defaults
+								</b></a></li>
+							</ul>
+						</div>
+					</div>
+
+					<!--Row2: search button and Box -->
+					<div class="col-sm-3" align="right">
+						<div class="input-group" style="padding-top: 2px;">
+							<input type="text" class="form-control" style="font-size:18px;height:35px;width:150px;" placeholder="Filter contacts"
+								   id="searchBox">
+							<span class="input-group-btn">
+                      <button class="btn btn-primary" style="height:35px; width:50px; color:white;" type="button"
+							  id="searchBtn" onclick="search_friend()"><span class="glyphicon glyphicon-search"
+																			 aria-hidden="true"></span> </button> &nbsp;
+                       <button class="btn btn-success" style="height:35px; width:150px; color:white;" type="button"
+							   id="get_all" onclick="getAllContacts()"><span class="glyphicon glyphicon-flash"
+																			 aria-hidden="true"></span>All Contacts</button>
+                    </span>
+
+						</div>
+					</div>
+				</div>
+				<div id="login"></div>
+				<!-- Friend List and Details-->
+				<div class="row" id="error_message"> <!--Row3: Message strip to display -->
+					<div id="message_lbl" class="col-sm-12" style="padding-top: 2px; padding-bottom: 2px; height: 30px;"
+						 align="left"></div>
+				</div>
+				<div class="row" id="heading" style="border-top: 2px solid maroon;">
+					<div class="col-sm-6">
+						<div class="row" >
+							<div class="col-sm-6">
+								<p style="text-align:right;">
+									<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contacts</u></span>
+								</p>
+							</div>
+							<div class="col-sm-6">
+								<select id="selectElementId" class="form-control" onchange="get_group_users(this.value)" style="width: 150px;" >
+									<option value="all"><b>Select Group..</b></option>
+								</select>
+							</div>
+						</div>
+
+						<div align="center" id="left-div"
+							 style="overflow: auto; height: 500px; border: 4px solid maroon"><h2>
+                    <span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;"
+						  class="label label-info"> Please import contacts using the import button</span></h2><i class="material-icons" style="font-size:350px;color:lightblue;">people</i>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<p style="text-align:center;">
+							<span style="font-family:Arial;font-size:24px;font-style:normal;font-weight:bold;text-decoration:none;text-transform:none;color:FFFFFF;"><u>Contact's Details</u></span>
+						</p>
+						<br>
+						<div align="center" id="right-div"
+							 style="overflow: auto; height: 500px;border: 4px solid maroon"><h2>
+                    <span style="font-family:Verdana;font-size:12px;font-weight:bold;color:black;"
+						  class="label label-info"> Please import contacts using the import button</span></h2><i class="material-icons" style="font-size:350px;color:lightblue;">import_contacts</i>
+						</div>
+					</div>
+				</div>
+
+
+				<!-- Link for exporting friendlist-->
+				<div id="export_link" class="col-sm-6">
+					<h6 align="left" style="color: gray;">**Download contact link will appear here</h6></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="modal modal-fixed-footer rule-new">
+	<div class="modal-content">
+		<div class="center-align">
+			<a class='variables-types-btn dropdown-button btn' data-activates='variables-types'>Filter communications
+				by:</a>
+			<ul id='variables-types' class='dropdown-content'></ul>
+		</div>
+		<div class="variable hide">
+			<div class="rule-new-title"></div>
+			<div class="row">
+				<div class="col s3 right-align offset-s1">
+					<div class="description"></div>
+				</div>
+				<div class="col s5">
+					<div class="config"></div>
+				</div>
+			</div>
+			<div class="row subscription-type center-align hide">
+				<p>Apply this rule to:</p>
+				<form>
+					<div class="col s6 push-s1">
+						<p>
+							<input class="subscription-decision" name="rule-new-subscription" type="radio" id="*"/>
+							<label for="*">All subscribers</label>
+						</p>
+					</div>
+					<div class="col s6">
+						<p><input class="subscription-decision" name="rule-new-subscription" type="radio"
+								  id="preauthorised"/><label for="preauthorised">Previously authorised
+							subscribers</label>
+						</p>
+					</div>
+				</form>
+			</div>
+			<div class="row">
+				<div class="col s12">
+					<p>To which of your identities or hyperties do you want to apply this setting?</p>
+					<select class="scopes browser-default"></select>
+				</div>
+			</div>
+			<div class="row authorise-btns center-align">
+				<div class="col s12">
+					<p>Authorisation decision:</p>
+				</div>
+				<div class="row">
+					<form>
+						<div class="col s6 push-s4">
+							<p><input name="rule-new-decision" type="radio" id="block"/><label for="block">Block</label>
+							</p>
+						</div>
+						<div class="col s6">
+							<p><input name="rule-new-decision" type="radio" id="allow"/><label for="allow">Allow</label>
+							</p>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer">
+		<button class="modal-close waves-effect waves-green btn-flat exit-btn" type="submit">Exit<i
+				class="medium material-icons right">exit_to_app</i></button>
+		<button class="modal-close waves-effect waves-green btn-flat ok-btn" type="submit">Ok<i
+				class="medium material-icons right">done</i></button>
+	</div>
+</div>
+
+<div class="modal modal-fixed-footer policy-new">
+	<div class="modal-content center-align">
+		<div class="row">
+			<div class="col s12">
+				<h5>Create a new policy</h5>
+				<p>Insert a title for the new policy and add rules to it in the preferences page.</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s6 offset-s3">
+				<input class="input-name" placeholder="new policy title" required aria-required="true" type="text"
+					   id="policy-new-title">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s6 push-s3">
+				<div class="combining"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s12 left-align hide help-menu">
+				<p>- <b>Block overrides:</b> if one of your rules blocks a message, then the message is blocked.</p>
+				<p>- <b>Allow overrides:</b> if one of your rules allows a message, then the message is forwarded.</p>
+				<p>- <b>First applicable:</b> the result of the first rule that applies to a given message decides if
+					the message is blocked of forwarded. </p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s12">
+				<form action="#">
+					<div class="file-field input-field">
+						<div class="btn">
+							<span>Import from file</span>
+							<input id="policy-file" type="file">
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer">
+		<button class="modal-close waves-effect waves-green btn-flat exit-btn" type="submit">Exit<i
+				class="medium material-icons right">exit_to_app</i></button>
+		<button class="modal-close waves-effect waves-green btn-flat policy-new-ok" type="submit">Ok<i
+				class="medium material-icons right">done</i></button>
+		<button class="waves-effect waves-green btn-flat help-btn" type="submit">Help<i
+				class="medium material-icons right">info_outline</i></button>
+	</div>
+</div>
+
+<div class="modal modal-fixed-footer group-new-modal">
+	<div class="modal-content center-align">
+		<div class="row">
+			<div class="col s12">
+				<h5>Create a new group</h5>
+				<p>Insert a name for the new group and add members to it in the groups management section.</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s6 offset-s3">
+				<input class="input-name" placeholder="new group name" required aria-required="true" type="text"
+					   id="group-new-name">
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i>
+			</button>
+			<button class="modal-close waves-effect waves-green btn-flat group-new-ok">Ok<i
+					class="medium material-icons right">done</i></button>
+		</div>
+	</div>
+</div>
+
+<div class="modal modal-fixed-footer member-new-modal">
+	<div class="modal-content center-align">
+		<div class="row">
+			<div class="col s12">
+				<div class="member-new-intro"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s6 offset-s3">
+				<input class="input-name" placeholder="new member email" required aria-required="true" type="email"
+					   id="member-new">
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-green btn-flat">Exit<i class="medium material-icons right">exit_to_app</i>
+			</button>
+			<button class="modal-close waves-effect waves-green btn-flat member-new-ok">Ok<i
+					class="medium material-icons right">done</i></button>
+		</div>
+	</div>
+</div>
+
+<div class="modal modal-fixed-footer rule-details">
+	<div class="modal-content">
+		<div class="rule-title center-align"></div>
+		<div class="row subscription-type center-align hide">
+			<p>Apply this rule to:</p>
+			<form>
+				<div class="col s6 push-s1">
+					<p>
+						<input class="subscription-decision" name="subscription" type="radio" id="all"/>
+						<label for="all">All subscribers</label>
+					</p>
+				</div>
+				<div class="col s6">
+					<p><input class="subscription-decision" name="subscription" type="radio" id="preauth"/><label
+							for="preauth">Previously authorised subscribers</label>
+					</p>
+				</div>
+			</form>
+		</div>
+		<div class="row authorise-btns center-align">
+			<div class="col s12">
+				<p>Authorisation decision:</p>
+			</div>
+			<div class="row">
+				<form>
+					<div class="col s6 push-s4">
+						<p><input class="decision" name="rule-update-decision" type="radio" id="btn-block"/><label
+								for="btn-block">Block</label></p>
+					</div>
+					<div class="col s6">
+						<p><input class="decision" name="rule-update-decision" type="radio" id="btn-allow"/><label
+								for="btn-allow">Allow</label></p>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer">
+		<button class="modal-close waves-effect waves-green btn-flat exit-btn" type="submit">Exit<i
+				class="medium material-icons right">exit_to_app</i></button>
+	</div>
+</div>
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
+<script src="core.js"></script>
+</body>
+</html>

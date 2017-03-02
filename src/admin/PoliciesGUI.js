@@ -405,6 +405,7 @@ class PoliciesGUI {
     $('.policies-page-show').on('click', (event) => {
       $('.policies-section').removeClass('hide');
       $('.identities-section').addClass('hide');
+      $('.graphConnector-section').addClass('hide');
       this._goHome();
       this._manageGroups();
     });
