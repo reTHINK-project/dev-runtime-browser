@@ -77,6 +77,7 @@ class IdentitiesGUI {
       }
 
       $('.policies-section').addClass('hide');
+      $('.graphConnector-section').addClass('hide');
       $('.identities-section').removeClass('hide');
 
       _this.showMyIdentities(identityInfo.identities, toRemoveID).then((identity) => {
@@ -138,9 +139,9 @@ class IdentitiesGUI {
         resolve(identity);
       };
       if (!toRemoveID) {
-        $('.clickable-cell').on('click', (event) => _this.changeID(callback));
+        $('.clickable-cell').on('click', (event) => _this.changeID(event, callback));
       }
-      $('.remove-id').on('click', (event) => _this.removeID(emails));
+      $('.remove-id').on('click', (event) => _this.removeID(event, emails));
 
     });
   }
@@ -180,7 +181,7 @@ class IdentitiesGUI {
     return tr;
   }
 
-  changeID(callback) {
+  changeID(event, callback) {
     let _this = this;
 
     let idToUse = event.target.innerText;
@@ -194,7 +195,7 @@ class IdentitiesGUI {
     }
   }
 
-  removeID(emails) {
+  removeID(event, emails) {
     let _this = this;
     let row = event.target.parentNode.parentNode;
     let idToRemove = row.children[0].textContent;

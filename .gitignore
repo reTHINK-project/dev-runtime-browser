@@ -14,3 +14,27 @@ build.js.map
 # Temporal files
 *.swp
 *.swo
+
+# compiled runtime
+# needed for dev-addressbook-app
+#bin/context-service.js
+#bin/context-service.js.map
+#bin/core.js
+#bin/core.js.map
+#bin/rethink.js
+#bin/rethink.js.map
+
+# compiled runtime
+example/.well-known/runtime/context-service.js
+example/.well-known/runtime/context-service.js.map
+example/.well-known/runtime/core.js
+example/.well-known/runtime/core.js.map
+example/.well-known/runtime/rethink.js
+example/.well-known/runtime/rethink.js.map
+
+# bundle files in example
+example/*.bundle.js
+example/*.bundle.js.map
+
+# misc
+sh.exe.stackdump

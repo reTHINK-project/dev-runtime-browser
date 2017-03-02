@@ -20,10 +20,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import URI from 'urijs'
-import IdentitiesGUI from './admin/IdentitiesGUI'
-import PoliciesGUI from './admin/PoliciesGUI'
-import RuntimeFactory from './RuntimeFactory'
+import URI from 'urijs';
+import IdentitiesGUI from './admin/IdentitiesGUI';
+import PoliciesGUI from './admin/PoliciesGUI';
+import RuntimeFactory from './RuntimeFactory';
+import graphConnectorGUI from './admin/graphConnectorGUI';
 
 try{
 	window.cordova = parent.cordova !== undefined
@@ -70,6 +71,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
 	window.runtime = runtime;
 	runtime.init().then( function(result){
 	  new PoliciesGUI(runtime.policyEngine);
+	  new graphConnectorGUI(runtime.graphConnector);
 	  let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
 
 	  window.addEventListener('message', function(event){

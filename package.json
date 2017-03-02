@@ -29,7 +29,7 @@
   },
   "homepage": "https://rethink-project.eu/",
   "dependencies": {
-    "runtime-core": "git+https://github.com/reTHINK-project/dev-runtime-core.git#develop",
+    "runtime-core": "git+https://github.com/reTHINK-project/dev-runtime-core.git#develop-graphConnector",
     "service-framework": "git+https://github.com/reTHINK-project/dev-service-framework.git#develop",
     "webrtcsupport": "2.2.0",
     "dexie": "^1.5.1"
