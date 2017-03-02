@@ -90,7 +90,13 @@ class IdentitiesGUI {
         resolve({type: 'identity', value: value});
       };
 
-      let idps = identityInfo.idps;
+      let idps = [];
+      let idpsObjects = identityInfo.idps;
+
+      idpsObjects.forEach(function(entry) {
+        idps.push(entry.domain);
+      });
+
       $('#idproviders').html(_this._getList(idps));
       $('#idproviders').off();
       $('#idproviders').on('click', (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
@@ -250,7 +256,7 @@ class IdentitiesGUI {
           });
         });
       });
-    });
+    }).catch(err => console.log('obtanin new identity', err));
 
   }
 

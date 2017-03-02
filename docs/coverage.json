@@ -1,0 +1,125 @@
+{
+  "coverage": "13.41%",
+  "expectCount": 82,
+  "actualCount": 11,
+  "files": {
+    "src/admin/IdentitiesGUI.js": {
+      "expectCount": 9,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        183,
+        5,
+        148,
+        161,
+        216,
+        197,
+        63,
+        109
+      ]
+    },
+    "src/admin/PoliciesGUI.js": {
+      "expectCount": 4,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        5,
+        8,
+        7
+      ]
+    },
+    "src/admin/PoliciesManager.js": {
+      "expectCount": 44,
+      "actualCount": 0,
+      "undocumentLines": [
+        1,
+        19,
+        11,
+        7,
+        3,
+        15,
+        39,
+        45,
+        400,
+        49,
+        53,
+        59,
+        284,
+        410,
+        414,
+        435,
+        384,
+        367,
+        371,
+        67,
+        63,
+        310,
+        78,
+        363,
+        355,
+        90,
+        229,
+        215,
+        210,
+        261,
+        220,
+        225,
+        265,
+        5,
+        4,
+        439,
+        140,
+        376,
+        194,
+        96,
+        205,
+        443,
+        8,
+        6
+      ]
+    },
+    "src/Request.js": {
+      "expectCount": 2,
+      "actualCount": 1,
+      "undocumentLines": [
+        36
+      ]
+    },
+    "src/RuntimeCapabilities.js": {
+      "expectCount": 6,
+      "actualCount": 3,
+      "undocumentLines": [
+        4,
+        6,
+        9
+      ]
+    },
+    "src/SandboxApp.js": {
+      "expectCount": 4,
+      "actualCount": 3,
+      "undocumentLines": [
+        30
+      ]
+    },
+    "src/Sandboxes.js": {
+      "expectCount": 12,
+      "actualCount": 3,
+      "undocumentLines": [
+        72,
+        31,
+        73,
+        85,
+        81,
+        99,
+        36,
+        77,
+        84
+      ]
+    },
+    "src/iframe.js": {
+      "expectCount": 1,
+      "actualCount": 1,
+      "undocumentLines": []
+    }
+  }
+}

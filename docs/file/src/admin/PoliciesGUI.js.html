@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">src/admin/PoliciesGUI.js | Runtime Browser API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeFactory">RuntimeFactory</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Hyperty">Hyperty</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeAdapter">RuntimeAdapter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeUA">RuntimeUA</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework">MSG_STATUS</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">admin</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html">IdentitiesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html">PoliciesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesManager.js~PoliciesManager.html">PoliciesManager</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/admin/PoliciesGUI.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import PoliciesManager from &apos;./PoliciesManager&apos;;
+
+class PoliciesGUI {
+
+  constructor(policyEngine) {
+    if (!policyEngine) throw Error(&apos;Policy Engine is not set!&apos;);
+    this.policiesManager = new PoliciesManager(policyEngine);
+    this.elements = this._setElements();
+    this._setListeners();
+  }
+
+  _addMember() {
+    let group = event.target.id;
+    $(&apos;.member-new-intro&apos;).html(&apos;&lt;h5&gt;Add a member to a group&lt;/h5&gt;&lt;p&gt;Insert a user email below to add to the &quot;&apos; + group + &apos;&quot; group.&lt;/p&gt;&apos;);
+    $(&apos;.member-new-modal&apos;).openModal();
+    $(&apos;.member-new-ok&apos;).off();
+    $(&apos;.member-new-ok&apos;).on(&apos;click&apos;, (event) =&gt; {
+      let member = $(&apos;#member-new&apos;).val();
+      $(&apos;#member-new&apos;).val(&apos;&apos;);
+      this.policiesManager.addToGroup(group, member);
+      $(&apos;.member-new-modal&apos;).closeModal();
+      this._manageGroups();
+    });
+  }
+
+  _createGroup() {
+    $(&apos;#group-new-name&apos;).val(&apos;&apos;);
+    $(&apos;.group-new-modal&apos;).openModal();
+    $(&apos;.group-new-ok&apos;).on(&apos;click&apos;, (event) =&gt; {
+      let groupName = $(&apos;#group-new-name&apos;).val();
+      this.policiesManager.createGroup(groupName);
+      this._manageGroups();
+    });
+  }
+
+  _addPolicy() {
+    $(&apos;#policy-new-title&apos;).val(&apos;&apos;);
+    $(&apos;.combining&apos;).html(&apos;&apos;);
+    let algorithms = [&apos;Block overrides&apos;, &apos;Allow overrides&apos;, &apos;First applicable&apos;];
+    $(&apos;.combining&apos;).append(this._getOptions(&apos;comb-algorithm&apos;, &apos;Choose a combining algorithm&apos;, algorithms));
+    $(&apos;.policy-new&apos;).openModal();
+
+    $(&apos;.policy-new-ok&apos;).off();
+    $(&apos;.policy-new-ok&apos;).on(&apos;click&apos;, (event) =&gt; {
+      let policyTitle = $(&apos;#policy-new-title&apos;).val();
+      if (!policyTitle) {
+        Materialize.toast(&apos;Invalid policy title&apos;, 4000);
+      } else {
+        let combiningAlgorithm = $(&apos;#comb-algorithm&apos;).val();
+        this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
+        $(&apos;.help-menu&apos;).addClass(&apos;hide&apos;);
+        $(&apos;.policy-new&apos;).closeModal();
+        this._goHome();
+      }
+    });
+    $(&apos;.help-btn&apos;).off();
+    $(&apos;.help-btn&apos;).on(&apos;click&apos;, (event) =&gt; {
+      $(&apos;.help-menu&apos;).removeClass(&apos;hide&apos;);
+    });
+  }
+
+  _decreaseRulePriority() {
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;:&apos;);
+    let thisPriority = parseInt(splitId[splitId.length - 1]);
+    splitId.pop();
+    let policyTitle = splitId.join(&apos;:&apos;);
+    let lastPriority = this.policiesManager.getPolicy(policyTitle).getLastPriority();
+    if (lastPriority != thisPriority) {
+      let newPriority = parseInt(thisPriority + 1);
+      this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority);
+      this._goHome();
+    }
+  }
+
+  _deleteMember() {
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;::&apos;);
+    let member = splitId[splitId.length - 1];
+    splitId.pop();
+    let group = splitId.join(&apos;::&apos;);
+    this.policiesManager.removeFromGroup(group, member);
+    this._manageGroups();
+  }
+
+  _deleteGroup() {
+    let groupName = event.target.closest(&apos;tr&apos;).children[0].id;
+    this.policiesManager.deleteGroup(groupName);
+    this._manageGroups();
+  }
+
+  _deletePolicy() {
+    let policyTitle = event.target.closest(&apos;tr&apos;).id;
+    this.policiesManager.deletePolicy(policyTitle);
+    this._goHome();
+  }
+
+  _deleteRule() {
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;:&apos;);
+    let priority = splitId[splitId.length - 1];
+    splitId.pop();
+    let policyTitle = splitId.join(&apos;:&apos;);
+    let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
+
+    this.policiesManager.deleteRule(policyTitle, rule);
+    this._goHome();
+  }
+
+  _getActivePolicy() {
+    $(&apos;.policy-active&apos;).html(&apos;&apos;);
+    let activeUserPolicy = this.policiesManager.getActivePolicy();
+    let policies = this.policiesManager.getPoliciesTitles();
+    policies.push(&apos;Deactivate all policies&apos;);
+
+    $(&apos;.policy-active&apos;).append(this._getOptions(&apos;policies-list&apos;, &apos;Click to activate a policy&apos;, policies, activeUserPolicy));
+
+    $(&apos;#policies-list&apos;).on(&apos;click&apos;, (event) =&gt; {
+      let policyTitle = $(&apos;#policies-list&apos;).find(&quot;:selected&quot;)[0].textContent;
+      if (policyTitle === &apos;Deactivate all policies&apos;) {
+        policyTitle = undefined;
+      }
+      this.policiesManager.updateActivePolicy(policyTitle);
+    });
+  }
+
+  _getGroupOptions(title, keys, scopes, lists) {
+    let list = &apos;&lt;option disabled selected&gt;&apos; + title + &apos;&lt;/option&gt;&apos;;
+
+    for (let i in keys) {
+      list += &apos;&lt;optgroup label=&apos; + keys[i] + &apos;&gt;&apos;;
+      for (let j in lists[i]) {
+        list += &apos;&lt;option id=&quot;&apos; + scopes[i] + &apos;&quot;&gt;&apos; + lists[i][j] + &apos;&lt;/option&gt;&apos;;
+      }
+    }
+
+    return list;
+  }
+
+  _getInfo(variable) {
+    let info;
+
+    switch(variable) {
+      case &apos;Date&apos;:
+        info = $(&apos;.config&apos;).find(&apos;input&apos;).val();
+        if (info.indexOf(&apos;,&apos;) !== -1) { //20 July, 2016
+          let splitInfo = info.split(&apos; &apos;); //[&apos;20&apos;, &apos;July,&apos;,&apos; &apos;2016&apos;]
+          splitInfo[1] = splitInfo[1].substring(0, splitInfo[1].length - 1); //&apos;July&apos;
+          let months = [&apos;January&apos;, &apos;February&apos;, &apos;March&apos;, &apos;April&apos;, &apos;May&apos;, &apos;June&apos;, &apos;July&apos;, &apos;August&apos;, &apos;September&apos;, &apos;October&apos;, &apos;November&apos;, &apos;December&apos;];
+          info = splitInfo[0] + &apos;/&apos; + (months.indexOf(splitInfo[1]) + 1) + &apos;/&apos; + splitInfo[2];
+        } else { // 2016-07-20
+          let splitInfo = info.split(&apos;-&apos;);
+          info = splitInfo[2] + &apos;/&apos; + splitInfo[1] + &apos;/&apos; + splitInfo[0];
+        }
+        break;
+      case &apos;Group of users&apos;:
+        info = $(&apos;#group&apos;).find(&quot;:selected&quot;).text();
+        break;
+      case &apos;Subscription preferences&apos;:
+        if (info = $(&quot;input[name=&apos;rule-new-subscription&apos;]:checked&quot;)[0] !== undefined) {
+          info = $(&quot;input[name=&apos;rule-new-subscription&apos;]:checked&quot;)[0].id;
+        }
+        break;
+      case &apos;Weekday&apos;:
+        info = $(&apos;#weekday&apos;).find(&quot;:selected&quot;).text();
+        break;
+      default:
+        info = $(&apos;.config&apos;).find(&apos;input&apos;).val();
+        break;
+    }
+
+    return info;
+  }
+
+  _getList(items) {
+      let list = &apos;&apos;;
+      let numItems = items.length;
+
+      for (let i = 0; i &lt; numItems; i++) {
+        list += &apos;&lt;li class=&quot;divider&quot;&gt;&lt;/li&gt;&apos;;
+        list += &apos;&lt;li&gt;&lt;a class=&quot;center-align&quot;&gt;&apos; + items[i] + &apos;&lt;/a&gt;&lt;/li&gt;&apos;;
+      }
+
+      return list;
+    }
+
+  _getOptions(id, title, list, selected) {
+    let options = &apos;&lt;select id=&quot;&apos; + id + &apos;&quot; class=&quot;browser-default&quot;&gt;&lt;option disabled selected&gt;&apos; + title + &apos;&lt;/option&gt;&apos;;
+    for (let i in list) {
+      if (selected !== undefined &amp; selected === list[i]) {
+        options += &apos;&lt;option selected id=&quot;&apos; + id + &apos;&quot;&gt;&apos; + list[i] + &apos;&lt;/option&gt;&apos;;
+      } else {
+        options += &apos;&lt;option id=&quot;&apos; + id + &apos;&quot;&gt;&apos; + list[i] + &apos;&lt;/option&gt;&apos;;
+      }
+    }
+    options += &apos;&lt;/select&gt;&apos;;
+
+    return options;
+  }
+
+  _getPoliciesTable() {
+    $(&apos;.policies-no&apos;).addClass(&apos;hide&apos;);
+    $(&apos;.policies-current&apos;).html(&apos;&apos;);
+
+    let policies = this.policiesManager.getFormattedPolicies();
+    let policiesTitles = [];
+    let rulesTitles = [];
+    let ids = [];
+
+    for (let i in policies) {
+      policiesTitles.push(policies[i].title);
+      rulesTitles.push(policies[i].rulesTitles);
+      ids.push(policies[i].ids);
+    }
+
+    let table = &apos;&lt;table&gt;&apos;;
+    let isEmpty = policiesTitles.length === 0;
+
+    for (let i in policiesTitles) {
+      table += &apos;&lt;thead&gt;&lt;tr id=&quot;&apos; + policiesTitles[i] + &apos;&quot;&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;th class=&quot;center-align&quot;&gt;&apos; + policiesTitles[i] + &apos;&lt;/th&gt;&lt;td&gt;&lt;i class=&quot;material-icons clickable-cell policy-delete&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;delete_forever&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&apos;;
+
+      for (let j in rulesTitles[i]) {
+        table += &apos;&lt;tr id=&quot;&apos; + ids[i][j] + &apos;&quot; &gt;&lt;td&gt;&lt;i class=&quot;material-icons clickable-cell rule-priority-increase&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;arrow_upward&lt;/i&gt;&lt;/td&gt;&lt;td&gt;&lt;i class=&quot;material-icons clickable-cell rule-priority-decrease&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;arrow_downward&lt;/i&gt;&lt;/td&gt;&lt;td class=&quot;rule-show clickable-cell&quot; style=&quot;cursor: pointer&quot;&gt;&apos; + rulesTitles[i][j] + &apos;&lt;/td&gt;&lt;td&gt;&lt;i class=&quot;material-icons clickable-cell rule-delete&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;clear&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&apos;;
+      }
+      table += &apos;&lt;tr id=&quot;&apos; + policiesTitles[i] + &apos;&quot;&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td style=&quot;text-align:center&quot;&gt;&lt;i class=&quot;material-icons clickable-cell center-align rule-add&quot; style=&quot;cursor: pointer&quot;&gt;add_circle&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&apos;;
+    }
+    if (!isEmpty) {
+      table += &apos;&lt;/tbody&gt;&lt;/table&gt;&apos;;
+      $(&apos;.policies-current&apos;).append(table);
+    } else {
+      $(&apos;.policies-no&apos;).removeClass(&apos;hide&apos;);
+    }
+    $(&apos;.rule-add&apos;).on(&apos;click&apos;, (event) =&gt; { this._showVariablesTypes(); });
+    $(&apos;.rule-delete&apos;).on(&apos;click&apos;, (event) =&gt; { this._deleteRule(); });
+    $(&apos;.rule-show&apos;).on(&apos;click&apos;, (event) =&gt; { this._showRule(); });
+    $(&apos;.rule-priority-increase&apos;).on(&apos;click&apos;, (event) =&gt; { this._increaseRulePriority(); });
+    $(&apos;.rule-priority-decrease&apos;).on(&apos;click&apos;, (event) =&gt; { this._decreaseRulePriority(); });
+    $(&apos;.policy-add&apos;).off();
+    $(&apos;.policy-add&apos;).on(&apos;click&apos;, (event) =&gt; { this._addPolicy(); });
+    $(&apos;.policy-delete&apos;).on(&apos;click&apos;, (event) =&gt; { this._deletePolicy(); });
+  }
+
+  _goHome() {
+    this._getActivePolicy();
+    this._getPoliciesTable();
+  }
+
+  _increaseRulePriority() {
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;:&apos;);
+    let thisPriority = parseInt(splitId[splitId.length - 1]);
+    if (thisPriority !== 0) {
+      splitId.pop();
+      let policyTitle = splitId.join(&apos;:&apos;);
+      let newPriority = thisPriority - 1;
+
+      this.policiesManager.increaseRulePriority(policyTitle, thisPriority, newPriority);
+      this._goHome();
+    }
+  }
+
+  _manageGroups() {
+    $(&apos;.groups-current&apos;).html(&apos;&apos;);
+    let groupsPE = this.policiesManager.getGroups();
+    let groups = groupsPE.groupsNames;
+    let members = groupsPE.members;
+    let ids = groupsPE.ids;
+
+    let table = &apos;&lt;table&gt;&apos;;
+    let isEmpty = groups.length === 0;
+
+    for (let i in groups) {
+      table += &apos;&lt;thead&gt;&lt;tr&gt;&lt;th id=&quot;&apos; + groups[i] + &apos;&quot;&gt;&apos; + groups[i] + &apos;&lt;/th&gt;&lt;td style=&quot;text-align:right&quot;&gt;&lt;i class=&quot;material-icons clickable-cell group-delete&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;delete_forever&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&apos;;
+      for (let j in members[i]) {
+        table += &apos;&lt;tr id=&quot;&apos; + ids[i][j] + &apos;&quot; &gt;&lt;td style=&quot;cursor: pointer&quot;&gt;&apos; + members[i][j] + &apos;&lt;/td&gt;&lt;td style=&quot;text-align:right&quot;&gt;&lt;i class=&quot;material-icons clickable-cell member-delete&quot; style=&quot;cursor: pointer; vertical-align: middle&quot;&gt;clear&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&apos;;
+      }
+
+      table += &apos;&lt;tr id=&quot;&apos; + groups[i] + &apos;&quot;&gt;&lt;td&gt;&lt;i class=&quot;material-icons clickable-cell member-add&quot; id=&quot;&apos; + groups[i] + &apos;&quot; style=&quot;cursor: pointer&quot;&gt;add_circle&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&apos;;
+    }
+
+    if (!isEmpty) {
+      table += &apos;&lt;/tbody&gt;&lt;/table&gt;&apos;;
+      $(&apos;.groups-current&apos;).append(table);
+    } else {
+      $(&apos;.groups-current&apos;).append(&apos;&lt;p&gt;There are no groups set.&lt;/p&gt;&apos;);
+    }
+
+    $(&apos;.member-add&apos;).off();
+    $(&apos;.member-add&apos;).on(&apos;click&apos;, (event) =&gt; { this._addMember(); });
+    $(&apos;.member-delete&apos;).on(&apos;click&apos;, (event) =&gt; { this._deleteMember(); });
+    $(&apos;.group-add&apos;).off();
+    $(&apos;.group-add&apos;).on(&apos;click&apos;, (event) =&gt; { this._createGroup(); });
+    $(&apos;.group-delete&apos;).on(&apos;click&apos;, (event) =&gt; { this._deleteGroup(); });
+  }
+
+  _parseFileContent(content) {
+    let parsedContent = JSON.parse(content);
+    for (let i in parsedContent) {
+      this.policiesManager.addPolicy(i, undefined, parsedContent[i]);
+    }
+    $(&apos;.policy-new&apos;).closeModal();
+  }
+
+  _setElements() {
+    return {
+      date: (params) =&gt; { return &apos;&lt;input type=&quot;date&quot; class=&quot;datepicker&quot;&gt;&apos;; },
+      select: (params) =&gt; { return this._getOptions(params[0], params[1], params[2]); },
+      form: (params) =&gt; { return &apos;&lt;form&gt;&lt;input type=&quot;text&quot; placeholder=&quot;&apos; + params + &apos;&quot;&gt;&lt;/input&gt;&lt;/form&gt;&apos;; }
+    };
+  }
+
+  _showNewConfigurationPanel(policyTitle) {
+    let variable = event.target.text;
+    $(&apos;.variable&apos;).html(this._getNewConfiguration(policyTitle, variable));
+    $(&apos;.scopes&apos;).empty().html(&apos;&apos;);
+
+    let keys = [&apos;Email&apos;, &apos;Hyperty&apos;, &apos;All&apos;];
+    let scopes = [&apos;identity&apos;, &apos;hyperty&apos;, &apos;global&apos;];
+    let lists = [];
+
+    lists.push(this.policiesManager.getMyEmails());
+    lists.push(this.policiesManager.getMyHyperties());
+    lists.push([&apos;All identities and hyperties&apos;]);
+    $(&apos;.scopes&apos;).append(this._getGroupOptions(&apos;Apply this configuration to:&apos;, keys, scopes, lists));
+    $(&apos;.variable&apos;).removeClass(&apos;hide&apos;);
+  }
+
+  _showVariablesTypes() {
+    let policyTitle = event.target.closest(&apos;tr&apos;).id;
+
+    $(&apos;#variables-types&apos;).empty().html(&apos;&apos;);
+    let variables = this.policiesManager.getVariables();
+    $(&apos;#variables-types&apos;).append(this._getList(variables));
+    $(&apos;.variable&apos;).addClass(&apos;hide&apos;);
+    $(&apos;.rule-new&apos;).openModal();
+    $(&apos;#variables-types&apos;).off();
+    $(&apos;#variables-types&apos;).on(&apos;click&apos;, (event) =&gt; { this._showNewConfigurationPanel(policyTitle); });
+  }
+
+  _getNewConfiguration(policyTitle, variable) {
+    let info = this.policiesManager.getVariableInfo(variable);
+    $(&apos;.rule-new-title&apos;).html(info.title);
+    $(&apos;.description&apos;).html(info.description);
+    $(&apos;.config&apos;).html(&apos;&apos;);
+
+    if (variable === &apos;Subscription preferences&apos;) {
+      $(&apos;.subscription-type&apos;).removeClass(&apos;hide&apos;);
+    } else {
+      $(&apos;.subscription-type&apos;).addClass(&apos;hide&apos;);
+      let tags = info.input;
+      for (let i in tags) {
+        if (variable === &apos;Group of users&apos;) {
+          tags[i][1].push(this.policiesManager.getGroupsNames());
+        }
+        $(&apos;.config&apos;).append(this.elements[tags[i][0]](tags[i][1]));
+        if (variable === &apos;Group of users&apos;) {
+          tags[i][1].pop();
+        }
+      }
+      if (variable ===&apos;date&apos;) {
+        $(&apos;.datepicker&apos;).pickadate({
+          selectMonths: true,
+          selectYears: 15
+        });
+      }
+    }
+    document.getElementById(&apos;allow&apos;).checked = false;
+    document.getElementById(&apos;block&apos;).checked = false;
+    $(&apos;.ok-btn&apos;).off();
+    $(&apos;.ok-btn&apos;).on(&apos;click&apos;, (event) =&gt; {
+      if ($(&quot;input[name=&apos;rule-new-decision&apos;]:checked&quot;)[0] !== undefined) {
+        let info = this._getInfo(variable);
+        let decision = $(&quot;input[name=&apos;rule-new-decision&apos;]:checked&quot;)[0].id;
+        decision = decision === &apos;allow&apos;;
+        let scope = $(&apos;.scopes&apos;).find(&quot;:selected&quot;)[0].id;
+        let target = $(&apos;.scopes&apos;).find(&quot;:selected&quot;)[0].textContent;
+        target = (target === &apos;All identities and hyperties&apos;) ? &apos;global&apos; : target;
+        this.policiesManager.setInfo(variable, policyTitle, info, decision, scope, target);
+        $(&apos;.rule-new&apos;).closeModal();
+        this._goHome();
+      } else {
+        throw Error(&apos;INFORMATION MISSING: please specify an authorisation decision.&apos;);
+      }
+    });
+  }
+
+  _deleteInfo(resourceType) {
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;:&apos;);
+    let scope = splitId[0];
+    splitId.shift();
+    let target = splitId.join(&apos;&apos;);
+    let condition = event.target.closest(&apos;tr&apos;).children[0].id;
+    this.policiesManager.deleteInfo(resourceType, scope, target, condition);
+    this._goHome();
+  }
+
+  _setListeners() {
+    $(&apos;.settings-btn&apos;).on(&apos;click&apos;, (event) =&gt; {
+      parent.postMessage({ body: { method: &apos;showAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
+      $(&apos;.admin-page&apos;).removeClass(&apos;hide&apos;);
+      document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:white;&apos;;
+    });
+
+    $(&apos;.policies-page-show&apos;).on(&apos;click&apos;, (event) =&gt; {
+      $(&apos;.policies-section&apos;).removeClass(&apos;hide&apos;);
+      $(&apos;.identities-section&apos;).addClass(&apos;hide&apos;);
+      this._goHome();
+      this._manageGroups();
+    });
+
+    $(&apos;.admin-page-exit&apos;).on(&apos;click&apos;, (event) =&gt; {
+      parent.postMessage({ body: { method: &apos;hideAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
+      $(&apos;.admin-page&apos;).addClass(&apos;hide&apos;);
+      document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:transparent;&apos;;
+    });
+
+    $(&apos;.exit-btn&apos;).on(&apos;click&apos;, (event) =&gt; {
+      $(&apos;.subscription-type&apos;).addClass(&apos;hide&apos;);
+      $(&apos;.help-menu&apos;).addClass(&apos;hide&apos;);
+    });
+
+    $(&apos;#policy-file&apos;).on(&apos;change&apos;, (event) =&gt; {
+      let file = event.target.files[0];
+      let reader = new FileReader();
+      reader.readAsText(file, &quot;UTF-8&quot;);
+      reader.onload = (event) =&gt; {
+        this._parseFileContent(event.target.result);
+        this._goHome();
+      }
+      reader.onerror = (event) =&gt; {
+        throw Error(&quot;Error reading the file&quot;);
+      }
+    });
+  }
+
+  _showRule() {
+    let ruleTitle = event.target.textContent;
+    let id = event.target.closest(&apos;tr&apos;).id;
+    let splitId = id.split(&apos;:&apos;);
+    let priority = splitId[splitId.length - 1];
+    splitId.pop();
+    let policyTitle = splitId.join(&apos;:&apos;);
+    let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
+    if (rule.condition.attribute === &apos;subscription&apos; &amp;&amp; rule.condition.params === &apos;preauthorised&apos;) {
+      $(&apos;.authorise-btns&apos;).addClass(&apos;hide&apos;);
+    } else {
+      let element;
+      if (rule.decision) {
+        element = document.getElementById(&apos;btn-allow&apos;);
+      } else {
+        element = document.getElementById(&apos;btn-block&apos;);
+      }
+      element.checked = true;
+      $(&apos;.authorise-btns&apos;).removeClass(&apos;hide&apos;);
+    }
+    $(&apos;.member-add&apos;).addClass(&apos;hide&apos;);
+    $(&apos;.member-new-btn&apos;).addClass(&apos;hide&apos;);
+
+    $(&apos;.rule-details&apos;).openModal();
+    $(&apos;.rule-title&apos;).html(&apos;&lt;h5&gt;&lt;b&gt;&apos; + ruleTitle + &apos;&lt;/b&gt;&lt;/h5&gt;&apos;);
+    if (rule.condition.attribute === &apos;subscription&apos;) {
+      $(&apos;.subscription-type&apos;).removeClass(&apos;hide&apos;);
+    }
+    $(&apos;.subscription-decision&apos;).on(&apos;click&apos;, (event) =&gt; { this._updateRule(&apos;subscription&apos;, policyTitle, rule); });
+    $(&apos;.decision&apos;).off();
+    $(&apos;.decision&apos;).on(&apos;click&apos;, (event) =&gt; { this._updateRule(&apos;authorisation&apos;, policyTitle, rule);});
+  }
+
+  _updateRule(type, policyTitle, rule) {
+    let title = $(&apos;.rule-title&apos;).text();
+    let splitTitle = title.split(&apos; &apos;);
+    let index = splitTitle.indexOf(&apos;is&apos;);
+    if (index === -1) {
+      index = splitTitle.indexOf(&apos;are&apos;);
+    }
+    switch (type) {
+      case &apos;authorisation&apos;:
+        let newDecision = $(&quot;input[name=&apos;rule-update-decision&apos;]:checked&quot;)[0].id;
+
+        if (newDecision === &apos;btn-allow&apos;) {
+          splitTitle[index + 1] = &apos;allowed&apos;;
+          newDecision = true;
+        } else {
+          splitTitle[index + 1] = &apos;blocked&apos;;
+          newDecision = false;
+        }
+        title = splitTitle.join(&apos; &apos;);
+        $(&apos;.rule-title&apos;).html(&apos;&lt;h5&gt;&lt;b&gt;&apos; + title + &apos;&lt;/b&gt;&lt;/h5&gt;&apos;);
+        this.policiesManager.updatePolicy(policyTitle, rule, newDecision);
+        break;
+      case &apos;subscription&apos;:
+        let newSubscriptionType = event.target.labels[0].textContent;
+
+        let decision = splitTitle[index + 1];
+        splitTitle = title.split(&apos;hyperties are&apos;);
+        if (newSubscriptionType === &apos;All subscribers&apos;) {
+          $(&apos;.authorise-btns&apos;).removeClass(&apos;hide&apos;);
+          newDecision = rule.decision;
+          newSubscriptionType = &apos;*&apos;;
+          title = &apos;Subscriptions from all hyperties are&apos; + splitTitle[1];
+        } else {
+          $(&apos;.authorise-btns&apos;).addClass(&apos;hide&apos;);
+          newDecision = true;
+          newSubscriptionType = &apos;preauthorised&apos;;
+          title = &apos;Subscriptions from previously authorised hyperties are&apos; + splitTitle[1];
+        }
+
+        $(&apos;.rule-title&apos;).html(&apos;&lt;h5&gt;&lt;b&gt;&apos; + title + &apos;&lt;/b&gt;&lt;/h5&gt;&apos;);
+        this.policiesManager.updatePolicy(policyTitle, rule, newDecision, newSubscriptionType);
+        break;
+    }
+    this._goHome();
+  }
+}
+
+export default PoliciesGUI;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

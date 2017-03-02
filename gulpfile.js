@@ -119,6 +119,9 @@ gulp.task('bundle:rethink', function(){
 gulp.task('bundle:core', function(){
     return bundle('./src/core.js', 'core', 'bin')
 });
+gulp.task('bundle:sandbox', function(){
+    return bundle('./src/ContextWindow.js', 'sandbox', 'bin')
+});
 gulp.task('bundle:context', function(){
     return bundle('./src/ContextServiceProvider.js', 'context-service', 'bin')
 });
@@ -148,7 +151,7 @@ gulp.task('bundle:graphConnector-gui', function () {
 	return bundle('./src/admin/graphConnectorGUI.js', 'graphConnector-gui', 'bin');
 });
 
-gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui' ,'bundle:graphConnector-gui']);
+gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui','bundle:graphConnector-gui']);
 
 /**
  * Bumping version number and tagging the repository with it.
