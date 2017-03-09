@@ -17,7 +17,17 @@ class IdentitiesGUI {
 
       _this._messageBus.addListener(guiURL, msg => {
         let identityInfo = msg.body.value;
+        let funcName = msg.body.method;
         let value;
+
+        if (funcName === 'openPopup') {
+          let urlreceived = msg.body.params.urlreceived;
+          _this.openPopup(urlreceived).then((returnedValue) => {
+            let value = {type: 'execute', value: returnedValue, code: 200};
+            let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
+            _this._messageBus.postMessage(replyMsg);
+          });
+        }
 
         // unhide the config page with the identity GUI
         document.getElementsByTagName('body')[0].style = 'background-color:white;';
@@ -74,6 +84,45 @@ class IdentitiesGUI {
         //console.log('TIAGO: return from callIdentityModuleFunc ', result);
         resolve(result);
       });
+    });
+  }
+
+  openPopup(urlreceived) {
+
+    return new Promise((resolve, reject) => {
+
+      let win = window.open(urlreceived, 'openIDrequest', 'width=800, height=600');
+      if (window.cordova) {
+        win.addEventListener('loadstart', function(e) {
+          let url = e.url;
+          let code = /\&code=(.+)$/.exec(url);
+          let error = /\&error=(.+)$/.exec(url);
+
+          if (code || error) {
+            win.close();
+            resolve(url);
+          }
+        });
+      } else {
+        let pollTimer = setInterval(function() {
+          try {
+            if (win.closed) {
+              reject('Some error occured when trying to get identity.');
+              clearInterval(pollTimer);
+            }
+
+            if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
+              window.clearInterval(pollTimer);
+              let url =   win.document.URL;
+
+              win.close();
+              resolve(url);
+            }
+          } catch (e) {
+            //console.log(e);
+          }
+        }, 500);
+      }
     });
   }
 
@@ -324,7 +373,7 @@ class IdentitiesGUI {
 
     return new Promise((resolve, reject) => {
 
-      _this.callIdentityModuleFunc('openPopup', { urlreceived: url }).then((identity) => {
+      _this.openPopup(url).then((identity) => {
 
         _this.callIdentityModuleFunc('sendGenerateMessage',
           { contents: publicKey, origin: origin, usernameHint: identity, idpDomain: idProvider }).then((result) => {
