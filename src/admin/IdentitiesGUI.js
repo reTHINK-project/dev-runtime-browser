@@ -169,7 +169,9 @@ class IdentitiesGUI {
   }
 
   _checkReceivedInfo(receivedInfo) {
+    let _this = this;
     return new Promise((resolve, reject) => {
+      let identityInfo, toRemoveID;
       if (receivedInfo) {
         identityInfo = receivedInfo;
         toRemoveID = false;
