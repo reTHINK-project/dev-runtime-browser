@@ -5,7 +5,7 @@ module.exports = function(config) {
 	config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-		basePath: '',
+		basePath: '.',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -13,6 +13,7 @@ module.exports = function(config) {
 
 		files: [
 			'test/**/*.spec.js',
+			{pattern: 'test/resources/*.*', watched: false, included: false, served: true, nocache: false}
 		],
 
 		exclude: [
@@ -56,6 +57,10 @@ module.exports = function(config) {
 			debug: true,
 			extensions: ['js'],
 			transform: [['babelify', {presets:['es2015']}]]
+		},
+
+		proxies: {
+			'/context-service.js': '/base/test/resources/context-service.js'
 		}
 	})
 }

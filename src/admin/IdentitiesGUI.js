@@ -134,59 +134,50 @@ class IdentitiesGUI {
       let identityInfo;
       let toRemoveID;
 
-      if (receivedInfo) {
-        identityInfo = receivedInfo;
-        toRemoveID = false;
+      _this._checkReceivedInfo(receivedInfo).then((resultObject) => {
+        identityInfo = resultObject.identityInfo;
+        toRemoveID = resultObject.toRemoveID;
+
         $('.policies-section').addClass('hide');
         $('.identities-section').removeClass('hide');
 
         _this.showMyIdentities(identityInfo.identities, toRemoveID).then((identity) => {
           console.log('chosen identity: ', identity);
-          resolve({ type: 'identity', value: identity });
+          resolve({type: 'identity', value: identity});
         });
 
         let callback = (value) => {
           console.log('chosen identity: ', value);
-          resolve({ type: 'identity', value: value });
+          resolve({type: 'identity', value: value});
         };
 
-        let idps = identityInfo.idps;
+        let idps = [];
+        let idpsObjects = identityInfo.idps;
+
+        idpsObjects.forEach(function(entry) {
+          idps.push(entry.domain);
+        });
+
         $('#idproviders').html(_this._getList(idps));
         $('#idproviders').off();
-        $('#idproviders').on('click',
-          (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
-
+        $('#idproviders').on('click', (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
         //$('.back').on('click', (event) => _this.goHome());
         $('.identities-reset').off();
         $('.identities-reset').on('click', (event) => _this._resetIdentities(callback));
+      });
+    });
+  }
+
+  _checkReceivedInfo(receivedInfo) {
+    return new Promise((resolve, reject) => {
+      if (receivedInfo) {
+        identityInfo = receivedInfo;
+        toRemoveID = false;
+        resolve({identityInfo: identityInfo, toRemoveID:toRemoveID});
       } else {
         toRemoveID = true;
         _this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then((result) => {
-
-          //console.log('TIAGO: newIdentityInfo ', result);
-
-          $('.policies-section').addClass('hide');
-          $('.identities-section').removeClass('hide');
-
-          _this.showMyIdentities(result.identities, toRemoveID).then((identity) => {
-            console.log('chosen identity: ', identity);
-            resolve({ type: 'identity', value: identity });
-          });
-
-          let callback = (value) => {
-            console.log('chosen identity: ', value);
-            resolve({ type: 'identity', value: value });
-          };
-
-          let idps = result.idps;
-          $('#idproviders').html(_this._getList(idps));
-          $('#idproviders').off();
-          $('#idproviders').on('click',
-            (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
-
-          //$('.back').on('click', (event) => _this.goHome());
-          $('.identities-reset').off();
-          $('.identities-reset').on('click', (event) => _this._resetIdentities(callback));
+          resolve({identityInfo: result, toRemoveID: toRemoveID});
         });
       }
     });

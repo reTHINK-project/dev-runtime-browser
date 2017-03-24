@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">src/admin/PoliciesManager.js | Runtime Browser API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeFactory">RuntimeFactory</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Hyperty">Hyperty</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeAdapter">RuntimeAdapter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeUA">RuntimeUA</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework">MSG_STATUS</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">admin</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html">IdentitiesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html">PoliciesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesManager.js~PoliciesManager.html">PoliciesManager</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/admin/PoliciesManager.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">class PoliciesManager {
+
+  constructor(policyEngine) {
+    this.policyEngine = policyEngine;
+    this.policies = this.policyEngine.context.userPolicies;
+    this.variables = this.setVariables();
+    this.addition = this.setAdditionMethods();
+    this.validation = this.setValidationMethods();
+  }
+
+  addToGroup(groupName, user) {
+    this.policyEngine.context.addToGroup(groupName, user);
+  }
+
+  createGroup(groupName) {
+    this.policyEngine.context.createGroup(groupName);
+  }
+
+  addPolicy(title, combiningAlgorithm, policy) {
+    if (policy === undefined) {
+      switch (combiningAlgorithm) {
+        case &apos;Block overrides&apos;:
+          combiningAlgorithm = &apos;blockOverrides&apos;;
+          break;
+        case &apos;Allow overrides&apos;:
+          combiningAlgorithm = &apos;allowOverrides&apos;;
+          break;
+        case &apos;First applicable&apos;:
+          combiningAlgorithm = &apos;firstApplicable&apos;;
+          break;
+        default:
+          combiningAlgorithm = undefined;
+      }
+    }
+
+    this.policyEngine.addPolicy(&apos;USER&apos;, title, policy, combiningAlgorithm);
+  }
+
+  decreaseRulePriority(policyTitle, thisPriority, newPriority) {
+    this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
+    this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
+    this.policyEngine.context.savePolicies(&apos;USER&apos;);
+  }
+
+  deleteGroup(groupName) {
+    this.policyEngine.context.deleteGroup(groupName);
+  }
+
+  deletePolicy(title) {
+    this.policyEngine.removePolicy(&apos;USER&apos;, title);
+  }
+
+  deleteRule(policyTitle, rule) {
+    let userPolicies = this.policyEngine.context.userPolicies;
+    userPolicies[policyTitle].deleteRule(rule);
+    this.policyEngine.context.savePolicies(&apos;USER&apos;);
+  }
+
+  getActivePolicy() {
+    return this.policyEngine.context.activeUserPolicy;
+  }
+
+  getPolicy(key) {
+    return this.policyEngine.context.userPolicies[key];
+  }
+
+  getPoliciesTitles() {
+    let policies = this.policyEngine.context.userPolicies;
+    let titles = [];
+
+    for (let i in policies) {
+      titles.push(i);
+    }
+
+    return titles;
+  }
+
+  getTargets(scope) {
+    let targets = [];
+
+    for (let i in this.policies[scope]) {
+      if (targets.indexOf(i) === -1) {
+        targets.push(i);
+      }
+    }
+
+    return targets;
+  }
+
+  increaseRulePriority(policyTitle, thisPriority, newPriority) {
+    this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
+    this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
+    this.policyEngine.context.savePolicies(&apos;USER&apos;);
+  }
+
+  setVariables() {
+    return {
+      &apos;Date&apos;: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating date related configurations&lt;/h5&gt;&lt;p&gt;Incoming communications in the introduced date will be allowed or blocked according to your configurations, which can be changed in the preferences page.&lt;/p&gt;&lt;br&gt;&apos;,
+        description: &apos;&lt;p&gt;Date:&lt;/p&gt;&apos;,
+        input: [
+          [&apos;date&apos;, []]
+        ]
+      },
+      &apos;Domain&apos;: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating domain configurations&lt;/h5&gt;&lt;p&gt;Incoming communications from a user whose identity is from the introduced domain allowed or blocked according to your configurations, which can be changed in the preferences page.&lt;/p&gt;&lt;br&gt;&apos;,
+        description: &apos;&lt;p&gt;Domain:&lt;/p&gt;&apos;,
+        input: [
+          [&apos;form&apos;, []]
+        ]
+      },
+      &apos;Group of users&apos;: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating groups configurations&lt;/h5&gt;&lt;p&gt;Incoming communications from a user whose identity is in the introduced group will be allowed or blocked according to your configurations, which can be changed in the preferences page.&lt;/p&gt;&lt;br&gt;&apos;,
+        description: &apos;&lt;p&gt;Group name:&lt;/p&gt;&apos;,
+        input: [
+          [&apos;select&apos;, [&apos;group&apos;, &apos;Select a group:&apos;]]
+        ]
+      },
+      &apos;Subscription preferences&apos;: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating subscriptions configurations&lt;/h5&gt;&lt;p&gt;The acceptance of subscriptions to your hyperties will be allowed or blocked according to your configurations, which can be changed in the preferences page.&lt;/p&gt;&lt;br&gt;&apos;,
+        input: []
+      },
+      &apos;Time of the day&apos;: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating time configurations&lt;/h5&gt;&lt;p&gt;Incoming communications in the introduced timeslot will be blocked, but this can be changed in the preferences page.&lt;/p&gt;&lt;p&gt;Please introduce a new timeslot in the following format:&lt;/p&gt;&lt;p class=&quot;center-align&quot;&gt;&amp;lt;START-HOUR&amp;gt;:&amp;lt;START-MINUTES&amp;gt; to &amp;lt;END-HOUR&amp;gt;:&amp;lt;END-MINUTES&amp;gt;&lt;/p&gt;&lt;br&gt;&apos;,
+        description: &apos;&lt;p&gt;Timeslot:&lt;/p&gt;&apos;,
+        input: [
+          [&apos;form&apos;, []]
+        ]
+      },
+      Weekday: {
+        title: &apos;&lt;br&gt;&lt;h5&gt;Updating weekday configurations&lt;/h5&gt;&lt;p&gt;Incoming communications in the introduced weekday will be allowed or blocked according to your configurations, which can be changed in the preferences page.&lt;/p&gt;&lt;br&gt;&apos;,
+        description: &apos;&lt;p&gt;Weekday:&lt;/p&gt;&apos;,
+        input: [
+          [&apos;select&apos;, [&apos;weekday&apos;, &apos;Select a weekday:&apos;, [&apos;Saturday&apos;, &apos;Sunday&apos;, &apos;Monday&apos;, &apos;Tuesday&apos;, &apos;Wednesday&apos;, &apos;Thursday&apos;, &apos;Friday&apos;]]]
+        ]
+      }
+    };
+  }
+
+  setAdditionMethods() {
+    return {
+      Date: (params) =&gt; {
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;date&apos;, operator: &apos;equals&apos;, params: params[3] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      },
+
+      Domain: (params) =&gt; {
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;domain&apos;, operator: &apos;equals&apos;, params: params[3] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      },
+      &apos;Group of users&apos;: (params) =&gt; {
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;source&apos;, operator: &apos;in&apos;, params: params[3] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      },
+      &apos;Subscription preferences&apos;: (params) =&gt; {
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        let operator = &apos;equals&apos;;
+        if (params[3] === &apos;preauthorised&apos;) {
+          operator = &apos;in&apos;;
+        }
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;subscription&apos;, operator: thisOperator, params: params[3] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      },
+      &apos;Time of the day&apos;: (params) =&gt; {
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        params[3] = params[3].split(&apos; to &apos;);
+        let start = params[3][0].split(&apos;:&apos;);
+        start = start.join(&apos;&apos;);
+        let end = params[3][1].split(&apos;:&apos;);
+        end = end.join(&apos;&apos;);
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;time&apos;, operator: &apos;between&apos;, params: [start, end] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      },
+
+      Weekday: (params) =&gt; {
+        let weekdays = [&apos;Sunday&apos;, &apos;Monday&apos;, &apos;Tuesday&apos;, &apos;Wednesday&apos;, &apos;Thursday&apos;, &apos;Friday&apos;, &apos;Saturday&apos;];
+        params[3] = weekdays.indexOf(params[3]);
+        let policyTitle = params[0];
+        let userPolicies = this.policyEngine.context.userPolicies;
+        userPolicies[policyTitle].createRule(params[4], { attribute: &apos;weekday&apos;, operator: &apos;equals&apos;, params: params[3] }, params[1], params[2]);
+        this.policyEngine.context.savePolicies(&apos;USER&apos;);
+      }
+    };
+  }
+
+  setValidationMethods() {
+    return {
+      Date: (scope, info) =&gt; { return this.isValidDate(info) &amp; this.isValidScope(scope); },
+      &apos;Group of users&apos;: (scope, info) =&gt; { return this.isValidString(info) &amp; this.isValidScope(scope); },
+      Domain: (scope, info) =&gt; { return this.isValidDomain(info) &amp; this.isValidScope(scope); },
+      Weekday: (scope, info) =&gt; { return true &amp; this.isValidScope(scope); },
+      &apos;Subscription preferences&apos;: (scope, info) =&gt; { return this.isValidSubscriptionType(info) &amp; this.isValidScope(scope); },
+      &apos;Time of the day&apos;: (scope, info) =&gt; { return this.isValidTimeslot(info) &amp; this.isValidScope(scope); }
+    };
+  }
+
+  updateActivePolicy(title) {
+    this.policyEngine.context.activeUserPolicy = title;
+    this.policyEngine.context.saveActivePolicy();
+  }
+
+  isValidEmail(info) {
+    let pattern = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
+    return pattern.test(info);
+  }
+
+  isValidDomain(info) {
+    let pattern = /[a-z0-9.-]+\.[a-z]{2,3}$/;
+    return pattern.test(info);
+  }
+
+  isValidString(info) {
+    let pattern = /[a-z0-9.-]$/;
+    return pattern.test(info);
+  }
+
+  isValidSubscriptionType(info) {
+    return true;
+  }
+
+  isValidDate(info) {
+    let infoSplit = info.split(&apos;/&apos;);
+    let day = parseInt(infoSplit[0]);
+    let month = parseInt(infoSplit[1]);
+    let year = parseInt(infoSplit[2]);
+
+    let date = new Date(year, month-1, day);
+    let isValidFormat = date.getFullYear() === year &amp;&amp; date.getMonth() + 1 === month &amp;&amp; date.getDate() === day;
+    let formattedDate = date.getDate() + &apos;/&apos; + (date.getMonth() + 1) + &apos;/&apos; + date.getFullYear()
+    let now = new Date();
+    let today = now.getDate() + &apos;/&apos; + (now.getMonth() + 1) + &apos;/&apos; + now.getFullYear();
+
+    let isFuture = false;
+    if (date.getFullYear() &gt; now.getFullYear()) {
+      isFuture = true;
+    } else {
+      if (date.getFullYear() == now.getFullYear()) {
+        if ((date.getMonth() + 1) &gt; (now.getMonth() + 1)) {
+          isFuture = true;
+        } else {
+          if ((date.getMonth() + 1) == (now.getMonth() + 1)) {
+            if (date.getDate() &gt;= (now.getDate())) {
+              isFuture = true;
+            }
+          }
+        }
+      }
+    }
+
+    return (isValidFormat &amp;&amp; isFuture);
+  }
+
+  isValidScope(scope) {
+    return scope !== &apos;&apos;;
+  }
+
+  isValidTimeslot(info) {
+    if (!info) {
+      return false;
+    }
+    let splitInfo = info.split(&apos; to &apos;); // [12:00, 13:00]
+    let twoTimes = splitInfo.length === 2;
+    if (!twoTimes) {
+      return false;
+    }
+    let splitStart = splitInfo[0].split(&apos;:&apos;); // [12, 00]
+    let splitEnd = splitInfo[1].split(&apos;:&apos;); // [13, 00]
+    if (splitStart.length !== 2 || splitEnd.length !== 2) {
+      return false;
+    }
+    let okSize = (splitStart[0].length === 2) &amp;&amp; (splitStart[1].length === 2) &amp;&amp; (splitEnd[0].length === 2) &amp;&amp; (splitEnd[1].length === 2);
+    let areIntegers = (splitStart[0] == parseInt(splitStart[0], 10)) &amp;&amp; (splitStart[1] == parseInt(splitStart[1], 10)) &amp;&amp; (splitEnd[0] == parseInt(splitEnd[0], 10)) &amp;&amp; (splitEnd[1] == parseInt(splitEnd[1], 10));
+    return twoTimes &amp;&amp; okSize &amp;&amp; areIntegers;
+  }
+
+  getFormattedPolicies() {
+    let policiesPE = this.policyEngine.context.userPolicies;
+    let policiesGUI = [];
+
+    for (let i in policiesPE) {
+      let policy = {
+        title: policiesPE[i].key,
+        rulesTitles: [],
+        ids: []
+      }
+
+      if (policiesPE[i].rules.length !== 0) {
+        policiesPE[i].rules = policiesPE[i].sortRules();
+        for (let j in policiesPE[i].rules) {
+          let title = this._getTitle(policiesPE[i].rules[j]);
+          policy.rulesTitles.push(title);
+          policy.ids.push(policy.title + &apos;:&apos; + policiesPE[i].rules[j].priority);
+        }
+      }
+
+      policiesGUI.push(policy);
+    }
+
+    return policiesGUI;
+  }
+
+  getRuleOfPolicy(title, priority) {
+    let policies = this.policyEngine.context.userPolicies;
+    let policy = policies[title];
+    return policy.getRuleByPriority(priority);
+  }
+
+  _getTitle(rule) {
+    let condition = rule.condition;
+    let authorise = (rule.decision) ? &apos;allowed&apos; : &apos;blocked&apos;;
+    let target = rule.target === &apos;global&apos; ? &apos;All identities and hyperties&apos; : rule.target;
+    let attribute = condition.attribute;
+    switch(attribute) {
+      case &apos;date&apos;:
+        return &apos;Date &apos; + condition.params + &apos; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+      case &apos;domain&apos;:
+        return &apos;Domain \&quot;&apos; + condition.params + &apos;\&quot; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+      case &apos;source&apos;:
+        if (condition.operator === &apos;in&apos;) {
+          return &apos;Group \&quot;&apos; + condition.params + &apos;\&quot; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+        } else {
+          if (condition.operator === &apos;equals&apos;) {
+            return &apos;User &apos; + condition.params + &apos; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+          }
+        }
+      case &apos;subscription&apos;:
+        if (condition.params === &apos;*&apos;) {
+          return &apos;Subscriptions from all hyperties are &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+        } else {
+          if (condition.params === &apos;preauthorised&apos;) {
+            return &apos;Subscriptions from previously authorised hyperties are allowed (&apos; + target + &apos;)&apos;;
+          }
+        }
+      case &apos;time&apos;:
+        let start = condition.params[0][0] + condition.params[0][1] + &apos;:&apos; + condition.params[0][2] + condition.params[0][3];
+        let end = condition.params[1][0] + condition.params[1][1] + &apos;:&apos; + condition.params[1][2] + condition.params[1][3];
+        return &apos;Timeslot from &apos; + start + &apos; to &apos; + end + &apos; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+      case &apos;weekday&apos;:
+        let weekdays = [&apos;Sunday&apos;, &apos;Monday&apos;, &apos;Tuesday&apos;, &apos;Wednesday&apos;, &apos;Thursday&apos;, &apos;Friday&apos;, &apos;Saturday&apos;];
+        let weekdayID = condition.params;
+        return &apos;Weekday \&quot;&apos; + weekdays[weekdayID] + &apos;\&quot; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+      default:
+        return &apos;Rule &apos; + rule.priority + &apos; is &apos; + authorise + &apos; (&apos; + target + &apos;)&apos;;
+    }
+  }
+
+  getVariables() {
+    let variablesTitles = [];
+    for (let i in this.variables) {
+      variablesTitles.push(i);
+    }
+    return variablesTitles;
+  }
+
+  getVariableInfo(variable) {
+    return this.variables[variable];
+  }
+
+  getMyEmails() {
+    return this.policyEngine.context.getMyEmails();
+  }
+
+  getMyHyperties() {
+    return this.policyEngine.context.getMyHyperties();
+  }
+
+  //TODO If there is a problem with the input, show it to the user
+  setInfo(variable, policyTitle, info, authorise, scope, target) {
+    if (this.validation[variable](scope, info)) {
+      this.addition[variable]([policyTitle, scope, target, info, authorise]);
+    } else {
+      throw Error(&apos;Invalid configuration&apos;);
+    }
+  }
+
+  getInfo(scope, title) {
+    let policies = this.policies[scope];
+    let policy = {};
+    for (let i in policies) {
+      if (policies[i].condition === title) {
+        policy = policies[i];
+      }
+    }
+    if (policy !== {}) {
+      let condition = policy.condition.split(&apos; &apos;);
+      return this.policyEngine.getList(scope, condition[2]);
+    } else {
+      throw Error(&apos;Policy &lt;&apos; + title + &apos;&gt; not found!&apos;);
+    }
+  }
+
+  deleteInfo(variable, scope, target, info) {
+    let params = [scope, target, info];
+    if (variable === &apos;member&apos;) {
+      let conditionSplit = info.split(&apos; &apos;);
+      let groupName = conditionSplit[2];
+      params = [scope, groupName, info];
+    }
+    this.deletion[variable](params);
+  }
+
+  getGroup(scope, target, groupName) {
+    return this.policyEngine.context.getGroup(scope, target, groupName);
+  }
+
+  getGroups() {
+    let groups = this.policyEngine.context.groups;
+    let groupsGUI = {
+      groupsNames: [],
+      members: [],
+      ids: []
+    };
+
+    for (let i in groups) {
+      groupsGUI.groupsNames.push(i);
+      groupsGUI.members.push(groups[i]);
+      let ids = [];
+      for (let j in groups[i]) {
+        ids.push(i + &apos;::&apos; + groups[i][j]);
+      }
+      groupsGUI.ids.push(ids);
+    }
+
+    return groupsGUI;
+  }
+
+  getGroupsNames() {
+    return this.policyEngine.context.getGroupsNames();
+  }
+
+  removeFromGroup(groupName, user) {
+    this.policyEngine.context.removeFromGroup(groupName, user);
+  }
+
+  updatePolicy(policyTitle, rule, newDecision, newSubscriptionType) {
+    let userPolicies = this.policyEngine.context.userPolicies;
+    userPolicies[policyTitle].deleteRule(rule);
+    if (!newSubscriptionType) {
+      userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
+    } else {
+      let operator = (newSubscriptionType === &apos;*&apos;) ? &apos;equals&apos; : &apos;in&apos;;
+      userPolicies[policyTitle].createRule(newDecision, [{ attribute: &apos;subscription&apos;, opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
+    }
+
+    this.policyEngine.context.savePolicies(&apos;USER&apos;);
+  }
+
+}
+
+export default PoliciesManager;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -6,15 +6,15 @@ let storageManager, runtimeCapabilities
 const caps = {
 	browser: true,
 	node: false,
-	windowSandbox: true,
-	webrtc: true,
-	datachannel: true
+	mic: true,
+	camera: true
 }
 
 describe('RuntimeCapabilities', () => {
 	beforeEach(() => {
 		storageManager = {
-			get: () => when(caps)
+			get: () => when(caps),
+			set: (key, version, value) => {}
 		}
 		runtimeCapabilities = new RuntimeCapabilities(storageManager)
 	})
@@ -30,7 +30,7 @@ describe('RuntimeCapabilities', () => {
 				.then(capabilities => {
 					expect(capabilities).to.be.eql(caps)
 					done()
-				})
+				}).catch(console.log)
 		})
 
 		it('should persist the capabilities in the storagemanager', (done) => {

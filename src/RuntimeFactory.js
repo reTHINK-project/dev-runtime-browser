@@ -21,7 +21,7 @@
 * limitations under the License.
 **/
 import PersistenceManager from 'service-framework/dist/PersistenceManager'
-import SandboxWorker from './SandboxWorker'
+import { createSandbox } from './Sandboxes'
 import SandboxApp from './SandboxApp'
 import Request from './Request'
 import RuntimeCapabilities from './RuntimeCapabilities'
@@ -29,9 +29,21 @@ import storageManager from 'service-framework/dist/StorageManager'
 import Dexie from 'dexie'
 import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
 
-const RuntimeFactory = Object.create({
-	createSandbox() {
-		return new SandboxWorker('./context-service.js')
+/**
+ * Is a bridge to isolate the runtime from the specific platform
+ * @typedef {Object} RuntimeFactory
+ * @property {function():Sandbox} createSandbox Creates a new Sandbox
+ * @property {function():SandboxApp} createAppSandbox Creates a new SandboxApp
+ * @property {function():Request} createHttpRequest Creates a new Request object
+ * @property {function():RuntimeCatalogue} createRuntimeCatalogue Creates a new RuntimeCatalogue
+ * @property {function(Encoded data: string):string} atob Returns the string decoded
+ * @property {function():PersistenceManager} persistenceManager Returns a new PersistenceManager
+ * @property {function():StorageManager} storageManager Returns a new StorageManager
+ * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
+ */
+export default {
+	createSandbox(constraints) {
+		return createSandbox(constraints)
 	},
 
 	createAppSandbox() {
@@ -69,6 +81,4 @@ const RuntimeFactory = Object.create({
 	runtimeCapabilities(storageManager) {
 		return new RuntimeCapabilities(storageManager)
 	}
-})
-
-export default RuntimeFactory
+}

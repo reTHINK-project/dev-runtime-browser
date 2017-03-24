@@ -20,21 +20,31 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-export function create(src) {
-  var iframe = document.createElement('iframe');
-  iframe.setAttribute('id', 'rethink');
-  iframe.style.position = 'absolute';
-  iframe.style.top = '0';
-  iframe.style.right = '0';
-  iframe.style.border = '0';
-  iframe.style.zIndex = 9999;
-  iframe.width = '40px';
-  iframe.height = '40px';
-  iframe.setAttribute('seamless', '');
-  iframe.setAttribute('src', src);
-  iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation');
-  iframe.style.display = 'block';
-  document.querySelector('body').appendChild(iframe);
 
-  return iframe;
+/**
+ * @external {iframe} https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe
+ */
+
+/**
+ * Creates an iframe
+ * @param {string} src - Url to load into the iframe
+ * @return {iframe} - iFrame element
+ */
+export function create(src) {
+	var iframe = document.createElement('iframe')
+	iframe.setAttribute('id', 'rethink')
+	iframe.style.position = 'absolute'
+	iframe.style.top = '0'
+	iframe.style.right = '0'
+	iframe.style.border = '0'
+	iframe.style.zIndex = 9999
+	iframe.width = '40px'
+	iframe.height = '40px'
+	iframe.setAttribute('seamless', '')
+	iframe.setAttribute('src', src)
+	iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation')
+	iframe.style.display = 'block'
+	document.querySelector('body').appendChild(iframe)
+
+	return iframe
 }

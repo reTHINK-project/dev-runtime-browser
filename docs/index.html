@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">Runtime Browser API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RuntimeCapabilities.js~RuntimeCapabilities.html">RuntimeCapabilities</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SandboxApp.js~SandboxApp.html">SandboxApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWindow.html">SandboxWindow</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Sandboxes.js~SandboxWorker.html">SandboxWorker</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createSandbox">createSandbox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ContextApp">ContextApp</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Request">Request</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeFactory">RuntimeFactory</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Hyperty">Hyperty</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeAdapter">RuntimeAdapter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-RuntimeUA">RuntimeUA</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework">MSG_STATUS</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-external">E</span><span data-ice="name"><span><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">admin</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html">IdentitiesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html">PoliciesGUI</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/admin/PoliciesManager.js~PoliciesManager.html">PoliciesManager</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h2 id="dev-runtime-browser">dev-runtime-browser</h2>
+<h3 id="overview">Overview</h3>
+<p>This repository contain the code necessary to execute the reTHINK runtime core in a browser. reTHINK runtime core can also be executed in other Javascript runtimes such as Node.js.</p>
+<p>The execution of the core runtime takes place in an iFrame which isolates it from the main application runtime (the window where the App javascript code is being executed). The only way to transmit messages between the main window and the iFrame is through the <code>postMessage()</code> method. This way, main application javascript code can not interact with the reTHINK runtime.</p>
+<p>Addtionally to the iFrame, all the hyperties and protoStub will be executed as independient Web Workers (which will extend the sandBox class from the dev-core-runtime repository). This way we keep Hyperties and protoStub runtimes not directly accessible from the core runtime but using also the postMessage() mechanism.</p>
+<h3 id="user-view">User view</h3>
+<h4 id="setup-environment">Setup Environment</h4>
+<h5 id="configure-dependencies">Configure dependencies</h5>
+<pre><code><code class="source-code prettyprint">    npm install -g karma-cli gulp-cli
+    npm install</code>
+</code></pre><h4 id="example-of-use">Example of use</h4>
+<p>Refer to dev-hyperty-toolkit to get an example of use</p>
+<h4 id="distributable-files">Distributable files</h4>
+<ul>
+<li><p>rethink.js. It is the public interface. It exposes two methods:</p>
+<ul>
+<li>requireHyperty(hypertyDescriptor, reuseAddress)</li>
+<li><p>requireProtoStub(domain)</p>
+<p>Moreover it create the ContextApp, where the hyperties are loaded and the iframe where the core is loaded.</p>
+</li>
+</ul>
+</li>
+<li><p>context-core.js. It includes the runtime core (RuntimeUA, MiniBus and SandBox) and defines browser implementations of SandboxFactory, SandboxWorker and SandboxApp. SandboxWorker and SandboxApp are responsibles for manage communication between boundaries.</p>
+</li>
+<li><p>context-service.js It is responsible for load hyperties and protostub like ContextApp but in an isolated way.</p>
+</li>
+<li><p>index.html</p>
+</li>
+</ul>
+<h3 id="developer-view">Developer view</h3>
+<h4 id="how-does-it-work-">How does it work?</h4>
+<p><img src="runtime-browser.png" alt="Runtime Browser"></p>
+<h5 id="what-is-a-sandbox-">What is a Sandbox?</h5>
+<p>From a conceptual point of view, a SandBox is an isolated place where part of the code is run without creating any side effects to the rest of the components. The problems come when we try to explain it from an implementation point of view. A Sandbox has two part, an external part, what is the real Sandbox, and an internal part what is only a proxy to deliver and recover the messages from and to the real sandbox through all the layers that compound the runtime-browser such as iframes, web workers, and shared workers.</p>
+<p><img src="sandboxes.jpg" alt="What is a Sandbox?"></p>
+<p>The communication between the MiniBus through the border is not possible, and we have to carry the communication through a open channel.</p>
+<h4 id="runtimeuastub-responsibilities-">RuntimeUAStub responsibilities:</h4>
+<ol>
+<li>Expose loadHyperty and loadProtoStub to <strong>client app</strong>.</li>
+<li>if Core Sandbox doesn&apos;t exist it creates Core Sandbox.</li>
+<li>Route messages from client app to core and vice versa.</li>
+<li>Create <strong>AppSandbox</strong> when RuntimeUA set it.
+ Virtually AppSandbox is created by RuntimeUA, but due to AppSandbox is running in the window context it should be created by RuntimeUAStub. RuntimeUA will send a message asking it to RuntimeUAStub.</li>
+</ol>
+<h4 id="core-service-provider-sandbox-responsibilities-">Core/Service Provider Sandbox responsibilities:</h4>
+<ol>
+<li>Isolate RuntimeUA from client app.</li>
+<li>Manage all the communication from and to internal components.</li>
+</ol>
+<h4 id="appsandbox">AppSandbox</h4>
+<ol>
+<li>Manage all the communication from and to internal components.</li>
+</ol>
+<h4 id="unit-testing">Unit Testing</h4>
+<p>Unit testing can be launched manually with <strong>npm test</strong>.</p>
+<h4 id="javascript-environment">Javascript Environment</h4>
+<p>JavaScript code should be written in ES6. There are direct dependencies from nodejs and npm, these can be installed separately or in conjunction with <a href="https://github.com/creationix/nvm">nvm</a></p>
+<h4 id="dependencies">Dependencies</h4>
+<ul>
+<li>nodejs</li>
+<li>npm</li>
+<li>karma - Make the communication between unit test tool and jenkins. See more on <a href="http://karma-runner.github.io/0.13/index.html">karma</a></li>
+<li>mocha - Unit test tool. See more on <a href="http://mochajs.org/">http://mochajs.org</a></li>
+<li>gulp - Automate and enhance your workflow. See more about gulp on <a href="http://gulpjs.com/">gulp</a></li>
+</ul>
+<h4 id="code-style-and-hinting">Code Style and Hinting</h4>
+<p>On the root directory you will find <strong>.jshintrc</strong>, this file is a helper to maintain syntax consistency, it signals syntax mistakes and makes the code equal for all developers.</p>
+<ul>
+<li><a href="http://jshint.com/">jshint</a> - Detect errors and potential problems in JavaScript code.</li>
+</ul>
+<p>All IDE&apos;s and Text Editors can handle these tools.</p>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

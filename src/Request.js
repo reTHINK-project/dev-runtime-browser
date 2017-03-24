@@ -21,7 +21,16 @@
  * limitations under the License.
  **/
 const methods = {GET: 'get', POST: 'post'}
+/**
+ * @typedef {Object} Request
+ * @desc Bridge to make HTTP requests
+ * @property {function(url:string, options:Object):string} get
+ * @property {function(url:string, options:Object):string} post
+ */
 
+/**
+ * Bridge to make HTTP requests
+ */
 class Request {
 
 	constructor() {
