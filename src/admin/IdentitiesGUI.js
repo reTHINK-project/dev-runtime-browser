@@ -22,6 +22,7 @@ class IdentitiesGUI {
 
         if (funcName === 'openPopup') {
           let urlreceived = msg.body.params.urlreceived;
+          //console.log('TIAGO openPopup on browser');
           _this.openPopup(urlreceived).then((returnedValue) => {
             let value = {type: 'execute', value: returnedValue, code: 200};
             let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
@@ -88,6 +89,8 @@ class IdentitiesGUI {
   }
 
   openPopup(urlreceived) {
+
+    //console.log('TIAGO openPopup local browser');
 
     return new Promise((resolve, reject) => {
 
