@@ -33,15 +33,15 @@ export class SandboxWorker extends Sandbox{
 			.then(capabilities =>Object.assign(capabilities, { mic:false, camera:false }))
 	}
 
-	static new() {
-		return new SandboxWorker('./context-service.js')
+	static new(capabilities) {
+		return new SandboxWorker(capabilities, './context-service.js')
 	}
 
 	/**
 	 * @param {string} script - Script that will be loaded in the web worker
 	 */
-	constructor(script){
-		super(script)
+	constructor(capabilities, script){
+		super(capabilities)
 
 		/**
 		 * @type {runtime-core/dist/sandbox/SandboxType}
@@ -74,14 +74,14 @@ export class SandboxWindow extends Sandbox{
 		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
 	}
 
-	static new() {
-		return new SandboxWindow()
+	static new(capabilities) {
+		return new SandboxWindow(capabilities)
 	}
 
-	constructor(){
-		super()
+	constructor(capabilities){
+		super(capabilities)
 
-		this.type = SandboxType.NORMAL
+		this.type = SandboxType.WINDOW
 		this.channel = new MessageChannel()
 
 		this.channel.port1.onmessage = function(e){
@@ -104,8 +104,12 @@ export function createSandbox(constraints) {
 		.then(sbs => {
 			let i = 0
 			while(i<sbs.length) {
-				if(diff(constraints, sbs[i].capabilities).length === 0)
-					return sbs[i].sandbox.new()
+				if(diff(constraints, sbs[i].capabilities).length === 0) {
+					let capabilities = sbs[i].capabilities;
+					let sandbox = sbs[i].sandbox.new(capabilities);
+					return sandbox
+				}
+
 				i++
 			}
 			throw new Error('None of supported sandboxes match your constraints')

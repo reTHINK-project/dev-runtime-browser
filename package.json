@@ -44,6 +44,7 @@
     "chai": "^3.5.0",
     "copyfiles": "^0.2.1",
     "esdoc": "0.5.2",
+    "eslint-plugin-jasmine": "^2.2.0",
     "eslint-plugin-react": "5.2.2",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
