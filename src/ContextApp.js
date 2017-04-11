@@ -29,7 +29,7 @@ function create(iframe){
 		iframe.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), '*')
 	}
 	window.addEventListener('message', function(event){
-		if(event.data.to.startsWith('runtime:loadedHyperty') || event.data.to.endsWith('gui-manager'))
+		if(event.data.to && (event.data.to.startsWith('runtime:loadedHyperty') || event.data.to.endsWith('gui-manager')))
 			return
 
 		window._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)))
