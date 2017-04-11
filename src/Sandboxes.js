@@ -22,14 +22,13 @@
 **/
 import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
 import MiniBus from 'runtime-core/dist/minibus'
-import RuntimeFactory from './RuntimeFactory'
 
 /**
  * Proxy for a WebWorker
  * */
 export class SandboxWorker extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+	static capabilities(runtimeFactory) {
+		return runtimeFactory.runtimeCapabilities(runtimeFactory.storageManager()).getRuntimeCapabilities()
 			.then(capabilities =>Object.assign(capabilities, { mic:false, camera:false }))
 	}
 
@@ -70,15 +69,15 @@ export class SandboxWorker extends Sandbox{
 }
 
 export class SandboxWindow extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+	static capabilities(runtimeFactory) {
+		return runtimeFactory.runtimeCapabilities(runtimeFactory.storageManager()).getRuntimeCapabilities()
 	}
 
-	static new() {
-		return new SandboxWindow()
+	static new(port) {
+		return new SandboxWindow(port)
 	}
 
-	constructor(){
+	constructor(port){
 		super()
 
 		this.type = SandboxType.NORMAL
@@ -88,7 +87,8 @@ export class SandboxWindow extends Sandbox{
 			this._onMessage(JSON.parse(JSON.stringify(e.data)))
 		}.bind(this)
 
-		parent.postMessage({ to:'runtime:createSandboxWindow' }, '*', [this.channel.port2])
+		port.postMessage({ to:'runtime:createSandboxWindow' }, [this.channel.port2])
+
 	}
 
 	_onPostMessage(msg){
@@ -96,16 +96,16 @@ export class SandboxWindow extends Sandbox{
 	}
 }
 
-export function createSandbox(constraints) {
-	const sandboxes = [SandboxWorker, SandboxWindow]
+export function createSandbox(constraints, runtimeFactory, port) {
+	const sandboxes = /*[SandboxWorker,*/[SandboxWindow]
 	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
 
-	return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{return {capabilities:c, sandbox:s}})))
+	return Promise.all(sandboxes.map(s => s.capabilities(runtimeFactory).then(c=>{return {capabilities:c, sandbox:s}})))
 		.then(sbs => {
 			let i = 0
 			while(i<sbs.length) {
 				if(diff(constraints, sbs[i].capabilities).length === 0)
-					return sbs[i].sandbox.new()
+					return sbs[i].sandbox.new(port)
 				i++
 			}
 			throw new Error('None of supported sandboxes match your constraints')

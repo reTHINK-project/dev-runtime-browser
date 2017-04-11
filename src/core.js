@@ -40,9 +40,11 @@ function searchHyperty(runtime, descriptor){
 	return hyperty
 }
 
-function loadRuntime(runtimeURL, runtimeFactory) {
+function loadRuntime(runtimeURL, runtimeFactory, domain) {
+	let d
 	return catalogue.getRuntimeDescriptor(runtimeURL)
 		.then(descriptor => {
+			d = descriptor
 			let sourcePackageURL = descriptor.sourcePackageURL
 			if (sourcePackageURL === '/sourcePackage') {
 				return descriptor.sourcePackage
@@ -53,12 +55,10 @@ function loadRuntime(runtimeURL, runtimeFactory) {
 		.then(sourcePackage => {
 			eval.apply(self,[sourcePackage.sourceCode])
 
-			return new Runtime(runtimeFactory, self.runtimeURL.replace('http://','').replace('https://','').split(/[/?#]/)[0])
-		})
+			return new Runtime(d, runtimeFactory, domain)
+		}).catch(console.error)
 }
 
-let runtimeURL = self.runtimeURL
-let development = self.development
 let runtime = undefined
 let catalogue = undefined
 
@@ -67,10 +67,26 @@ onconnect = function(e) {
 	let runtimeFactory = RuntimeFactory(port)
 
 	port.onmessage = (e) => {
-		if(!runtime)
-			throw new Error('runtime not installed')
+		console.log(e)
+		if(e.data.to ==='core:installRuntime') {
+			if(!catalogue)
+				catalogue = runtimeFactory.createRuntimeCatalogue(e.data.data.development)
 
-		if(e.data.to==='core:loadHyperty'){
+			if(!runtime) {
+				loadRuntime(e.data.data.runtimeURL, runtimeFactory, e.data.data.domain)
+				.then(rnt => {
+					runtime = rnt
+					rnt.init().then(()=>{
+
+						port.postMessage({to:'runtime:installed', body:{}})
+					})
+				})
+			} else {
+				port.postMessage({to:'runtime:installed', body:{}})
+			}
+		} else if(!runtime) {
+			throw new Error('runtime not installed')
+		}else if(e.data.to==='core:loadHyperty'){
 			let descriptor = e.data.body.descriptor
 			let hyperty = searchHyperty(runtime, descriptor)
 
@@ -94,17 +110,5 @@ onconnect = function(e) {
 			runtimeFactory.createAppSandbox().onMessage(e.data)
 		}
 	}
-
-	if(!catalogue)
-		catalogue = runtimeFactory.createRuntimeCatalogue(development)
-
-	if(!runtime) {
-		loadRuntime(runtimeURL, runtimeFactory)
-		.then(rnt => {
-			runtime = rnt
-			port.postMessage({to:'runtime:installed', body:{}})
-		})
-	} else {
-		port.postMessage({to:'runtime:installed', body:{}})
-	}
+	console.log('onconnect')
 }

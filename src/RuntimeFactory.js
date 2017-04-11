@@ -21,9 +21,8 @@
 * limitations under the License.
 **/
 import PersistenceManager from 'service-framework/dist/PersistenceManager'
-import { createSandbox } from './Sandboxes'
 import SandboxApp from './SandboxApp'
-import SandboxWindow from './SandboxWindow'
+import { createSandbox } from './Sandboxes'
 import Request from './Request'
 import RuntimeCapabilities from './RuntimeCapabilities'
 import storageManager from 'service-framework/dist/StorageManager'
@@ -44,13 +43,8 @@ import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue'
  */
 let appSandbox
 const RuntimeFactory = (port) => Object.create({
-	createSandboxWindow() {
-		return new SandboxWindow(port)
-	},
-
-	createSandbox() {
-		return new SandboxWindow(port)
-		//return new SandboxWorker('./context-service.js')
+	createSandbox(constraints) {
+		return createSandbox(constraints, this, port)
 	},
 
 	createAppSandbox() {
@@ -86,10 +80,14 @@ const RuntimeFactory = (port) => Object.create({
 	},
 
 	storageManager() {
+		if(this._storageManager)
+			return this._storageManager
+
 		const db = new Dexie('cache')
 		const storeName = 'objects'
 
-		return new storageManager(db, storeName)
+		this._storageManager = new storageManager(db, storeName)
+		return this._storageManager
 	},
 
 	runtimeCapabilities(storageManager) {

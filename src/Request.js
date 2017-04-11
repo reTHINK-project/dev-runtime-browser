@@ -56,7 +56,10 @@ class Request {
 			url = _this._mapProtocol(url)
 			let xhr = new XMLHttpRequest()
 
-			xhr.open(method, url, true)
+      //TODO: HACK
+			url = url.replace('catalogue.', '')
+			console.log('url', url)
+			xhr.open(method, url)
 
 			xhr.onreadystatechange = function(event) {
 				let xhr = event.currentTarget

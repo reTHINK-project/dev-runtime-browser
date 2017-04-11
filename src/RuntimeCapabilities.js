@@ -69,8 +69,8 @@ class RuntimeCapabilities {
 
     // TODO: this should be more effective and check the environment
     return {
-      browser: !!(window && navigator),
-      node: !!!(window && navigator)
+      browser:  true, //!!(window && navigator),
+      node: false //!!(window && navigator)
     };
   }
 
@@ -78,33 +78,34 @@ class RuntimeCapabilities {
   _getMediaDevices() {
     return new Promise((resolve) => {
 
-      let capability = {};
+		return resolve(false)
+      //let capability = {};
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-        console.log('enumerateDevices() not supported.');
-        resolve(capability);
-        return;
-      }
+      //if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      //  console.log('enumerateDevices() not supported.');
+      //  resolve(capability);
+      //  return;
+      //}
 
-      // List cameras and microphones.
-      navigator.mediaDevices.enumerateDevices()
-      .then((devices) => {
-        devices.forEach((device) => {
-          // console.log(device.kind, device.label, device.deviceId);
-          if (device.kind === 'audioinput' && device.deviceId === 'default') {
-            capability.mic = true;
-          }
+      //// List cameras and microphones.
+      //navigator.mediaDevices.enumerateDevices()
+      //.then((devices) => {
+      //  devices.forEach((device) => {
+      //    // console.log(device.kind, device.label, device.deviceId);
+      //    if (device.kind === 'audioinput' && device.deviceId === 'default') {
+      //      capability.mic = true;
+      //    }
 
-          if (device.kind === 'videoinput') {
-            capability.camera = true;
-          }
-        });
-        resolve(capability);
-      })
-      .catch((err) => {
-        resolve(capability);
-        console.log(err.name + ': ' + err.message);
-      });
+      //    if (device.kind === 'videoinput') {
+      //      capability.camera = true;
+      //    }
+      //  });
+      //  resolve(capability);
+      //})
+      //.catch((err) => {
+      //  resolve(capability);
+      //  console.log(err.name + ': ' + err.message);
+      //});
     });
   }
 

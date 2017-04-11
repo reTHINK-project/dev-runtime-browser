@@ -50,5 +50,10 @@ function create(port){
 		}
 	}
 }
-
+/**
+ * SandboxContext for application
+ * @typedef ContextApp
+ * @property {function(iFrame: iframe)} create Creates the context for the sandbox hosted in the iframe
+ * @property {function(Hyperty descriptor: string):Hyperty} getHyperty Returns the hyperty for the given descriptor
+ * */
 export default { create }
