@@ -1,19 +1,47 @@
 class PoliciesManager {
 
-  constructor(policyEngine) {
-    this.policyEngine = policyEngine;
-    this.policies = this.policyEngine.context.userPolicies;
-    this.variables = this.setVariables();
-    this.addition = this.setAdditionMethods();
-    this.validation = this.setValidationMethods();
+  constructor(pepGuiURL, pepURL, messageBus) {
+    let _this = this;
+    _this._guiURL = pepGuiURL;
+    _this._pepURL = pepURL;
+    _this._messageBus = messageBus;
+
+    // assume prepare attributes is called after this
+  }
+
+  callPolicyEngineFunc(methodName, parameters) {
+    let _this = this;
+    let message;
+
+    return new Promise((resolve, reject) => {
+      message = { type: 'execute', to: _this._pepURL, from: _this._guiURL,
+        body: { resource: 'policy', method: methodName, params: parameters }, };
+      _this._messageBus.postMessage(message, (res) => {
+        let result = res.body.value;
+        resolve(result);
+      });
+    });
+  }
+
+  prepareAttributes() {
+    return new Promise((resolve, reject) => {
+      let _this = this;
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+        _this.policies = userPolicies;
+        _this.variables = _this.setVariables();
+        _this.addition = _this.setAdditionMethods();
+        _this.validation = _this.setValidationMethods();
+        resolve();
+      });
+    });
   }
 
   addToGroup(groupName, user) {
-    this.policyEngine.context.addToGroup(groupName, user);
+    return this.callPolicyEngineFunc('addToGroup', {groupName: groupName, userEmail: user});
   }
 
   createGroup(groupName) {
-    this.policyEngine.context.createGroup(groupName);
+    return this.callPolicyEngineFunc('createGroup', {groupName: groupName});
   }
 
   addPolicy(title, combiningAlgorithm, policy) {
@@ -33,46 +61,58 @@ class PoliciesManager {
       }
     }
 
-    this.policyEngine.addPolicy('USER', title, policy, combiningAlgorithm);
+    return this.callPolicyEngineFunc('addPolicy',
+      {source: 'USER', key: title, policy: policy, combiningAlgorithm: combiningAlgorithm});
   }
 
   decreaseRulePriority(policyTitle, thisPriority, newPriority) {
     this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
     this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
-    this.policyEngine.context.savePolicies('USER');
+    return this.callPolicyEngineFunc('savePolicies', {source: 'USER'});
   }
 
   deleteGroup(groupName) {
-    this.policyEngine.context.deleteGroup(groupName);
+    return this.callPolicyEngineFunc('deleteGroup', {groupName: groupName});
   }
 
   deletePolicy(title) {
-    this.policyEngine.removePolicy('USER', title);
+    return this.callPolicyEngineFunc('removePolicy', {source: 'USER', key: title});
   }
 
   deleteRule(policyTitle, rule) {
-    let userPolicies = this.policyEngine.context.userPolicies;
-    userPolicies[policyTitle].deleteRule(rule);
-    this.policyEngine.context.savePolicies('USER');
+    let _this = this;
+
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+        userPolicies[policyTitle].deleteRule(rule);
+        _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+          resolve();
+        });
+      });
+    });
   }
 
   getActivePolicy() {
-    return this.policyEngine.context.activeUserPolicy;
+    return this.callPolicyEngineFunc('activeUserPolicy', {});
   }
 
   getPolicy(key) {
-    return this.policyEngine.context.userPolicies[key];
+    return this.callPolicyEngineFunc('userPolicy', {key: key});
   }
 
   getPoliciesTitles() {
-    let policies = this.policyEngine.context.userPolicies;
-    let titles = [];
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
+        let titles = [];
 
-    for (let i in policies) {
-      titles.push(i);
-    }
+        for (let i in policies) {
+          titles.push(i);
+        }
 
-    return titles;
+        resolve(titles);
+      });
+    });
   }
 
   getTargets(scope) {
@@ -88,9 +128,10 @@ class PoliciesManager {
   }
 
   increaseRulePriority(policyTitle, thisPriority, newPriority) {
-    this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
-    this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
-    this.policyEngine.context.savePolicies('USER');
+    let _this = this;
+    _this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
+    _this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
+    return _this.callPolicyEngineFunc('savePolicies', {source: 'USER'});
   }
 
   setVariables() {
@@ -138,55 +179,87 @@ class PoliciesManager {
   }
 
   setAdditionMethods() {
+    let _this = this;
     return {
       Date: (params) => {
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'date', operator: 'equals', params: params[3] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'date', operator: 'equals', params: params[3] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       },
-
       Domain: (params) => {
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'domain', operator: 'equals', params: params[3] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'domain', operator: 'equals', params: params[3] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       },
       'Group of users': (params) => {
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'source', operator: 'in', params: params[3] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'source', operator: 'in', params: params[3] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       },
       'Subscription preferences': (params) => {
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        let operator = 'equals';
-        if (params[3] === 'preauthorised') {
-          operator = 'in';
-        }
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'subscription', operator: thisOperator, params: params[3] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            let operator = 'equals';
+            if (params[3] === 'preauthorised') {
+              operator = 'in';
+            }
+
+            // TIAGO: this is giving me an error...
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'subscription', operator: operator, params: params[3] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       },
       'Time of the day': (params) => {
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        params[3] = params[3].split(' to ');
-        let start = params[3][0].split(':');
-        start = start.join('');
-        let end = params[3][1].split(':');
-        end = end.join('');
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'time', operator: 'between', params: [start, end] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            params[3] = params[3].split(' to ');
+            let start = params[3][0].split(':');
+            start = start.join('');
+            let end = params[3][1].split(':');
+            end = end.join('');
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'time', operator: 'between', params: [start, end] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       },
 
       Weekday: (params) => {
-        let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        params[3] = weekdays.indexOf(params[3]);
-        let policyTitle = params[0];
-        let userPolicies = this.policyEngine.context.userPolicies;
-        userPolicies[policyTitle].createRule(params[4], { attribute: 'weekday', operator: 'equals', params: params[3] }, params[1], params[2]);
-        this.policyEngine.context.savePolicies('USER');
+        return new Promise((resolve, reject) => {
+          let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          params[3] = weekdays.indexOf(params[3]);
+          let policyTitle = params[0];
+          _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+            userPolicies[policyTitle].createRule(params[4], { attribute: 'weekday', operator: 'equals', params: params[3] }, params[1], params[2]);
+            _this.callPolicyEngineFunc('savePolicies', {source: 'USER'}).then(() => {
+              resolve();
+            });
+          });
+        });
       }
     };
   }
@@ -203,8 +276,14 @@ class PoliciesManager {
   }
 
   updateActivePolicy(title) {
-    this.policyEngine.context.activeUserPolicy = title;
-    this.policyEngine.context.saveActivePolicy();
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('activeUserPolicy', {userPolicy: title}).then(() => {
+        _this.callPolicyEngineFunc('saveActivePolicy', {}).then(() => {
+          resolve();
+        });
+      });
+    });
   }
 
   isValidEmail(info) {
@@ -282,35 +361,43 @@ class PoliciesManager {
   }
 
   getFormattedPolicies() {
-    let policiesPE = this.policyEngine.context.userPolicies;
-    let policiesGUI = [];
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((policiesPE) => {
+        let policiesGUI = [];
 
-    for (let i in policiesPE) {
-      let policy = {
-        title: policiesPE[i].key,
-        rulesTitles: [],
-        ids: []
-      }
+        for (let i in policiesPE) {
+          let policy = {
+            title: policiesPE[i].key,
+            rulesTitles: [],
+            ids: []
+          }
 
-      if (policiesPE[i].rules.length !== 0) {
-        policiesPE[i].rules = policiesPE[i].sortRules();
-        for (let j in policiesPE[i].rules) {
-          let title = this._getTitle(policiesPE[i].rules[j]);
-          policy.rulesTitles.push(title);
-          policy.ids.push(policy.title + ':' + policiesPE[i].rules[j].priority);
+          if (policiesPE[i].rules.length !== 0) {
+            policiesPE[i].rules = policiesPE[i].sortRules();
+            for (let j in policiesPE[i].rules) {
+              let title = _this._getTitle(policiesPE[i].rules[j]);
+              policy.rulesTitles.push(title);
+              policy.ids.push(policy.title + ':' + policiesPE[i].rules[j].priority);
+            }
+          }
+
+          policiesGUI.push(policy);
         }
-      }
 
-      policiesGUI.push(policy);
-    }
-
-    return policiesGUI;
+        resolve(policiesGUI);
+      });
+    });
   }
 
   getRuleOfPolicy(title, priority) {
-    let policies = this.policyEngine.context.userPolicies;
-    let policy = policies[title];
-    return policy.getRuleByPriority(priority);
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((policies) => {
+        let policy = policies[title];
+        resolve(policy.getRuleByPriority(priority));
+      });
+    });
   }
 
   _getTitle(rule) {
@@ -365,36 +452,25 @@ class PoliciesManager {
   }
 
   getMyEmails() {
-    return this.policyEngine.context.getMyEmails();
+    return this.callPolicyEngineFunc('getMyEmails', {});
   }
 
   getMyHyperties() {
-    return this.policyEngine.context.getMyHyperties();
+    return this.callPolicyEngineFunc('getMyHyperties', {});
   }
 
   //TODO If there is a problem with the input, show it to the user
   setInfo(variable, policyTitle, info, authorise, scope, target) {
-    if (this.validation[variable](scope, info)) {
-      this.addition[variable]([policyTitle, scope, target, info, authorise]);
-    } else {
-      throw Error('Invalid configuration');
-    }
-  }
-
-  getInfo(scope, title) {
-    let policies = this.policies[scope];
-    let policy = {};
-    for (let i in policies) {
-      if (policies[i].condition === title) {
-        policy = policies[i];
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      if (_this.validation[variable](scope, info)) {
+        _this.addition[variable]([policyTitle, scope, target, info, authorise]).then(() => {
+          resolve();
+        });
+      } else {
+        reject('Invalid configuration');
       }
-    }
-    if (policy !== {}) {
-      let condition = policy.condition.split(' ');
-      return this.policyEngine.getList(scope, condition[2]);
-    } else {
-      throw Error('Policy <' + title + '> not found!');
-    }
+    });
   }
 
   deleteInfo(variable, scope, target, info) {
@@ -407,50 +483,57 @@ class PoliciesManager {
     this.deletion[variable](params);
   }
 
-  getGroup(scope, target, groupName) {
-    return this.policyEngine.context.getGroup(scope, target, groupName);
-  }
-
   getGroups() {
-    let groups = this.policyEngine.context.groups;
-    let groupsGUI = {
-      groupsNames: [],
-      members: [],
-      ids: []
-    };
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('groups', {}).then((groups) => {
+        let groupsGUI = {
+          groupsNames: [],
+          members: [],
+          ids: []
+        };
 
-    for (let i in groups) {
-      groupsGUI.groupsNames.push(i);
-      groupsGUI.members.push(groups[i]);
-      let ids = [];
-      for (let j in groups[i]) {
-        ids.push(i + '::' + groups[i][j]);
-      }
-      groupsGUI.ids.push(ids);
-    }
+        for (let i in groups) {
+          groupsGUI.groupsNames.push(i);
+          groupsGUI.members.push(groups[i]);
+          let ids = [];
+          for (let j in groups[i]) {
+            ids.push(i + '::' + groups[i][j]);
+          }
+          groupsGUI.ids.push(ids);
+        }
 
-    return groupsGUI;
+        //console.log('TIAGO groups', groupsGUI)
+        resolve(groupsGUI);
+      });
+    });
   }
 
   getGroupsNames() {
-    return this.policyEngine.context.getGroupsNames();
+    return this.callPolicyEngineFunc('getGroupsNames', {});
   }
 
   removeFromGroup(groupName, user) {
-    this.policyEngine.context.removeFromGroup(groupName, user);
+    return this.callPolicyEngineFunc('removeFromGroup', {groupName: groupName, userEmail: user});
   }
 
   updatePolicy(policyTitle, rule, newDecision, newSubscriptionType) {
-    let userPolicies = this.policyEngine.context.userPolicies;
-    userPolicies[policyTitle].deleteRule(rule);
-    if (!newSubscriptionType) {
-      userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
-    } else {
-      let operator = (newSubscriptionType === '*') ? 'equals' : 'in';
-      userPolicies[policyTitle].createRule(newDecision, [{ attribute: 'subscription', opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
-    }
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.callPolicyEngineFunc('userPolicies', {}).then((userPolicies) => {
+        userPolicies[policyTitle].deleteRule(rule);
+        if (!newSubscriptionType) {
+          userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
+        } else {
+          let operator = (newSubscriptionType === '*') ? 'equals' : 'in';
+          userPolicies[policyTitle].createRule(newDecision, [{ attribute: 'subscription', opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
+        }
 
-    this.policyEngine.context.savePolicies('USER');
+        _this.callPolicyEngineFunc('saveActivePolicy', {}).then(() => {
+          resolve();
+        });
+      });
+    });
   }
 
 }

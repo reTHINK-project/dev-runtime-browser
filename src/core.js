@@ -60,47 +60,56 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         if (sourcePackageURL === '/sourcePackage') {
             return descriptor.sourcePackage;
         }
+        return catalogue.getSourcePackageFromURL(sourcePackageURL);
+    })
+    .then(function(sourcePackage) {
+        eval.apply(window,[sourcePackage.sourceCode]);
 
-		return catalogue.getSourcePackageFromURL(sourcePackageURL)
-	})
-.then(function(sourcePackage){
-	eval.apply(window,[sourcePackage.sourceCode])
+        //let runtime = new Runtime(RuntimeFactory, window.location.host);
+        let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
+        window.runtime = runtime;
+        runtime.init().then( function(result){
 
-	let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
-	window.runtime = runtime;
-	runtime.init().then( function(result){
-	  new PoliciesGUI(runtime.policyEngine);
-	  let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
+            // TIAGO
+            if (!runtime.policyEngine) throw Error('Policy Engine is not set!');
+            let pepGuiURL = runtime.policyEngine.context.guiURL;
+            let pepURL = runtime.policyEngine.context.pepURL;
+            let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
+            
+            pepGUI.prepareAttributes().then(() => {
+                let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
+                let idmURL = runtime.identityModule._runtimeURL + '/idm';
+                let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
 
-	  window.addEventListener('message', function(event){
-		  if(event.data.to==='core:loadHyperty'){
-			  let descriptor = event.data.body.descriptor;
-			  let reuseAddress = event.data.body.reuseAddress
-			  let hyperty = searchHyperty(runtime, descriptor);
+                window.addEventListener('message', function(event){
+                if(event.data.to==='core:loadHyperty'){
+                    let descriptor = event.data.body.descriptor;
+                    let reuseAddress = event.data.body.reuseAddress;
+                    let hyperty = searchHyperty(runtime, descriptor);
 
-			  if(hyperty){
-				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
-			  }else{
-				  runtime.loadHyperty(descriptor, reuseAddress)
-					  .then(returnHyperty.bind(null, event.source));
-			  }
-		  }else if(event.data.to==='core:loadStub'){
-			  runtime.loadStub(event.data.body.domain).then((result) => {
-				console.log('Stub Loaded: ', result);
-			  }).catch((error) => {
-				console.error('Stub error:', error);
-			  })
-		  }else if(event.data.to==='core:close'){
-			  runtime.close()
-				  .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-				  .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
-		  }
+    			  if(hyperty){
+    				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+    			  }else{
+    				  runtime.loadHyperty(descriptor, reuseAddress)
+    					  .then(returnHyperty.bind(null, event.source));
+    			  }
+    		  }else if(event.data.to==='core:loadStub'){
+    			  runtime.loadStub(event.data.body.domain).then((result) => {
+    				console.log('Stub Loaded: ', result);
+    			  }).catch((error) => {
+    				console.error('Stub error:', error);
+    			  })
+    		  }else if(event.data.to==='core:close'){
+    			  runtime.close()
+    				  .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
+    				  .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
+    		  }
 
-	  }, false);
-	  window.addEventListener('beforeunload', (e) => {
-		  runtime.close()
-	  })
-	  parent.postMessage({to:'runtime:installed', body:{}}, '*');
-	  console.log('AFTER PARENT');
-	});
-});
+            }, false);
+            window.addEventListener('beforeunload', (e) => {
+                runtime.close()
+            });
+            parent.postMessage({to:'runtime:installed', body:{}}, '*');
+            });
+        });
+    });

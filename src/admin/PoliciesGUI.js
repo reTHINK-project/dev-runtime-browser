@@ -2,14 +2,25 @@ import PoliciesManager from './PoliciesManager';
 
 class PoliciesGUI {
 
-  constructor(policyEngine) {
-    if (!policyEngine) throw Error('Policy Engine is not set!');
-    this.policiesManager = new PoliciesManager(policyEngine);
-    this.elements = this._setElements();
-    this._setListeners();
+  constructor(pepGuiURL, pepURL, messageBus) {
+    let _this = this;
+    _this.policiesManager = new PoliciesManager(pepGuiURL, pepURL, messageBus);
+    // assume prepareAttributes is called after this
+  }
+
+  prepareAttributes() {
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      _this.policiesManager.prepareAttributes().then(() => {
+        _this.elements = _this._setElements();
+        _this._setListeners();
+        resolve();
+      });
+    });
   }
 
   _addMember() {
+    let _this = this;
     let group = event.target.id;
     $('.member-new-intro').html('<h5>Add a member to a group</h5><p>Insert a user email below to add to the "' + group + '" group.</p>');
     $('.member-new-modal').openModal();
@@ -17,23 +28,27 @@ class PoliciesGUI {
     $('.member-new-ok').on('click', (event) => {
       let member = $('#member-new').val();
       $('#member-new').val('');
-      this.policiesManager.addToGroup(group, member);
-      $('.member-new-modal').closeModal();
-      this._manageGroups();
+      _this.policiesManager.addToGroup(group, member).then(() => {
+        $('.member-new-modal').closeModal();
+        _this._manageGroups();
+      });
     });
   }
 
   _createGroup() {
+    let _this = this;
     $('#group-new-name').val('');
     $('.group-new-modal').openModal();
     $('.group-new-ok').on('click', (event) => {
       let groupName = $('#group-new-name').val();
-      this.policiesManager.createGroup(groupName);
-      this._manageGroups();
+      _this.policiesManager.createGroup(groupName).then(() => {
+        _this._manageGroups();
+      });
     });
   }
 
   _addPolicy() {
+    let _this = this;
     $('#policy-new-title').val('');
     $('.combining').html('');
     let algorithms = ['Block overrides', 'Allow overrides', 'First applicable'];
@@ -47,10 +62,11 @@ class PoliciesGUI {
         Materialize.toast('Invalid policy title', 4000);
       } else {
         let combiningAlgorithm = $('#comb-algorithm').val();
-        this.policiesManager.addPolicy(policyTitle, combiningAlgorithm);
-        $('.help-menu').addClass('hide');
-        $('.policy-new').closeModal();
-        this._goHome();
+        _this.policiesManager.addPolicy(policyTitle, combiningAlgorithm).then(() => {
+          $('.help-menu').addClass('hide');
+          $('.policy-new').closeModal();
+          _this._goHome();
+        });
       }
     });
     $('.help-btn').off();
@@ -60,67 +76,82 @@ class PoliciesGUI {
   }
 
   _decreaseRulePriority() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');
     let thisPriority = parseInt(splitId[splitId.length - 1]);
     splitId.pop();
     let policyTitle = splitId.join(':');
-    let lastPriority = this.policiesManager.getPolicy(policyTitle).getLastPriority();
-    if (lastPriority != thisPriority) {
-      let newPriority = parseInt(thisPriority + 1);
-      this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority);
-      this._goHome();
-    }
+    _this.policiesManager.getPolicy(policyTitle).then((policy) => {
+      let lastPriority = policy.getLastPriority();
+      if (lastPriority != thisPriority) {
+        let newPriority = parseInt(thisPriority + 1);
+        _this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority).then(() => {
+          _this._goHome();
+        });
+      }
+    });
   }
 
   _deleteMember() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split('::');
     let member = splitId[splitId.length - 1];
     splitId.pop();
     let group = splitId.join('::');
-    this.policiesManager.removeFromGroup(group, member);
-    this._manageGroups();
+    _this.policiesManager.removeFromGroup(group, member).then(() => {
+      _this._manageGroups();
+    });
   }
 
   _deleteGroup() {
+    let _this = this;
     let groupName = event.target.closest('tr').children[0].id;
-    this.policiesManager.deleteGroup(groupName);
-    this._manageGroups();
+    _this.policiesManager.deleteGroup(groupName).then(() => {
+      _this._manageGroups();
+    });
   }
 
   _deletePolicy() {
+    let _this = this;
     let policyTitle = event.target.closest('tr').id;
-    this.policiesManager.deletePolicy(policyTitle);
-    this._goHome();
+    _this.policiesManager.deletePolicy(policyTitle).then(() => {
+      _this._goHome();
+    });
   }
 
   _deleteRule() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');
     let priority = splitId[splitId.length - 1];
     splitId.pop();
     let policyTitle = splitId.join(':');
-    let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
+    let rule = _this.policiesManager.getRuleOfPolicy(policyTitle, priority);
 
-    this.policiesManager.deleteRule(policyTitle, rule);
-    this._goHome();
+    _this.policiesManager.deleteRule(policyTitle, rule).then(() => {
+      _this._goHome();
+    });
   }
 
   _getActivePolicy() {
-    $('.policy-active').html('');
-    let activeUserPolicy = this.policiesManager.getActivePolicy();
-    let policies = this.policiesManager.getPoliciesTitles();
-    policies.push('Deactivate all policies');
+    let _this = this;
+    _this.policiesManager.getActivePolicy().then((activeUserPolicy) => {
+      $('.policy-active').html('');
+      _this.policiesManager.getPoliciesTitles().then((policies) => {
+        policies.push('Deactivate all policies');
 
-    $('.policy-active').append(this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
+        $('.policy-active').append(_this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
 
-    $('#policies-list').on('click', (event) => {
-      let policyTitle = $('#policies-list').find(":selected")[0].textContent;
-      if (policyTitle === 'Deactivate all policies') {
-        policyTitle = undefined;
-      }
-      this.policiesManager.updateActivePolicy(policyTitle);
+        $('#policies-list').on('click', (event) => {
+          let policyTitle = $('#policies-list').find(":selected")[0].textContent;
+          if (policyTitle === 'Deactivate all policies') {
+            policyTitle = undefined;
+          }
+          _this.policiesManager.updateActivePolicy(policyTitle);
+        });
+      });
     });
   }
 
@@ -199,45 +230,48 @@ class PoliciesGUI {
   }
 
   _getPoliciesTable() {
-    $('.policies-no').addClass('hide');
-    $('.policies-current').html('');
+    let _this = this;
 
-    let policies = this.policiesManager.getFormattedPolicies();
-    let policiesTitles = [];
-    let rulesTitles = [];
-    let ids = [];
+    _this.policiesManager.getFormattedPolicies().then((policies) => {
+      $('.policies-no').addClass('hide');
+      $('.policies-current').html('');
 
-    for (let i in policies) {
-      policiesTitles.push(policies[i].title);
-      rulesTitles.push(policies[i].rulesTitles);
-      ids.push(policies[i].ids);
-    }
+      let policiesTitles = [];
+      let rulesTitles = [];
+      let ids = [];
 
-    let table = '<table>';
-    let isEmpty = policiesTitles.length === 0;
-
-    for (let i in policiesTitles) {
-      table += '<thead><tr id="' + policiesTitles[i] + '"><td></td><td></td><th class="center-align">' + policiesTitles[i] + '</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
-
-      for (let j in rulesTitles[i]) {
-        table += '<tr id="' + ids[i][j] + '" ><td><i class="material-icons clickable-cell rule-priority-increase" style="cursor: pointer; vertical-align: middle">arrow_upward</i></td><td><i class="material-icons clickable-cell rule-priority-decrease" style="cursor: pointer; vertical-align: middle">arrow_downward</i></td><td class="rule-show clickable-cell" style="cursor: pointer">' + rulesTitles[i][j] + '</td><td><i class="material-icons clickable-cell rule-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+      for (let i in policies) {
+        policiesTitles.push(policies[i].title);
+        rulesTitles.push(policies[i].rulesTitles);
+        ids.push(policies[i].ids);
       }
-      table += '<tr id="' + policiesTitles[i] + '"></td><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell center-align rule-add" style="cursor: pointer">add_circle</i></td></tr>';
-    }
-    if (!isEmpty) {
-      table += '</tbody></table>';
-      $('.policies-current').append(table);
-    } else {
-      $('.policies-no').removeClass('hide');
-    }
-    $('.rule-add').on('click', (event) => { this._showVariablesTypes(); });
-    $('.rule-delete').on('click', (event) => { this._deleteRule(); });
-    $('.rule-show').on('click', (event) => { this._showRule(); });
-    $('.rule-priority-increase').on('click', (event) => { this._increaseRulePriority(); });
-    $('.rule-priority-decrease').on('click', (event) => { this._decreaseRulePriority(); });
-    $('.policy-add').off();
-    $('.policy-add').on('click', (event) => { this._addPolicy(); });
-    $('.policy-delete').on('click', (event) => { this._deletePolicy(); });
+
+      let table = '<table>';
+      let isEmpty = policiesTitles.length === 0;
+
+      for (let i in policiesTitles) {
+        table += '<thead><tr id="' + policiesTitles[i] + '"><td></td><td></td><th class="center-align">' + policiesTitles[i] + '</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+
+        for (let j in rulesTitles[i]) {
+          table += '<tr id="' + ids[i][j] + '" ><td><i class="material-icons clickable-cell rule-priority-increase" style="cursor: pointer; vertical-align: middle">arrow_upward</i></td><td><i class="material-icons clickable-cell rule-priority-decrease" style="cursor: pointer; vertical-align: middle">arrow_downward</i></td><td class="rule-show clickable-cell" style="cursor: pointer">' + rulesTitles[i][j] + '</td><td><i class="material-icons clickable-cell rule-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+        }
+        table += '<tr id="' + policiesTitles[i] + '"></td><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell center-align rule-add" style="cursor: pointer">add_circle</i></td></tr>';
+      }
+      if (!isEmpty) {
+        table += '</tbody></table>';
+        $('.policies-current').append(table);
+      } else {
+        $('.policies-no').removeClass('hide');
+      }
+      $('.rule-add').on('click', (event) => { _this._showVariablesTypes(); });
+      $('.rule-delete').on('click', (event) => { _this._deleteRule(); });
+      $('.rule-show').on('click', (event) => { _this._showRule(); });
+      $('.rule-priority-increase').on('click', (event) => { _this._increaseRulePriority(); });
+      $('.rule-priority-decrease').on('click', (event) => { _this._decreaseRulePriority(); });
+      $('.policy-add').off();
+      $('.policy-add').on('click', (event) => { _this._addPolicy(); });
+      $('.policy-delete').on('click', (event) => { _this._deletePolicy(); });
+    }); 
   }
 
   _goHome() {
@@ -246,6 +280,7 @@ class PoliciesGUI {
   }
 
   _increaseRulePriority() {
+    let _this = this;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');
     let thisPriority = parseInt(splitId[splitId.length - 1]);
@@ -254,43 +289,46 @@ class PoliciesGUI {
       let policyTitle = splitId.join(':');
       let newPriority = thisPriority - 1;
 
-      this.policiesManager.increaseRulePriority(policyTitle, thisPriority, newPriority);
-      this._goHome();
+      _this.policiesManager.increaseRulePriority(policyTitle, thisPriority, newPriority).then(() => {
+        _this._goHome();
+      });
     }
   }
 
   _manageGroups() {
-    $('.groups-current').html('');
-    let groupsPE = this.policiesManager.getGroups();
-    let groups = groupsPE.groupsNames;
-    let members = groupsPE.members;
-    let ids = groupsPE.ids;
+    let _this = this;
+    _this.policiesManager.getGroups().then((groupsPE) => {
+      $('.groups-current').html('');
+      let groups = groupsPE.groupsNames;
+      let members = groupsPE.members;
+      let ids = groupsPE.ids;
 
-    let table = '<table>';
-    let isEmpty = groups.length === 0;
+      let table = '<table>';
+      let isEmpty = groups.length === 0;
 
-    for (let i in groups) {
-      table += '<thead><tr><th id="' + groups[i] + '">' + groups[i] + '</th><td style="text-align:right"><i class="material-icons clickable-cell group-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
-      for (let j in members[i]) {
-        table += '<tr id="' + ids[i][j] + '" ><td style="cursor: pointer">' + members[i][j] + '</td><td style="text-align:right"><i class="material-icons clickable-cell member-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+      for (let i in groups) {
+        table += '<thead><tr><th id="' + groups[i] + '">' + groups[i] + '</th><td style="text-align:right"><i class="material-icons clickable-cell group-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+        for (let j in members[i]) {
+          table += '<tr id="' + ids[i][j] + '" ><td style="cursor: pointer">' + members[i][j] + '</td><td style="text-align:right"><i class="material-icons clickable-cell member-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+        }
+
+        table += '<tr id="' + groups[i] + '"><td><i class="material-icons clickable-cell member-add" id="' + groups[i] + '" style="cursor: pointer">add_circle</i></td></tr>';
       }
 
-      table += '<tr id="' + groups[i] + '"><td><i class="material-icons clickable-cell member-add" id="' + groups[i] + '" style="cursor: pointer">add_circle</i></td></tr>';
-    }
+      if (!isEmpty) {
+        table += '</tbody></table>';
+        $('.groups-current').append(table);
+      } else {
+        $('.groups-current').append('<p>There are no groups set.</p>');
+      }
 
-    if (!isEmpty) {
-      table += '</tbody></table>';
-      $('.groups-current').append(table);
-    } else {
-      $('.groups-current').append('<p>There are no groups set.</p>');
-    }
-
-    $('.member-add').off();
-    $('.member-add').on('click', (event) => { this._addMember(); });
-    $('.member-delete').on('click', (event) => { this._deleteMember(); });
-    $('.group-add').off();
-    $('.group-add').on('click', (event) => { this._createGroup(); });
-    $('.group-delete').on('click', (event) => { this._deleteGroup(); });
+      $('.member-add').off();
+      $('.member-add').on('click', (event) => { _this._addMember(); });
+      $('.member-delete').on('click', (event) => { _this._deleteMember(); });
+      $('.group-add').off();
+      $('.group-add').on('click', (event) => { _this._createGroup(); });
+      $('.group-delete').on('click', (event) => { _this._deleteGroup(); });
+    });
   }
 
   _parseFileContent(content) {
@@ -318,11 +356,15 @@ class PoliciesGUI {
     let scopes = ['identity', 'hyperty', 'global'];
     let lists = [];
 
-    lists.push(this.policiesManager.getMyEmails());
-    lists.push(this.policiesManager.getMyHyperties());
-    lists.push(['All identities and hyperties']);
-    $('.scopes').append(this._getGroupOptions('Apply this configuration to:', keys, scopes, lists));
-    $('.variable').removeClass('hide');
+    this.policiesManager.getMyEmails().then((emails) => {
+      lists.push(emails);
+      this.policiesManager.getMyHyperties().then((hyperties) => {
+        lists.push(hyperties);
+        lists.push(['All identities and hyperties']);
+        $('.scopes').append(this._getGroupOptions('Apply this configuration to:', keys, scopes, lists));
+        $('.variable').removeClass('hide');
+      });
+    });
   }
 
   _showVariablesTypes() {
@@ -338,7 +380,8 @@ class PoliciesGUI {
   }
 
   _getNewConfiguration(policyTitle, variable) {
-    let info = this.policiesManager.getVariableInfo(variable);
+    let _this = this;
+    let info = _this.policiesManager.getVariableInfo(variable);
     $('.rule-new-title').html(info.title);
     $('.description').html(info.description);
     $('.config').html('');
@@ -349,13 +392,15 @@ class PoliciesGUI {
       $('.subscription-type').addClass('hide');
       let tags = info.input;
       for (let i in tags) {
-        if (variable === 'Group of users') {
-          tags[i][1].push(this.policiesManager.getGroupsNames());
-        }
-        $('.config').append(this.elements[tags[i][0]](tags[i][1]));
-        if (variable === 'Group of users') {
-          tags[i][1].pop();
-        }
+        _this.policiesManager.getGroupsNames().then((groupsNames) => {
+          if (variable === 'Group of users') {
+            tags[i][1].push(groupsNames);
+          }
+          $('.config').append(_this.elements[tags[i][0]](tags[i][1]));
+          if (variable === 'Group of users') {
+            tags[i][1].pop();
+          }
+        });
       }
       if (variable ==='date') {
         $('.datepicker').pickadate({
@@ -369,15 +414,16 @@ class PoliciesGUI {
     $('.ok-btn').off();
     $('.ok-btn').on('click', (event) => {
       if ($("input[name='rule-new-decision']:checked")[0] !== undefined) {
-        let info = this._getInfo(variable);
+        let info = _this._getInfo(variable);
         let decision = $("input[name='rule-new-decision']:checked")[0].id;
         decision = decision === 'allow';
         let scope = $('.scopes').find(":selected")[0].id;
         let target = $('.scopes').find(":selected")[0].textContent;
         target = (target === 'All identities and hyperties') ? 'global' : target;
-        this.policiesManager.setInfo(variable, policyTitle, info, decision, scope, target);
-        $('.rule-new').closeModal();
-        this._goHome();
+        _this.policiesManager.setInfo(variable, policyTitle, info, decision, scope, target).then(() => {
+          $('.rule-new').closeModal();
+          _this._goHome();
+        });
       } else {
         throw Error('INFORMATION MISSING: please specify an authorisation decision.');
       }
@@ -441,33 +487,35 @@ class PoliciesGUI {
     let priority = splitId[splitId.length - 1];
     splitId.pop();
     let policyTitle = splitId.join(':');
-    let rule = this.policiesManager.getRuleOfPolicy(policyTitle, priority);
-    if (rule.condition.attribute === 'subscription' && rule.condition.params === 'preauthorised') {
-      $('.authorise-btns').addClass('hide');
-    } else {
-      let element;
-      if (rule.decision) {
-        element = document.getElementById('btn-allow');
+    this.policiesManager.getRuleOfPolicy(policyTitle, priority).then((rule) => {
+      if (rule.condition.attribute === 'subscription' && rule.condition.params === 'preauthorised') {
+        $('.authorise-btns').addClass('hide');
       } else {
-        element = document.getElementById('btn-block');
+        let element;
+        if (rule.decision) {
+          element = document.getElementById('btn-allow');
+        } else {
+          element = document.getElementById('btn-block');
+        }
+        element.checked = true;
+        $('.authorise-btns').removeClass('hide');
       }
-      element.checked = true;
-      $('.authorise-btns').removeClass('hide');
-    }
-    $('.member-add').addClass('hide');
-    $('.member-new-btn').addClass('hide');
+      $('.member-add').addClass('hide');
+      $('.member-new-btn').addClass('hide');
 
-    $('.rule-details').openModal();
-    $('.rule-title').html('<h5><b>' + ruleTitle + '</b></h5>');
-    if (rule.condition.attribute === 'subscription') {
-      $('.subscription-type').removeClass('hide');
-    }
-    $('.subscription-decision').on('click', (event) => { this._updateRule('subscription', policyTitle, rule); });
-    $('.decision').off();
-    $('.decision').on('click', (event) => { this._updateRule('authorisation', policyTitle, rule);});
+      $('.rule-details').openModal();
+      $('.rule-title').html('<h5><b>' + ruleTitle + '</b></h5>');
+      if (rule.condition.attribute === 'subscription') {
+        $('.subscription-type').removeClass('hide');
+      }
+      $('.subscription-decision').on('click', (event) => { this._updateRule('subscription', policyTitle, rule); });
+      $('.decision').off();
+      $('.decision').on('click', (event) => { this._updateRule('authorisation', policyTitle, rule);});
+    });
   }
 
   _updateRule(type, policyTitle, rule) {
+    let _this = this;
     let title = $('.rule-title').text();
     let splitTitle = title.split(' ');
     let index = splitTitle.indexOf('is');
@@ -487,7 +535,9 @@ class PoliciesGUI {
         }
         title = splitTitle.join(' ');
         $('.rule-title').html('<h5><b>' + title + '</b></h5>');
-        this.policiesManager.updatePolicy(policyTitle, rule, newDecision);
+        _this.policiesManager.updatePolicy(policyTitle, rule, newDecision).then(() => {
+          _this._goHome();
+        });
         break;
       case 'subscription':
         let newSubscriptionType = event.target.labels[0].textContent;
@@ -507,10 +557,11 @@ class PoliciesGUI {
         }
 
         $('.rule-title').html('<h5><b>' + title + '</b></h5>');
-        this.policiesManager.updatePolicy(policyTitle, rule, newDecision, newSubscriptionType);
+        _this.policiesManager.updatePolicy(policyTitle, rule, newDecision, newSubscriptionType).then(() => {
+          _this._goHome();
+        });
         break;
     }
-    this._goHome();
   }
 }
 
