@@ -108,10 +108,11 @@ let GuiManager = function(){
  * @property {function(Runtime domain: string, Runtime url: string, Development mode: boolean): Promise<RuntimeAdapter>} install - Installs a runtime locally
  */
 let RethinkBrowser = {
-	install: function({domain, runtimeURL, development}={}){
+	install: function({domain, runtimeURL, development, indexURL, sandboxURL}={}){
+		console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
 		return new Promise((resolve, reject)=>{
-			let runtime = this._getRuntime(runtimeURL, domain, development)
-			iframe = createIframe(`https://${runtime.domain}/.well-known/runtime/index.html?runtime=${runtime.url}&development=${development}`)
+			let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL)
+			iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`)
 			let installed = (e)=>{
 				if(e.data.to === 'runtime:installed'){
 					window.removeEventListener('message', installed)
@@ -121,7 +122,7 @@ let RethinkBrowser = {
 			window.addEventListener('message', installed)
 			window.addEventListener('message', (e) => {
 				if(e.data.to && e.data.to === 'runtime:createSandboxWindow'){
-					const ifr = createIframe(`https://${runtime.domain}/.well-known/runtime/sandbox.html`)
+					const ifr = createIframe(runtime.sandboxURL)
 					ifr.addEventListener('load', () => {
 						ifr.contentWindow.postMessage(e.data, '*', e.ports)
 					}, false)
@@ -132,18 +133,26 @@ let RethinkBrowser = {
 		})
 	},
 
-	_getRuntime (runtimeURL, domain, development) {
+	_getRuntime (runtimeURL, domain, development, indexURL, sandboxURL) {
 		if(!!development){
 			runtimeURL = runtimeURL || 'hyperty-catalogue://catalogue.' + domain + '/.well-known/runtime/Runtime'
 			domain = domain || new URI(runtimeURL).host()
+			indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
+			sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
 		}else{
 			runtimeURL = runtimeURL || `https://catalogue.${domain}/.well-known/runtime/default`
 			domain = domain || new URI(runtimeURL).host().replace('catalogue.', '')
+			indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
+			sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
 		}
+
+		console.info('get Runtime: ', runtimeURL, domain, indexURL, sandboxURL);
 
 		return {
 			url: runtimeURL,
-			domain: domain
+			domain: domain,
+			indexURL: indexURL,
+			sandboxURL: sandboxURL
 		}
 	}
 }

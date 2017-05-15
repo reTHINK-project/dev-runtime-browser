@@ -50,6 +50,7 @@ function searchHyperty(runtime, descriptor){
 
 let parameters = new URI(window.location).search(true)
 let runtimeURL = parameters.runtime
+let domain = parameters.domain
 let development = parameters.development === 'true'
 let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
 let runtimeDescriptor;
@@ -66,7 +67,9 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         eval.apply(window,[sourcePackage.sourceCode]);
 
         //let runtime = new Runtime(RuntimeFactory, window.location.host);
-        let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
+        console.log('AQUI:', domain, parameters);
+
+        let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, domain);
         window.runtime = runtime;
         runtime.init().then( function(result){
 
@@ -75,7 +78,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             let pepGuiURL = runtime.policyEngine.context.guiURL;
             let pepURL = runtime.policyEngine.context.pepURL;
             let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
-            
+
             pepGUI.prepareAttributes().then(() => {
                 let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
                 let idmURL = runtime.identityModule._runtimeURL + '/idm';
