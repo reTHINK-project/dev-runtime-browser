@@ -67,8 +67,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         eval.apply(window,[sourcePackage.sourceCode]);
 
         //let runtime = new Runtime(RuntimeFactory, window.location.host);
-        console.log('AQUI:', domain, parameters);
-
+        if (!domain) domain = window.location.host;
         let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, domain);
         window.runtime = runtime;
         runtime.init().then( function(result){
