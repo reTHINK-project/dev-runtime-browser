@@ -5,18 +5,20 @@ module.exports = function(config) {
 	config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-		basePath: '',
+		basePath: '.',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
 		frameworks: [ 'mocha', 'browserify'],
 
 		files: [
-			'test/**/RuntimeLoader.spec.js',
-			'test/**/RuntimeUAStub.spec.js',
-			'test/**/StorageManager.spec.js'
+			'test/**/*.spec.js',
+			{pattern: 'test/resources/*.*', watched: false, included: false, served: true, nocache: false}
 		],
 
+		exclude: [
+			'test/**/Sandbox*.spec.js',
+		],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -55,6 +57,10 @@ module.exports = function(config) {
 			debug: true,
 			extensions: ['js'],
 			transform: [['babelify', {presets:['es2015']}]]
+		},
+
+		proxies: {
+			'/context-service.js': '/base/test/resources/context-service.js'
 		}
 	})
 }

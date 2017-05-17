@@ -1,0 +1,10 @@
+{
+  "title": "Runtime Browser",
+  "source": "./src",
+  "destination": "./docs",
+  "lint": true,
+  "test": {
+    "type": "mocha",
+    "source": "./test"
+  }
+}
