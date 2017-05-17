@@ -29,8 +29,8 @@
   },
   "homepage": "https://rethink-project.eu/",
   "dependencies": {
-    "runtime-core": "git+https://github.com/reTHINK-project/dev-runtime-core.git#develop",
-    "service-framework": "git+https://github.com/reTHINK-project/dev-service-framework.git#develop",
+    "runtime-core": "reTHINK-project/dev-runtime-core#v0.8.1",
+    "service-framework": "reTHINK-project/dev-service-framework#v0.6.1",
     "webrtcsupport": "2.2.0",
     "dexie": "^1.5.1"
   },
