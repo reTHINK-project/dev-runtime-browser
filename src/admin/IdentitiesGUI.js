@@ -152,7 +152,9 @@ class IdentitiesGUI {
         let idpsObjects = identityInfo.idps;
 
         idpsObjects.forEach(function(entry) {
-          idps.push(entry.domain);
+          if(entry.type && entry.type == 'idToken') {
+            idps.push(entry.domain);
+          }
         });
 
         $('#idproviders').html(_this._getList(idps));
