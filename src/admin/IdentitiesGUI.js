@@ -10,8 +10,6 @@ class IdentitiesGUI {
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
 
-    //console.log('TIAGO: Calling deployGUI');
-    //_this.identityModule.deployGUI();
     _this.callIdentityModuleFunc('deployGUI', {}).then(() => {
       _this.resultURL  = undefined;
 
@@ -22,12 +20,12 @@ class IdentitiesGUI {
 
         if (funcName === 'openPopup') {
           let urlreceived = msg.body.params.urlreceived;
-          //console.log('TIAGO openPopup on browser');
           _this.openPopup(urlreceived).then((returnedValue) => {
             let value = {type: 'execute', value: returnedValue, code: 200};
             let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
             _this._messageBus.postMessage(replyMsg);
           });
+          return; // this avoids getting stuck in the identities page
         }
 
         // unhide the config page with the identity GUI
@@ -81,16 +79,12 @@ class IdentitiesGUI {
         body: { resource: 'identity', method: methodName, params: parameters }, };
       _this._messageBus.postMessage(message, (res) => {
         let result = res.body.value;
-
-        //console.log('TIAGO: return from callIdentityModuleFunc ', result);
         resolve(result);
       });
     });
   }
 
   openPopup(urlreceived) {
-
-    //console.log('TIAGO openPopup local browser');
 
     return new Promise((resolve, reject) => {
 
