@@ -29,10 +29,10 @@
   },
   "homepage": "https://rethink-project.eu/",
   "dependencies": {
-    "runtime-core": "reTHINK-project/dev-runtime-core#develop",
-    "service-framework": "reTHINK-project/dev-service-framework#develop",
-    "webrtcsupport": "2.2.0",
-    "dexie": "^1.5.1"
+    "dexie": "^1.5.1",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#develop",
+    "service-framework": "github:reTHINK-project/dev-service-framework#develop",
+    "webrtcsupport": "2.2.0"
   },
   "devDependencies": {
     "babel-plugin-transform-object-assign": "^6.5.0",
