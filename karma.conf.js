@@ -30,7 +30,53 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-		reporters: ['mocha'],
+		reporters: ['spec', 'html'],
+
+		// customDebugFile: './test/units.html',
+
+		// customContextFile: './test/units.html',
+
+    specReporter: {
+      maxLogLines: 5,             // limit number of lines logged per test
+      suppressErrorSummary: false, // do not print error summary
+      suppressFailed: false,      // do not print information about failed tests
+      suppressPassed: false,      // do not print information about passed tests
+      suppressSkipped: false,      // do not print information about skipped tests
+      showSpecTiming: true,      // print the time elapsed for each spec
+      failFast: false              // test would finish with error when a first fail occurs.
+    },
+
+    // the default configuration
+    htmlReporter: {
+      outputFile: 'test/units.html',
+
+      // Optional
+      pageTitle: 'Unit Tests',
+      subPageTitle: 'reThink Project performance tests',
+      groupSuites: true,
+      useCompactStyle: true,
+      useLegacyStyle: true
+    },
+
+    plugins: ['karma-spec-reporter',
+			'karma-browserify',
+      'karma-mocha',
+			'karma-chai',
+      'karma-sinon',
+      'karma-htmlfile-reporter',
+      'karma-mocha-reporter',
+      'karma-chrome-launcher'],
+
+    // customDebugFile: './test/units.html',
+
+    // customContextFile: './test/units.html',
+
+    client: {
+      mocha: {
+        reporter: 'html'
+      },
+      captureConsole: true
+    },
 
     // web server port
 		port: 9876,
@@ -51,7 +97,7 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-		singleRun: false,
+		singleRun: true,
 
 		browserify: {
 			debug: true,
@@ -61,6 +107,20 @@ module.exports = function(config) {
 
 		proxies: {
 			'/context-service.js': '/base/test/resources/context-service.js'
-		}
+		},
+
+		// start these browsers
+    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+    browsers: ['ChromeTravis'],
+
+    customLaunchers: {
+      ChromeTravis: {
+        base: 'Chrome',
+        flags: [
+          '--disable-web-security',
+          '--ignore-certificate-errors'
+        ]
+      }
+    },
 	})
 }

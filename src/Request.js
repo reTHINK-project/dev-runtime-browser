@@ -61,7 +61,7 @@ class Request {
 			xhr.onreadystatechange = function(event) {
 				let xhr = event.currentTarget
 				if (xhr.readyState === 4) {
-					if (xhr.status === 200) {
+					if (xhr.status >= 200 || xhr.status <= 299) {
 						resolve(xhr.responseText)
 					} else {
 						reject(xhr.responseText)
