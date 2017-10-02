@@ -39,7 +39,15 @@ function create(iframe){
 	window._registry._create = function(url, sourceCode, config){
 		try {
 			eval.apply(window, [sourceCode])
-			return activate(url, window._miniBus, config)
+
+			if (typeof activate === 'function') {
+				return activate(url, this._bus, config);
+			}
+
+			if (typeof activate.default === 'function') {
+				return activate.default(url, this._bus, config);
+			}
+
 		} catch (error) {
 			console.error('[Context APP Create] - Error: ', error)
 			throw JSON.stringify(error.message)

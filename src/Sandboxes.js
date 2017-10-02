@@ -79,7 +79,7 @@ export class SandboxWindow extends Sandbox{
 	}
 
 	constructor(capabilities){
-		super(capabilities)
+		super(capabilities);
 
 		this.type = SandboxType.WINDOW
 		this.channel = new MessageChannel()
@@ -100,11 +100,19 @@ export function createSandbox(constraints) {
 	const sandboxes = [SandboxWorker, SandboxWindow]
 	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
 
+	console.log('Sandboxes:', diff, constraints);
+
 	return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{return {capabilities:c, sandbox:s}})))
 		.then(sbs => {
+
+			console.log('Sandboxes:', sbs);
+
 			let i = 0
 			while(i<sbs.length) {
 				if(diff(constraints, sbs[i].capabilities).length === 0) {
+
+					console.log(sbs[i].capabilities, sbs[i].sandbox);
+
 					let capabilities = sbs[i].capabilities;
 					let sandbox = sbs[i].sandbox.new(capabilities);
 					return sandbox

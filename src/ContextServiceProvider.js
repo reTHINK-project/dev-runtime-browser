@@ -38,7 +38,15 @@ self._registry = new SandboxRegistry(self._miniBus);
 self._registry._create = function(url, sourceCode, config){
   try {
     eval.apply(self, [sourceCode]);
-    return activate(url, self._miniBus, config);
+
+    if (typeof activate === 'function') {
+      return activate(url, this._bus, config);
+    }
+
+    if (typeof activate.default === 'function') {
+      return activate.default(url, this._bus, config);
+    }
+
   } catch (error) {
     console.error("[Context Service Provider] - Error: ", error);
     throw JSON.stringify(error.message);
