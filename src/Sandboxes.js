@@ -20,99 +20,91 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox'
-import MiniBus from 'runtime-core/dist/minibus'
-import RuntimeFactory from './RuntimeFactory'
+import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox';
+import MiniBus from 'runtime-core/dist/minibus';
+import RuntimeFactory from './RuntimeFactory';
 
 /**
  * Proxy for a WebWorker
  * */
-export class SandboxWorker extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
-			.then(capabilities =>Object.assign(capabilities, { mic:false, camera:false }))
-	}
+export class SandboxWorker extends Sandbox {
+  static capabilities() {
+    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+      .then(capabilities =>Object.assign(capabilities, { mic: false, camera: false, windowSandbox: false }));
+  }
 
-	static new(capabilities) {
-		return new SandboxWorker(capabilities, './context-service.js')
-	}
+  static new(capabilities) {
+    return new SandboxWorker(capabilities, './context-service.js');
+  }
 
-	/**
+  /**
 	 * @param {string} script - Script that will be loaded in the web worker
 	 */
-	constructor(capabilities, script){
-		super(capabilities)
+  constructor(capabilities, script) {
+    super(capabilities);
 
-		/**
+    /**
 		 * @type {runtime-core/dist/sandbox/SandboxType}
 		 */
-		this.type = SandboxType.NORMAL
-		if(Worker){
-			this._worker = new Worker(script)
-			this._worker.addEventListener('message', function(e){
-				this._onMessage(JSON.parse(JSON.stringify(e.data)))
-			}.bind(this))
+    this.type = SandboxType.NORMAL;
+    if (Worker) {
+      this._worker = new Worker(script);
+      this._worker.addEventListener('message', function(e) {
+        this._onMessage(JSON.parse(JSON.stringify(e.data)));
+      }.bind(this));
 
-			this._worker.addEventListener('error', function(error){
-				console.log('[Sandbox Worker] - Error: ', error)
-				throw JSON.stringify(error)
-			}.bind(this))
+      this._worker.addEventListener('error', function(error) {
+        console.log('[Sandbox Worker] - Error: ', error);
+        throw JSON.stringify(error);
+      }.bind(this));
 
-			this._worker.postMessage('')
-		}else{
-			throw new Error('Your environment does not support worker \n')
-		}
-	}
+      this._worker.postMessage('');
+    } else {
+      throw new Error('Your environment does not support worker \n');
+    }
+  }
 
-	_onPostMessage(msg){
-		this._worker.postMessage(JSON.parse(JSON.stringify(msg)))
-	}
+  _onPostMessage(msg) {
+    this._worker.postMessage(JSON.parse(JSON.stringify(msg)));
+  }
 }
 
-export class SandboxWindow extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
-	}
+export class SandboxWindow extends Sandbox {
+  static capabilities() {
+    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities();
+  }
 
-	static new(capabilities) {
-		return new SandboxWindow(capabilities)
-	}
+  static new(capabilities) {
+    return new SandboxWindow(capabilities);
+  }
 
-	constructor(capabilities){
-		super(capabilities);
+  constructor(capabilities) {
+    super(capabilities);
 
-		this.type = SandboxType.WINDOW
-		this.channel = new MessageChannel()
+    this.type = SandboxType.WINDOW;
+    this.channel = new MessageChannel();
 
-		this.channel.port1.onmessage = function(e){
-			this._onMessage(JSON.parse(JSON.stringify(e.data)))
-		}.bind(this)
+    this.channel.port1.onmessage = function(e) {
+      this._onMessage(JSON.parse(JSON.stringify(e.data)));
+    }.bind(this);
 
-		parent.postMessage({ to:'runtime:createSandboxWindow' }, '*', [this.channel.port2])
-	}
+    parent.postMessage({ to: 'runtime:createSandboxWindow' }, '*', [this.channel.port2]);
+  }
 
-	_onPostMessage(msg){
-		this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)))
-	}
+  _onPostMessage(msg) {
+    this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)));
+  }
 }
 
 export function createSandbox(constraints) {
 	const sandboxes = [SandboxWorker, SandboxWindow]
 	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
 
-	console.log('Sandboxes:', diff, constraints);
-
 	return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{return {capabilities:c, sandbox:s}})))
 		.then(sbs => {
-
-			console.log('Sandboxes:', sbs);
-
 			let i = 0
 			while(i<sbs.length) {
 				if(diff(constraints, sbs[i].capabilities).length === 0) {
-
-					console.log(sbs[i].capabilities, sbs[i].sandbox);
-
 					let capabilities = sbs[i].capabilities;
 					let sandbox = sbs[i].sandbox.new(capabilities);
 					return sandbox

@@ -97,6 +97,7 @@ class RuntimeCapabilities {
 
           if (device.kind === 'videoinput') {
             capability.camera = true;
+	    capability.windowSandbox = true;
           }
         });
         resolve(capability);

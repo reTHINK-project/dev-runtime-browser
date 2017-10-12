@@ -20,36 +20,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import { Sandbox, SandboxRegistry } from 'runtime-core/dist/sandbox'
-import MiniBus from 'runtime-core/dist/minibus'
+import { Sandbox, SandboxRegistry } from 'runtime-core/dist/sandbox';
+import MiniBus from 'runtime-core/dist/minibus';
 
-self._miniBus = new MiniBus()
-self._miniBus._onPostMessage = function(msg){
-	self.port.postMessage(JSON.parse(JSON.stringify(msg)))
-}
+self._miniBus = new MiniBus();
+self._miniBus._onPostMessage = function(msg) {
+  self.port.postMessage(JSON.parse(JSON.stringify(msg)));
+};
 
-self.addEventListener('message', function(event){
-	self.port = event.ports[0]
-	self.port.onmessage = (event) => {
-		self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)))
-	}
-})
+self.addEventListener('message', function(event) {
+  self.port = event.ports[0];
+  self.port.onmessage = (event) => {
+    self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+  };
+});
 
-self._registry = new SandboxRegistry(self._miniBus)
-self._registry._create = function(url, sourceCode, config){
-	try {
-		eval.apply(self, [sourceCode])
+self._registry = new SandboxRegistry(self._miniBus);
+self._registry._create = function(url, sourceCode, config) {
+  try {
+    eval.apply(self, [sourceCode]);
 
-		if (typeof activate === 'function') {
-			return activate(url, this._bus, config);
-		}
+    if (typeof activate === 'function') {
+      return activate(url, self._miniBus, config);
+    }
 
-		if (typeof activate.default === 'function') {
-			return activate.default(url, this._bus, config);
-		}
+    if (typeof activate.default === 'function') {
+      return activate.default(url, self._miniBus, config);
+    }
 
-	} catch (error) {
-		console.error("[Context Window] - Error: ", error)
-		throw JSON.stringify(error.message)
-	}
-}
+  } catch (error) {
+    console.error('[Context Window] - Error: ', error);
+    throw JSON.stringify(error.message);
+  }
+};
