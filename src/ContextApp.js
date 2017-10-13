@@ -26,12 +26,12 @@ import MiniBus from 'runtime-core/dist/minibus';
 function create(iframe) {
   window._miniBus = new MiniBus();
   window._miniBus._onPostMessage = function(msg) {
-    iframe.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), '*');
+    iframe.contentWindow.postMessage(msg, '*');
   };
   window.addEventListener('message', function(event) {
     if (event.data.to && (event.data.to.startsWith('runtime:loadedHyperty') || event.data.to.endsWith('gui-manager'))) { return; }
 
-    window._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+    window._miniBus._onMessage(event.data);
   }, false);
 
   window._registry = new SandboxRegistry(window._miniBus);

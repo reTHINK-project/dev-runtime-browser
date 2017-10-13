@@ -25,13 +25,13 @@ import MiniBus from 'runtime-core/dist/minibus';
 
 self._miniBus = new MiniBus();
 self._miniBus._onPostMessage = function(msg) {
-  self.postMessage(JSON.parse(JSON.stringify(msg)));
+  self.postMessage(msg);
 };
 self.addEventListener('message', function(event) {
-  self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+  self._miniBus._onMessage(event.data);
 });
 self.addEventListener('error', function(reason) {
-  throw JSON.parse(JSON.stringify(reason));
+  throw reason;
 });
 
 self._registry = new SandboxRegistry(self._miniBus);

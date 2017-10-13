@@ -50,7 +50,7 @@ export class SandboxWorker extends Sandbox {
     if (Worker) {
       this._worker = new Worker(script);
       this._worker.addEventListener('message', function(e) {
-        this._onMessage(JSON.parse(JSON.stringify(e.data)));
+        this._onMessage(e.data);
       }.bind(this));
 
       this._worker.addEventListener('error', function(error) {
@@ -65,7 +65,7 @@ export class SandboxWorker extends Sandbox {
   }
 
   _onPostMessage(msg) {
-    this._worker.postMessage(JSON.parse(JSON.stringify(msg)));
+    this._worker.postMessage(msg);
   }
 }
 
@@ -85,33 +85,33 @@ export class SandboxWindow extends Sandbox {
     this.channel = new MessageChannel();
 
     this.channel.port1.onmessage = function(e) {
-      this._onMessage(JSON.parse(JSON.stringify(e.data)));
+      this._onMessage(e.data);
     }.bind(this);
 
     parent.postMessage({ to: 'runtime:createSandboxWindow' }, '*', [this.channel.port2]);
   }
 
   _onPostMessage(msg) {
-    this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)));
+    this.channel.port1.postMessage(msg);
   }
 }
 
 export function createSandbox(constraints) {
-	const sandboxes = [SandboxWorker, SandboxWindow]
-	let diff = (a, b) => Object.keys(a).filter(x => a[x]!==b[x])
+  const sandboxes = [SandboxWorker, SandboxWindow];
+  let diff = (a, b) => Object.keys(a).filter(x => a[x] !== b[x]);
 
-	return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{return {capabilities:c, sandbox:s}})))
-		.then(sbs => {
-			let i = 0
-			while(i<sbs.length) {
-				if(diff(constraints, sbs[i].capabilities).length === 0) {
-					let capabilities = sbs[i].capabilities;
-					let sandbox = sbs[i].sandbox.new(capabilities);
-					return sandbox
-				}
+  return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{ return {capabilities: c, sandbox: s}; })))
+    .then(sbs => {
+      let i = 0;
+      while (i < sbs.length) {
+        if (diff(constraints, sbs[i].capabilities).length === 0) {
+          let capabilities = sbs[i].capabilities;
+          let sandbox = sbs[i].sandbox.new(capabilities);
+          return sandbox;
+        }
 
-				i++
-			}
-			throw new Error('None of supported sandboxes match your constraints')
-		})
+        i++;
+      }
+      throw new Error('None of supported sandboxes match your constraints');
+    });
 }

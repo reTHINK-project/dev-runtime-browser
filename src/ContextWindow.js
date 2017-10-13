@@ -25,13 +25,13 @@ import MiniBus from 'runtime-core/dist/minibus';
 
 self._miniBus = new MiniBus();
 self._miniBus._onPostMessage = function(msg) {
-  self.port.postMessage(JSON.parse(JSON.stringify(msg)));
+  self.port.postMessage(msg);
 };
 
 self.addEventListener('message', function(event) {
   self.port = event.ports[0];
   self.port.onmessage = (event) => {
-    self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+    self._miniBus._onMessage(event.data);
   };
 });
 

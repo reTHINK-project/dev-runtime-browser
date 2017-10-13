@@ -48,7 +48,8 @@ export default class SandboxApp extends Sandbox {
 
       if (e.data.hasOwnProperty('to') && e.data.to.startsWith('core:')) { return; }
 
-      this._onMessage(JSON.parse(JSON.stringify(e.data)));
+      // this._onMessage(JSON.parse(JSON.stringify(e.data)));
+      this._onMessage(e.data);
     }.bind(this));
 
     window.addEventListener('error', function(error) {
@@ -59,6 +60,6 @@ export default class SandboxApp extends Sandbox {
   }
 
   _onPostMessage(msg) {
-    this.origin.postMessage(JSON.parse(JSON.stringify(msg)), '*');
+    this.origin.postMessage(msg, '*');
   }
 }
