@@ -40,6 +40,7 @@ export function create(src) {
 	iframe.style.zIndex = 9999
 	iframe.width = '40px'
 	iframe.height = '40px'
+	iframe.title = 'reTHINK-project'
 	iframe.setAttribute('seamless', '')
 	iframe.setAttribute('src', src)
 	iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation')

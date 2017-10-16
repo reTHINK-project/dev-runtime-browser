@@ -24,23 +24,31 @@ import { Sandbox, SandboxRegistry } from 'runtime-core/dist/sandbox';
 import MiniBus from 'runtime-core/dist/minibus';
 
 self._miniBus = new MiniBus();
-self._miniBus._onPostMessage = function(msg){
-    self.postMessage(JSON.parse(JSON.stringify(msg)));
+self._miniBus._onPostMessage = function(msg) {
+  self.postMessage(msg);
 };
-self.addEventListener('message', function(event){
-    self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+self.addEventListener('message', function(event) {
+  self._miniBus._onMessage(event.data);
 });
-self.addEventListener('error', function(reason){
-  throw JSON.parse(JSON.stringify(reason));
+self.addEventListener('error', function(reason) {
+  throw reason;
 });
 
 self._registry = new SandboxRegistry(self._miniBus);
-self._registry._create = function(url, sourceCode, config){
+self._registry._create = function(url, sourceCode, config) {
   try {
     eval.apply(self, [sourceCode]);
-    return activate(url, self._miniBus, config);
+
+    if (typeof activate === 'function') {
+      return activate(url, self._miniBus, config);
+    }
+
+    if (typeof activate.default === 'function') {
+      return activate.default(url, self._miniBus, config);
+    }
+
   } catch (error) {
-    console.error("[Context Service Provider] - Error: ", error);
+    console.error('[Context Service Provider] - Error: ', error);
     throw JSON.stringify(error.message);
   }
 };
