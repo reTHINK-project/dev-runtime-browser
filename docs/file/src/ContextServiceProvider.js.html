@@ -81,23 +81,31 @@ import { Sandbox, SandboxRegistry } from &apos;runtime-core/dist/sandbox&apos;;
 import MiniBus from &apos;runtime-core/dist/minibus&apos;;
 
 self._miniBus = new MiniBus();
-self._miniBus._onPostMessage = function(msg){
-    self.postMessage(JSON.parse(JSON.stringify(msg)));
+self._miniBus._onPostMessage = function(msg) {
+  self.postMessage(msg);
 };
-self.addEventListener(&apos;message&apos;, function(event){
-    self._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)));
+self.addEventListener(&apos;message&apos;, function(event) {
+  self._miniBus._onMessage(event.data);
 });
-self.addEventListener(&apos;error&apos;, function(reason){
-  throw JSON.parse(JSON.stringify(reason));
+self.addEventListener(&apos;error&apos;, function(reason) {
+  throw reason;
 });
 
 self._registry = new SandboxRegistry(self._miniBus);
-self._registry._create = function(url, sourceCode, config){
+self._registry._create = function(url, sourceCode, config) {
   try {
     eval.apply(self, [sourceCode]);
-    return activate(url, self._miniBus, config);
+
+    if (typeof activate === &apos;function&apos;) {
+      return activate(url, self._miniBus, config);
+    }
+
+    if (typeof activate.default === &apos;function&apos;) {
+      return activate.default(url, self._miniBus, config);
+    }
+
   } catch (error) {
-    console.error(&quot;[Context Service Provider] - Error: &quot;, error);
+    console.error(&apos;[Context Service Provider] - Error: &apos;, error);
     throw JSON.stringify(error.message);
   }
 };

@@ -77,43 +77,51 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxRegistry } from &apos;runtime-core/dist/sandbox&apos;
-import MiniBus from &apos;runtime-core/dist/minibus&apos;
+import { Sandbox, SandboxRegistry } from &apos;runtime-core/dist/sandbox&apos;;
+import MiniBus from &apos;runtime-core/dist/minibus&apos;;
 
-function create(iframe){
-	window._miniBus = new MiniBus()
-	window._miniBus._onPostMessage = function(msg){
-		iframe.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), &apos;*&apos;)
-	}
-	window.addEventListener(&apos;message&apos;, function(event){
-		if(event.data.to.startsWith(&apos;runtime:loadedHyperty&apos;) || event.data.to.endsWith(&apos;gui-manager&apos;))
-			return
+function create(iframe) {
+  window._miniBus = new MiniBus();
+  window._miniBus._onPostMessage = function(msg) {
+    iframe.contentWindow.postMessage(msg, &apos;*&apos;);
+  };
+  window.addEventListener(&apos;message&apos;, function(event) {
+    if (event.data.to &amp;&amp; (event.data.to.startsWith(&apos;runtime:loadedHyperty&apos;) || event.data.to.endsWith(&apos;gui-manager&apos;))) { return; }
 
-		window._miniBus._onMessage(JSON.parse(JSON.stringify(event.data)))
-	}, false)
+    window._miniBus._onMessage(event.data);
+  }, false);
 
-	window._registry = new SandboxRegistry(window._miniBus)
-	window._registry._create = function(url, sourceCode, config){
-		try {
-			eval.apply(window, [sourceCode])
-			return activate(url, window._miniBus, config)
-		} catch (error) {
-			console.error(&apos;[Context APP Create] - Error: &apos;, error)
-			throw JSON.stringify(error.message)
-		}
-	}
+  window._registry = new SandboxRegistry(window._miniBus);
+  window._registry._create = function(url, sourceCode, config) {
+    try {
+      eval.apply(window, [sourceCode]);
+
+      if (typeof activate === &apos;function&apos;) {
+        return activate(url, window._miniBus, config);
+      }
+
+      if (typeof activate.default === &apos;function&apos;) {
+        return activate.default(url, window._miniBus, config);
+      }
+
+    } catch (error) {
+      console.error(&apos;[Context APP Create] - Error: &apos;, error);
+      throw JSON.stringify(error.message);
+    }
+  };
 }
 
-function getHyperty(hypertyDescriptor){
-	return window._registry.components[hypertyDescriptor]
+function getHyperty(hypertyDescriptor) {
+  return window._registry.components[hypertyDescriptor];
 }
+
 /**
  * SandboxContext for application
  * @typedef ContextApp
  * @property {function(iFrame: iframe)} create Creates the context for the sandbox hosted in the iframe
  * @property {function(Hyperty descriptor: string):Hyperty} getHyperty Returns the hyperty for the given descriptor
  * */
-export default { create, getHyperty }
+export default { create, getHyperty };
 </code></pre>
 
 </div>

@@ -367,7 +367,7 @@ class PoliciesGUI {
     });
   }
 
-  _showVariablesTypes() {
+  _showVariablesTypes(event) {
     let policyTitle = event.target.closest('tr').id;
 
     $('#variables-types').empty().html('');
@@ -480,7 +480,7 @@ class PoliciesGUI {
     });
   }
 
-  _showRule() {
+  _showRule(event) {
     let ruleTitle = event.target.textContent;
     let id = event.target.closest('tr').id;
     let splitId = id.split(':');

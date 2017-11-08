@@ -59,61 +59,124 @@
 
 class IdentitiesGUI {
 
-  constructor(identityModule) {
-    if (!identityModule) throw Error(&apos;Identity Module not set!&apos;);
+  constructor(guiURL, idmURL, messageBus) {
+    //if (!identityModule) throw Error(&apos;Identity Module not set!&apos;);
+    if (!messageBus) throw Error(&apos;Message Bus not set!&apos;);
     let _this = this;
-    let guiURL = identityModule._runtimeURL + &apos;/identity-gui&apos;;
     _this._guiURL = guiURL;
-    _this.identityModule = identityModule;
-    _this._messageBus = identityModule.messageBus;
-    _this.identityModule.deployGUI();
+    _this._idmURL = idmURL;
+    _this._messageBus = messageBus;
 
-    _this.resultURL  = undefined;
+    _this.callIdentityModuleFunc(&apos;deployGUI&apos;, {}).then(() =&gt; {
+      _this.resultURL  = undefined;
 
-    _this._messageBus.addListener(guiURL, msg =&gt; {
-      let identityInfo = msg.body.value;
-      let value;
+      _this._messageBus.addListener(guiURL, msg =&gt; {
+        let identityInfo = msg.body.value;
+        let funcName = msg.body.method;
+        let value;
 
-      // unhide the config page with the identity GUI
-      document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:white;&apos;;
-      parent.postMessage({ body: { method: &apos;showAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
-      $(&apos;.admin-page&apos;).removeClass(&apos;hide&apos;);
-      _this.showIdentitiesGUI(msg.body.value).then((identityInfo) =&gt; {
-        let replyMsg;
-
-        //hide config page with the identity GUI
-        parent.postMessage({ body: { method: &apos;hideAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
-        $(&apos;.admin-page&apos;).addClass(&apos;hide&apos;);
-        document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:transparent&apos;;
-        $(&apos;.identities-section&apos;).addClass(&apos;hide&apos;);
-        $(&apos;.policies-section&apos;).addClass(&apos;hide&apos;);
-
-        switch (identityInfo.type) {
-          case &apos;idp&apos;:
-            value = {type: &apos;idp&apos;, value: identityInfo.value, code: 200};
-            replyMsg = {id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value};
+        if (funcName === &apos;openPopup&apos;) {
+          let urlreceived = msg.body.params.urlreceived;
+          _this.openPopup(urlreceived).then((returnedValue) =&gt; {
+            let value = {type: &apos;execute&apos;, value: returnedValue, code: 200};
+            let replyMsg = {id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value};
             _this._messageBus.postMessage(replyMsg);
-            break;
-
-          case &apos;identity&apos;:
-            value = {type: &apos;identity&apos;, value: identityInfo.value, code: 200};
-            replyMsg = {id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value};
-            _this._messageBus.postMessage(replyMsg);
-            break;
-
-          default:
-            value = {type: &apos;error&apos;, value: &apos;Error on identity GUI&apos;, code: 400};
-            replyMsg = {id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value};
-            _this._messageBus.postMessage(replyMsg);
+          });
+          return; // this avoids getting stuck in the identities page
         }
+
+        // unhide the config page with the identity GUI
+        document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:white;&apos;;
+        parent.postMessage({ body: { method: &apos;showAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
+        $(&apos;.admin-page&apos;).removeClass(&apos;hide&apos;);
+        _this.showIdentitiesGUI(msg.body.value).then((identityInfo) =&gt; {
+          let replyMsg;
+
+          //hide config page with the identity GUI
+          parent.postMessage({ body: { method: &apos;hideAdminPage&apos; }, to: &apos;runtime:gui-manager&apos; }, &apos;*&apos;);
+          $(&apos;.admin-page&apos;).addClass(&apos;hide&apos;);
+          document.getElementsByTagName(&apos;body&apos;)[0].style = &apos;background-color:transparent&apos;;
+          $(&apos;.identities-section&apos;).addClass(&apos;hide&apos;);
+          $(&apos;.policies-section&apos;).addClass(&apos;hide&apos;);
+
+          switch (identityInfo.type) {
+            case &apos;idp&apos;:
+              value = { type: &apos;idp&apos;, value: identityInfo.value, code: 200 };
+              replyMsg = { id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value };
+              _this._messageBus.postMessage(replyMsg);
+              break;
+
+            case &apos;identity&apos;:
+              value = { type: &apos;identity&apos;, value: identityInfo.value, code: 200 };
+              replyMsg = { id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value };
+              _this._messageBus.postMessage(replyMsg);
+              break;
+
+            default:
+              value = { type: &apos;error&apos;, value: &apos;Error on identity GUI&apos;, code: 400 };
+              replyMsg = { id: msg.id, type: &apos;response&apos;, to: msg.from, from: msg.to, body: value };
+              _this._messageBus.postMessage(replyMsg);
+          }
+        });
+      });
+
+      $(&apos;.identities-page-show&apos;).on(&apos;click&apos;, function () {
+        //TODO call a IdM method that requests the identities
+        _this.showIdentitiesGUI();
       });
     });
+  }
 
+  callIdentityModuleFunc(methodName, parameters) {
+    let _this = this;
+    let message;
 
+    return new Promise((resolve, reject) =&gt; {
+      message = { type: &apos;execute&apos;, to: _this._idmURL, from: _this._guiURL,
+        body: { resource: &apos;identity&apos;, method: methodName, params: parameters }, };
+      _this._messageBus.postMessage(message, (res) =&gt; {
+        let result = res.body.value;
+        resolve(result);
+      });
+    });
+  }
 
-    $(&apos;.identities-page-show&apos;).on(&apos;click&apos;, function () {
-      //TODO call a IdM method that requests the identities
-      _this.showIdentitiesGUI();
+  openPopup(urlreceived) {
+
+    return new Promise((resolve, reject) =&gt; {
+
+      let win = window.open(urlreceived, &apos;openIDrequest&apos;, &apos;width=800, height=600&apos;);
+      if (window.cordova) {
+        win.addEventListener(&apos;loadstart&apos;, function(e) {
+          let url = e.url;
+          let code = /\&amp;code=(.+)$/.exec(url);
+          let error = /\&amp;error=(.+)$/.exec(url);
+
+          if (code || error) {
+            win.close();
+            resolve(url);
+          }
+        });
+      } else {
+        let pollTimer = setInterval(function() {
+          try {
+            if (win.closed) {
+              reject(&apos;Some error occured when trying to get identity.&apos;);
+              clearInterval(pollTimer);
+            }
+
+            if (win.document.URL.indexOf(&apos;id_token&apos;) !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
+              window.clearInterval(pollTimer);
+              let url =   win.document.URL;
+
+              win.close();
+              resolve(url);
+            }
+          } catch (e) {
+            //console.log(e);
+          }
+        }, 500);
+      }
     });
   }
 
@@ -125,42 +188,57 @@ class IdentitiesGUI {
       let identityInfo;
       let toRemoveID;
 
+      _this._checkReceivedInfo(receivedInfo).then((resultObject) =&gt; {
+        identityInfo = resultObject.identityInfo;
+        toRemoveID = resultObject.toRemoveID;
+
+        $(&apos;.policies-section&apos;).addClass(&apos;hide&apos;);
+        $(&apos;.identities-section&apos;).removeClass(&apos;hide&apos;);
+
+        _this.showMyIdentities(identityInfo.identities, toRemoveID).then((identity) =&gt; {
+          console.log(&apos;chosen identity: &apos;, identity);
+          resolve({type: &apos;identity&apos;, value: identity});
+        });
+
+        let callback = (value) =&gt; {
+          console.log(&apos;chosen identity: &apos;, value);
+          resolve({type: &apos;identity&apos;, value: value});
+        };
+
+        let idps = [];
+        let idpsObjects = identityInfo.idps;
+
+        idpsObjects.forEach(function(entry) {
+          if(entry.type &amp;&amp; entry.type == &apos;idToken&apos;) {
+            idps.push(entry.domain);
+          }
+        });
+
+        $(&apos;#idproviders&apos;).html(_this._getList(idps));
+        $(&apos;#idproviders&apos;).off();
+        $(&apos;#idproviders&apos;).on(&apos;click&apos;, (event) =&gt; _this.obtainNewIdentity(event, callback, toRemoveID));
+        //$(&apos;.back&apos;).on(&apos;click&apos;, (event) =&gt; _this.goHome());
+        $(&apos;.identities-reset&apos;).off();
+        $(&apos;.identities-reset&apos;).on(&apos;click&apos;, (event) =&gt; _this._resetIdentities(callback));
+      });
+    });
+  }
+
+  _checkReceivedInfo(receivedInfo) {
+    let _this = this;
+    return new Promise((resolve, reject) =&gt; {
+      let identityInfo, toRemoveID;
       if (receivedInfo) {
         identityInfo = receivedInfo;
         toRemoveID = false;
+        resolve({identityInfo: identityInfo, toRemoveID:toRemoveID});
       } else {
         toRemoveID = true;
-        identityInfo = _this.identityModule.getIdentitiesToChoose();
+        _this.callIdentityModuleFunc(&apos;getIdentitiesToChoose&apos;, {}).then((result) =&gt; {
+          resolve({identityInfo: result, toRemoveID: toRemoveID});
+        });
       }
-
-      $(&apos;.policies-section&apos;).addClass(&apos;hide&apos;);
-      $(&apos;.identities-section&apos;).removeClass(&apos;hide&apos;);
-
-      _this.showMyIdentities(identityInfo.identities, toRemoveID).then((identity) =&gt; {
-        console.log(&apos;chosen identity: &apos;, identity);
-        resolve({type: &apos;identity&apos;, value: identity});
-      });
-
-      let callback = (value) =&gt; {
-        console.log(&apos;chosen identity: &apos;, value);
-        resolve({type: &apos;identity&apos;, value: value});
-      };
-
-      let idps = [];
-      let idpsObjects = identityInfo.idps;
-
-      idpsObjects.forEach(function(entry) {
-        idps.push(entry.domain);
-      });
-
-      $(&apos;#idproviders&apos;).html(_this._getList(idps));
-      $(&apos;#idproviders&apos;).off();
-      $(&apos;#idproviders&apos;).on(&apos;click&apos;, (event) =&gt; _this.obtainNewIdentity(event, callback, toRemoveID));
-      //$(&apos;.back&apos;).on(&apos;click&apos;, (event) =&gt; _this.goHome());
-      $(&apos;.identities-reset&apos;).off();
-      $(&apos;.identities-reset&apos;).on(&apos;click&apos;, (event) =&gt; _this._resetIdentities(callback));
     });
-
   }
 
   showMyIdentities(emails, toRemoveID) {
@@ -171,9 +249,9 @@ class IdentitiesGUI {
       // let identities = _this.identityModule.getIdentities();
       let identities = [];
 
-      for(let i in emails) {
+      for (let i in emails) {
         let domain = emails[i].split(&apos;@&apos;);
-        identities.push({email: emails[i], domain: domain[1]});
+        identities.push({ email: emails[i], domain: domain[1] });
       }
 
       let myIdentities = document.getElementById(&apos;my-ids&apos;);
@@ -194,9 +272,11 @@ class IdentitiesGUI {
       let callback = (identity) =&gt; {
         resolve(identity);
       };
+
       if (!toRemoveID) {
-        $(&apos;.clickable-cell&apos;).on(&apos;click&apos;, (event) =&gt; _this.changeID(callback));
+        $(&apos;.clickable-cell&apos;).on(&apos;click&apos;, (event) =&gt; _this.changeID(event, callback));
       }
+
       $(&apos;.remove-id&apos;).on(&apos;click&apos;, (event) =&gt; _this.removeID(emails));
 
     });
@@ -226,47 +306,53 @@ class IdentitiesGUI {
 
     td = document.createElement(&apos;td&apos;);
 
-    if(toRemoveID) {
+    if (toRemoveID) {
       let btn = document.createElement(&apos;button&apos;);
       btn.textContent = &apos;Remove&apos;;
       btn.className = &apos;remove-id waves-effect waves-light btn&apos;;
       td.appendChild(btn);
     }
+
     tr.appendChild(td);
 
     return tr;
   }
 
-  changeID(callback) {
+  changeID(event, callback) {
     let _this = this;
 
     let idToUse = event.target.innerText;
 
     //TODO improve later.
-    //prevents when the users selects an hyperty, exit the identity page and goes again to the identity page, from selecting &quot;settings&quot; button as identity.
-    if(idToUse !== &apos;settings&apos;) {
+    //prevents when the users selects an hyperty, exit the identity page and
+    //goes again to the identity page, from selecting &quot;settings&quot; button as identity.
+    if (idToUse !== &apos;settings&apos;) {
 
       callback(idToUse);
       return idToUse;
     }
   }
 
-  removeID(emails) {
+  removeID(event, emails) {
     let _this = this;
     let row = event.target.parentNode.parentNode;
     let idToRemove = row.children[0].textContent;
     let domain = row.children[1].textContent;
-    _this.identityModule.unregisterIdentity(idToRemove);
 
-    let numEmails = emails.length;
-    for (let i = 0; i &lt; numEmails; i++) {
-      if (emails[i].email === idToRemove) {
-        emails.splice(i, 1);
-        break;
+    _this.callIdentityModuleFunc(&apos;unregisterIdentity&apos;, { email: idToRemove }).then(() =&gt; {
+      let numEmails = emails.length;
+      for (let i = 0; i &lt; numEmails; i++) {
+        if (emails[i].email === idToRemove) {
+          emails.splice(i, 1);
+          break;
+        }
       }
-    }
-    // -------------------------------------------------------------------------//
-    _this.showMyIdentities(emails, true);
+
+      // -------------------------------------------------------------------------//
+      _this.showMyIdentities(emails, true);
+    });
+
+    //_this.identityModule.unregisterIdentity(idToRemove);
 
   }
 
@@ -275,30 +361,32 @@ class IdentitiesGUI {
     let idProvider = event.target.textContent;
     let idProvider2 = event.target.text;
 
-    _this.identityModule.crypto.generateRSAKeyPair().then(function(keyPair) {
-
+    _this.callIdentityModuleFunc(&apos;generateRSAKeyPair&apos;, {}).then((keyPair) =&gt; {
       let publicKey = btoa(keyPair.public);
 
-      _this.identityModule.sendGenerateMessage(publicKey, &apos;origin&apos;, undefined, idProvider).then((value) =&gt; {
+      _this.callIdentityModuleFunc(&apos;sendGenerateMessage&apos;,
+        { contents: publicKey, origin: &apos;origin&apos;, usernameHint: undefined,
+        idpDomain: idProvider, }).then((value) =&gt; {
         console.log(&apos;receivedURL: &apos; + value.loginUrl.substring(0, 20) + &apos;...&apos;);
 
         let url = value.loginUrl;
         let finalURL;
 
         //check if the receivedURL contains the redirect field and replace it
-        if(url.indexOf(&apos;redirect_uri&apos;) !== -1) {
+        if (url.indexOf(&apos;redirect_uri&apos;) !== -1) {
           let firstPart = url.substring(0, url.indexOf(&apos;redirect_uri&apos;));
           let secondAuxPart = url.substring(url.indexOf(&apos;redirect_uri&apos;), url.length);
 
           let secondPart = secondAuxPart.substring(secondAuxPart.indexOf(&apos;&amp;&apos;), url.length);
 
           //check if the reddirect field is the last field of the URL
-          if(secondPart.indexOf(&apos;&amp;&apos;) !== -1) {
+          if (secondPart.indexOf(&apos;&amp;&apos;) !== -1) {
             finalURL = firstPart + &apos;redirect_uri=&apos; + location.origin + secondPart;
           } else {
             finalURL = firstPart + &apos;redirect_uri=&apos; + location.origin;
           }
         }
+
         _this.resultURL = finalURL || url;
 
         $(&apos;.login-idp&apos;).html(&apos;&lt;p&gt;Chosen IDP: &apos; + idProvider + &apos;&lt;/p&gt;&apos;);
@@ -322,7 +410,7 @@ class IdentitiesGUI {
 
     for (let i = 0; i &lt; numItems; i++) {
       list += &apos;&lt;li class=&quot;divider&quot;&gt;&lt;/li&gt;&apos;;
-        list += &apos;&lt;li&gt;&lt;a class=&quot;center-align&quot;&gt;&apos; + items[i] + &apos;&lt;/a&gt;&lt;/li&gt;&apos;;
+      list += &apos;&lt;li&gt;&lt;a class=&quot;center-align&quot;&gt;&apos; + items[i] + &apos;&lt;/a&gt;&lt;/li&gt;&apos;;
     }
 
     return list;
@@ -334,13 +422,15 @@ class IdentitiesGUI {
 
     return new Promise((resolve, reject) =&gt; {
 
-      _this.identityModule.openPopup(url).then((identity) =&gt; {
+      _this.openPopup(url).then((identity) =&gt; {
 
-        _this.identityModule.sendGenerateMessage(publicKey, origin, identity, idProvider).then((result) =&gt; {
+        _this.callIdentityModuleFunc(&apos;sendGenerateMessage&apos;,
+          { contents: publicKey, origin: origin, usernameHint: identity, idpDomain: idProvider }).then((result) =&gt; {
 
           if (result) {
 
-           _this.identityModule.storeIdentity(result, keyPair).then((value) =&gt; {
+           //_this.identityModule.storeIdentity(result, keyPair).then((value) =&gt; {
+           _this.callIdentityModuleFunc(&apos;storeIdentity&apos;, {result: result, keyPair: keyPair}).then((value) =&gt; {
              resolve(value.userProfile.username);
            }, (err) =&gt; {
              reject(err);

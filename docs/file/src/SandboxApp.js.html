@@ -77,44 +77,48 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxType } from &apos;runtime-core/dist/sandbox&apos;
-import MiniBus from &apos;runtime-core/dist/minibus&apos;
+import { Sandbox, SandboxType } from &apos;runtime-core/dist/sandbox&apos;;
+import MiniBus from &apos;runtime-core/dist/minibus&apos;;
 
 /**
  * Proxy for the Application context
  * */
-export default class SandboxApp extends Sandbox{
-	constructor(){
-		super()
+export default class SandboxApp extends Sandbox {
+  constructor() {
+    super();
 
-		/**
+    /**
 		 * @type {runtime-core/dist/sandbox/SandboxType}
 		 */
-		this.type = SandboxType.NORMAL
-		window.addEventListener(&apos;message&apos;, function(e){
-			if(!this.origin){
-				/**
+    this.type = SandboxType.NORMAL;
+    window.addEventListener(&apos;message&apos;, function(e) {
+      if (!this.origin) {
+        /**
 				 * @type {Window}
 				 */
-				this.origin = e.source
-			}
+        this.origin = e.source;
+      }
 
-			if(e.data.hasOwnProperty(&apos;to&apos;) &amp;&amp; e.data.to.startsWith(&apos;core:&apos;))
-				return
+      if (typeof e.data === &apos;string&apos;) {
+        return;
+      }
 
-			this._onMessage(JSON.parse(JSON.stringify(e.data)))
-		}.bind(this))
+      if (e.data.hasOwnProperty(&apos;to&apos;) &amp;&amp; e.data.to.startsWith(&apos;core:&apos;)) { return; }
 
-		window.addEventListener(&apos;error&apos;, function(error){
-			console.error(&apos;[SANDBOX APP] - Error&apos;, error)
-			throw error
-		}.bind(this))
+      // this._onMessage(JSON.parse(JSON.stringify(e.data)));
+      this._onMessage(e.data);
+    }.bind(this));
 
-	}
+    window.addEventListener(&apos;error&apos;, function(error) {
+      console.error(&apos;[SANDBOX APP] - Error&apos;, error);
+      throw error;
+    }.bind(this));
 
-	_onPostMessage(msg){
-		this.origin.postMessage(JSON.parse(JSON.stringify(msg)), &apos;*&apos;)
-	}
+  }
+
+  _onPostMessage(msg) {
+    this.origin.postMessage(msg, &apos;*&apos;);
+  }
 }
 </code></pre>
 

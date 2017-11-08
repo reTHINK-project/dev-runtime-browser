@@ -147,13 +147,14 @@ class RuntimeCapabilities {
       navigator.mediaDevices.enumerateDevices()
       .then((devices) =&gt; {
         devices.forEach((device) =&gt; {
-          // console.log(device.kind, device.label, device.deviceId);
-          if (device.kind === &apos;audioinput&apos; &amp;&amp; device.deviceId === &apos;default&apos;) {
+          // console.log(&apos;Devices:&apos;, device.kind, device.label, device.deviceId);
+          if (device.kind === &apos;audioinput&apos;) {
             capability.mic = true;
           }
 
           if (device.kind === &apos;videoinput&apos;) {
             capability.camera = true;
+	    capability.windowSandbox = true;
           }
         });
         resolve(capability);
