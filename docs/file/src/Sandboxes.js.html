@@ -77,96 +77,100 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import { Sandbox, SandboxType } from &apos;runtime-core/dist/sandbox&apos;
-import MiniBus from &apos;runtime-core/dist/minibus&apos;
-import RuntimeFactory from &apos;./RuntimeFactory&apos;
+import { Sandbox, SandboxType } from &apos;runtime-core/dist/sandbox&apos;;
+import MiniBus from &apos;runtime-core/dist/minibus&apos;;
+import RuntimeFactory from &apos;./RuntimeFactory&apos;;
 
 /**
  * Proxy for a WebWorker
  * */
-export class SandboxWorker extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
-			.then(capabilities =&gt;Object.assign(capabilities, { mic:false, camera:false }))
-	}
+export class SandboxWorker extends Sandbox {
+  static capabilities() {
+    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+      .then(capabilities =&gt;Object.assign(capabilities, { mic: false, camera: false, windowSandbox: false }));
+  }
 
-	static new() {
-		return new SandboxWorker(&apos;./context-service.js&apos;)
-	}
+  static new(capabilities) {
+    return new SandboxWorker(capabilities, &apos;./context-service.js&apos;);
+  }
 
-	/**
+  /**
 	 * @param {string} script - Script that will be loaded in the web worker
 	 */
-	constructor(script){
-		super(script)
+  constructor(capabilities, script) {
+    super(capabilities);
 
-		/**
+    /**
 		 * @type {runtime-core/dist/sandbox/SandboxType}
 		 */
-		this.type = SandboxType.NORMAL
-		if(Worker){
-			this._worker = new Worker(script)
-			this._worker.addEventListener(&apos;message&apos;, function(e){
-				this._onMessage(JSON.parse(JSON.stringify(e.data)))
-			}.bind(this))
+    this.type = SandboxType.NORMAL;
+    if (Worker) {
+      this._worker = new Worker(script);
+      this._worker.addEventListener(&apos;message&apos;, function(e) {
+        this._onMessage(e.data);
+      }.bind(this));
 
-			this._worker.addEventListener(&apos;error&apos;, function(error){
-				console.log(&apos;[Sandbox Worker] - Error: &apos;, error)
-				throw JSON.stringify(error)
-			}.bind(this))
+      this._worker.addEventListener(&apos;error&apos;, function(error) {
+        console.log(&apos;[Sandbox Worker] - Error: &apos;, error);
+        throw JSON.stringify(error);
+      }.bind(this));
 
-			this._worker.postMessage(&apos;&apos;)
-		}else{
-			throw new Error(&apos;Your environment does not support worker \n&apos;)
-		}
-	}
+      this._worker.postMessage(&apos;&apos;);
+    } else {
+      throw new Error(&apos;Your environment does not support worker \n&apos;);
+    }
+  }
 
-	_onPostMessage(msg){
-		this._worker.postMessage(JSON.parse(JSON.stringify(msg)))
-	}
+  _onPostMessage(msg) {
+    this._worker.postMessage(msg);
+  }
 }
 
-export class SandboxWindow extends Sandbox{
-	static capabilities() {
-		return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
-	}
+export class SandboxWindow extends Sandbox {
+  static capabilities() {
+    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities();
+  }
 
-	static new() {
-		return new SandboxWindow()
-	}
+  static new(capabilities) {
+    return new SandboxWindow(capabilities);
+  }
 
-	constructor(){
-		super()
+  constructor(capabilities) {
+    super(capabilities);
 
-		this.type = SandboxType.NORMAL
-		this.channel = new MessageChannel()
+    this.type = SandboxType.WINDOW;
+    this.channel = new MessageChannel();
 
-		this.channel.port1.onmessage = function(e){
-			this._onMessage(JSON.parse(JSON.stringify(e.data)))
-		}.bind(this)
+    this.channel.port1.onmessage = function(e) {
+      this._onMessage(e.data);
+    }.bind(this);
 
-		parent.postMessage({ to:&apos;runtime:createSandboxWindow&apos; }, &apos;*&apos;, [this.channel.port2])
-	}
+    parent.postMessage({ to: &apos;runtime:createSandboxWindow&apos; }, &apos;*&apos;, [this.channel.port2]);
+  }
 
-	_onPostMessage(msg){
-		this.channel.port1.postMessage(JSON.parse(JSON.stringify(msg)))
-	}
+  _onPostMessage(msg) {
+    this.channel.port1.postMessage(msg);
+  }
 }
 
 export function createSandbox(constraints) {
-	const sandboxes = [SandboxWorker, SandboxWindow]
-	let diff = (a, b) =&gt; Object.keys(a).filter(x =&gt; a[x]!==b[x])
+  const sandboxes = [SandboxWorker, SandboxWindow];
+  let diff = (a, b) =&gt; Object.keys(a).filter(x =&gt; a[x] !== b[x]);
 
-	return Promise.all(sandboxes.map(s =&gt; s.capabilities().then(c=&gt;{return {capabilities:c, sandbox:s}})))
-		.then(sbs =&gt; {
-			let i = 0
-			while(i&lt;sbs.length) {
-				if(diff(constraints, sbs[i].capabilities).length === 0)
-					return sbs[i].sandbox.new()
-				i++
-			}
-			throw new Error(&apos;None of supported sandboxes match your constraints&apos;)
-		})
+  return Promise.all(sandboxes.map(s =&gt; s.capabilities().then(c=&gt;{ return {capabilities: c, sandbox: s}; })))
+    .then(sbs =&gt; {
+      let i = 0;
+      while (i &lt; sbs.length) {
+        if (diff(constraints, sbs[i].capabilities).length === 0) {
+          let capabilities = sbs[i].capabilities;
+          let sandbox = sbs[i].sandbox.new(capabilities);
+          return sandbox;
+        }
+
+        i++;
+      }
+      throw new Error(&apos;None of supported sandboxes match your constraints&apos;);
+    });
 }
 </code></pre>
 

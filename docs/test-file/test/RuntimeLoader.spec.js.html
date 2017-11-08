@@ -63,10 +63,15 @@ let expect = chai.expect
 describe(&apos;Service framework&apos;, function(){
 
     describe(&apos;Require Hyperty&apos;, function(){
-        xit(&apos;should returns required hyperty&apos;, function(done){
-            let runtime = rethink.install({domain:&apos;hybroker.rethink.ptinovacao.pt&apos;, development: true})
+        it(&apos;should returns required hyperty&apos;, function(done){
+            let runtime = rethink.install({
+              domain:&apos;localhost&apos;,
+              runtimeURL: &apos;https://catalogue.localhost/.well-known/runtime/Runtime&apos;,
+              development: true})
                 .then(function(runtime){
-                    let hyperty = runtime.requireHyperty(&apos;aaa&apos;)
+
+                    let hyURL = &apos;https://localhost/.well-known/hyperty/Connector&apos;;
+                    let hyperty = runtime.requireHyperty(hyURL);
 
                     expect(hyperty).to.not.be.undefined;
                     done()

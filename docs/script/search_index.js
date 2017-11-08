@@ -624,6 +624,12 @@ window.esdocSearchIndex = [
     "test"
   ],
   [
+    "",
+    "test-file/test/RuntimeLoader.spec.js.html#lineNumber9",
+    "Service framework should returns required hyperty",
+    "test"
+  ],
+  [
     "src/contextapp.js",
     "file/src/ContextApp.js.html",
     "src/ContextApp.js",
@@ -840,6 +846,12 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/admin/identitiesgui.js~identitiesgui#callidentitymodulefunc",
+    "class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html#instance-method-callIdentityModuleFunc",
+    "src/admin/IdentitiesGUI.js~IdentitiesGUI#callIdentityModuleFunc",
+    "method"
+  ],
+  [
     "src/admin/identitiesgui.js~identitiesgui#changeid",
     "class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html#instance-method-changeID",
     "src/admin/IdentitiesGUI.js~IdentitiesGUI#changeID",
@@ -867,6 +879,12 @@ window.esdocSearchIndex = [
     "src/admin/identitiesgui.js~identitiesgui#obtainnewidentity",
     "class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html#instance-method-obtainNewIdentity",
     "src/admin/IdentitiesGUI.js~IdentitiesGUI#obtainNewIdentity",
+    "method"
+  ],
+  [
+    "src/admin/identitiesgui.js~identitiesgui#openpopup",
+    "class/src/admin/IdentitiesGUI.js~IdentitiesGUI.html#instance-method-openPopup",
+    "src/admin/IdentitiesGUI.js~IdentitiesGUI#openPopup",
     "method"
   ],
   [
@@ -900,16 +918,10 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/admin/policiesgui.js~policiesgui#elements",
-    "class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-member-elements",
-    "src/admin/PoliciesGUI.js~PoliciesGUI#elements",
-    "member"
-  ],
-  [
-    "src/admin/policiesgui.js~policiesgui#policiesmanager",
-    "class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-member-policiesManager",
-    "src/admin/PoliciesGUI.js~PoliciesGUI#policiesManager",
-    "member"
+    "src/admin/policiesgui.js~policiesgui#prepareattributes",
+    "class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-method-prepareAttributes",
+    "src/admin/PoliciesGUI.js~PoliciesGUI#prepareAttributes",
+    "method"
   ],
   [
     "src/admin/policiesmanager.js",
@@ -930,10 +942,10 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/admin/policiesmanager.js~policiesmanager#addition",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-member-addition",
-    "src/admin/PoliciesManager.js~PoliciesManager#addition",
-    "member"
+    "src/admin/policiesmanager.js~policiesmanager#callpolicyenginefunc",
+    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-callPolicyEngineFunc",
+    "src/admin/PoliciesManager.js~PoliciesManager#callPolicyEngineFunc",
+    "method"
   ],
   [
     "src/admin/policiesmanager.js~policiesmanager#constructor",
@@ -990,12 +1002,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/admin/policiesmanager.js~policiesmanager#getgroup",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-getGroup",
-    "src/admin/PoliciesManager.js~PoliciesManager#getGroup",
-    "method"
-  ],
-  [
     "src/admin/policiesmanager.js~policiesmanager#getgroups",
     "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-getGroups",
     "src/admin/PoliciesManager.js~PoliciesManager#getGroups",
@@ -1005,12 +1011,6 @@ window.esdocSearchIndex = [
     "src/admin/policiesmanager.js~policiesmanager#getgroupsnames",
     "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-getGroupsNames",
     "src/admin/PoliciesManager.js~PoliciesManager#getGroupsNames",
-    "method"
-  ],
-  [
-    "src/admin/policiesmanager.js~policiesmanager#getinfo",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-getInfo",
-    "src/admin/PoliciesManager.js~PoliciesManager#getInfo",
     "method"
   ],
   [
@@ -1110,16 +1110,10 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/admin/policiesmanager.js~policiesmanager#policies",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-member-policies",
-    "src/admin/PoliciesManager.js~PoliciesManager#policies",
-    "member"
-  ],
-  [
-    "src/admin/policiesmanager.js~policiesmanager#policyengine",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-member-policyEngine",
-    "src/admin/PoliciesManager.js~PoliciesManager#policyEngine",
-    "member"
+    "src/admin/policiesmanager.js~policiesmanager#prepareattributes",
+    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-prepareAttributes",
+    "src/admin/PoliciesManager.js~PoliciesManager#prepareAttributes",
+    "method"
   ],
   [
     "src/admin/policiesmanager.js~policiesmanager#removefromgroup",
@@ -1162,18 +1156,6 @@ window.esdocSearchIndex = [
     "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-method-updatePolicy",
     "src/admin/PoliciesManager.js~PoliciesManager#updatePolicy",
     "method"
-  ],
-  [
-    "src/admin/policiesmanager.js~policiesmanager#validation",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-member-validation",
-    "src/admin/PoliciesManager.js~PoliciesManager#validation",
-    "member"
-  ],
-  [
-    "src/admin/policiesmanager.js~policiesmanager#variables",
-    "class/src/admin/PoliciesManager.js~PoliciesManager.html#instance-member-variables",
-    "src/admin/PoliciesManager.js~PoliciesManager#variables",
-    "member"
   ],
   [
     "src/core.js",

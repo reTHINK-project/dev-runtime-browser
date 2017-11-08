@@ -25,11 +25,11 @@
  * @external {MSG_STATUS} https://github.com/reTHINK-project/core-framework/tree/master/docs/specs/service-framework
  */
 
-import app from './ContextApp'
-import URI from 'urijs'
-import { create as createIframe } from './iframe'
+import app from './ContextApp';
+import URI from 'urijs';
+import { create as createIframe } from './iframe';
 
-let iframe = undefined
+let iframe = undefined;
 
 /**
  * @typedef {Object} Hyperty
@@ -39,13 +39,13 @@ let iframe = undefined
  * @property {string} name - Hyperty name
  */
 let buildMsg = (hypertyComponent, msg) => {
-	return {
-		runtimeHypertyURL: msg.body.runtimeHypertyURL,
-		status: msg.body.status,
-		instance: hypertyComponent.instance,
-		name: hypertyComponent.name
-	}
-}
+  return {
+    runtimeHypertyURL: msg.body.runtimeHypertyURL,
+    status: msg.body.status,
+    instance: hypertyComponent.instance,
+    name: hypertyComponent.name
+  };
+};
 
 /**
  * @typedef {Object} RuntimeAdapter
@@ -54,107 +54,107 @@ let buildMsg = (hypertyComponent, msg) => {
  * @property {function(): Promise} close - Unloads and closes the installed runtime
  */
 let runtimeAdapter = {
-	requireHyperty: (hypertyDescriptor, reuseAddress = false)=>{
-		return new Promise((resolve, reject)=>{
-			let loaded = (e)=>{
-				if(e.data.to === 'runtime:loadedHyperty'){
-					window.removeEventListener('message', loaded)
-					resolve(buildMsg(app.getHyperty(e.data.body.runtimeHypertyURL), e.data))
-				}
-			}
-			window.addEventListener('message', loaded)
-			iframe.contentWindow.postMessage({to:'core:loadHyperty', body:{descriptor: hypertyDescriptor, reuseAddress}}, '*')
-		})
-	},
+  requireHyperty: (hypertyDescriptor, reuseAddress = false)=>{
+    return new Promise((resolve, reject)=>{
+      let loaded = (e)=>{
+        if (e.data.to === 'runtime:loadedHyperty') {
+          window.removeEventListener('message', loaded);
+          resolve(buildMsg(app.getHyperty(e.data.body.runtimeHypertyURL), e.data));
+        }
+      };
+      window.addEventListener('message', loaded);
+      iframe.contentWindow.postMessage({to: 'core:loadHyperty', body: {descriptor: hypertyDescriptor, reuseAddress}}, '*');
+    });
+  },
 
-	requireProtostub: (domain)=>{
-		iframe.contentWindow.postMessage({to:'core:loadStub', body:{'domain': domain}}, '*')
-	},
+  requireProtostub: (domain)=>{
+    iframe.contentWindow.postMessage({to: 'core:loadStub', body: {domain: domain}}, '*');
+  },
 
-	close: ()=>{
-		return new Promise((resolve, reject)=>{
-			let loaded = (e)=>{
-				if(e.data.to === 'runtime:runtimeClosed'){
-					window.removeEventListener('message', loaded)
-					resolve(resolve(e.data.body))
-				}
-			}
-			window.addEventListener('message', loaded)
-			iframe.contentWindow.postMessage({to:'core:close', body:{}}, '*')
-		})
-	},
-}
+  close: ()=>{
+    return new Promise((resolve, reject)=>{
+      let loaded = (e)=>{
+        if (e.data.to === 'runtime:runtimeClosed') {
+          window.removeEventListener('message', loaded);
+          resolve(resolve(e.data.body));
+        }
+      };
+      window.addEventListener('message', loaded);
+      iframe.contentWindow.postMessage({to: 'core:close', body: {}}, '*');
+    });
+  }
+};
 
-let GuiManager = function(){
-	window.addEventListener('message', (e) => {
-		if(e.data.to === 'runtime:gui-manager') {
+let GuiManager = function() {
+  window.addEventListener('message', (e) => {
+    if (e.data.to === 'runtime:gui-manager') {
 
-			if (e.data.body.method === 'showAdminPage') {
-				iframe.style.width = '100%'
-				iframe.style.height = '100%'
-			} else {
-				if (e.data.body.method === 'hideAdminPage') {
-					iframe.style.width = '40px'
-					iframe.style.height = '40px'
-				}
-			}
+      if (e.data.body.method === 'showAdminPage') {
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+      } else {
+        if (e.data.body.method === 'hideAdminPage') {
+          iframe.style.width = '40px';
+          iframe.style.height = '40px';
+        }
+      }
 
-		}
-	})
-}
+    }
+  });
+};
 
 /**
  * @typedef {Object} RuntimeUA
  * @property {function(Runtime domain: string, Runtime url: string, Development mode: boolean): Promise<RuntimeAdapter>} install - Installs a runtime locally
  */
 let RethinkBrowser = {
-	install: function({domain, runtimeURL, development, indexURL, sandboxURL}={}){
-		console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
-		return new Promise((resolve, reject)=>{
-			let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL)
-			iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`)
-			let installed = (e)=>{
-				if(e.data.to === 'runtime:installed'){
-					window.removeEventListener('message', installed)
-					resolve(runtimeAdapter)
-				}
-			}
-			window.addEventListener('message', installed)
-			window.addEventListener('message', (e) => {
-				if(e.data.to && e.data.to === 'runtime:createSandboxWindow'){
-					const ifr = createIframe(runtime.sandboxURL)
-					ifr.addEventListener('load', () => {
-						ifr.contentWindow.postMessage(e.data, '*', e.ports)
-					}, false)
-				}
-			})
-			app.create(iframe)
-			GuiManager()
-		})
-	},
+  install: function({domain, runtimeURL, development, indexURL, sandboxURL} = {}) {
+    console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
+    return new Promise((resolve, reject)=>{
+      let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL);
+      iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`);
+      let installed = (e)=>{
+        if (e.data.to === 'runtime:installed') {
+          window.removeEventListener('message', installed);
+          resolve(runtimeAdapter);
+        }
+      };
+      window.addEventListener('message', installed);
+      window.addEventListener('message', (e) => {
+        if (e.data.to && e.data.to === 'runtime:createSandboxWindow') {
+          const ifr = createIframe(runtime.sandboxURL);
+          ifr.addEventListener('load', () => {
+            ifr.contentWindow.postMessage(e.data, '*', e.ports);
+          }, false);
+        }
+      });
+      app.create(iframe);
+      GuiManager();
+    });
+  },
 
-	_getRuntime (runtimeURL, domain, development, indexURL, sandboxURL) {
-		if(!!development){
-			runtimeURL = runtimeURL || 'hyperty-catalogue://catalogue.' + domain + '/.well-known/runtime/Runtime'
-			domain = domain || new URI(runtimeURL).host()
-			indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
-			sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
-		}else{
-			runtimeURL = runtimeURL || `https://catalogue.${domain}/.well-known/runtime/default`
-			domain = domain || new URI(runtimeURL).host().replace('catalogue.', '')
-			indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
-			sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
-		}
+  _getRuntime(runtimeURL, domain, development, indexURL, sandboxURL) {
+    if (!!development) {
+      runtimeURL = runtimeURL || 'hyperty-catalogue://catalogue.' + domain + '/.well-known/runtime/Runtime';
+      domain = domain || new URI(runtimeURL).host();
+      indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
+      sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
+    } else {
+      runtimeURL = runtimeURL || `https://catalogue.${domain}/.well-known/runtime/default`;
+      domain = domain || new URI(runtimeURL).host().replace('catalogue.', '');
+      indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
+      sandboxURL = sandboxURL || 'https://' + domain + '/.well-known/runtime/sandbox.html';
+    }
 
-		console.info('get Runtime: ', runtimeURL, domain, indexURL, sandboxURL);
+    console.info('get Runtime: ', runtimeURL, domain, indexURL, sandboxURL);
 
-		return {
-			url: runtimeURL,
-			domain: domain,
-			indexURL: indexURL,
-			sandboxURL: sandboxURL
-		}
-	}
-}
+    return {
+      url: runtimeURL,
+      domain: domain,
+      indexURL: indexURL,
+      sandboxURL: sandboxURL
+    };
+  }
+};
 
-export default RethinkBrowser
+export default RethinkBrowser;

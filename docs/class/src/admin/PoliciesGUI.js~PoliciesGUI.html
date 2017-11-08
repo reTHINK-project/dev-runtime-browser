@@ -112,7 +112,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(policyEngine: <span>*</span>)</span>
+          <span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(pepGuiURL: <span>*</span>, pepURL: <span>*</span>, messageBus: <span>*</span>)</span>
         </p>
       </div>
       <div>
@@ -129,8 +129,9 @@
 </tbody>
 </table>
 </div>
-<div data-ice="memberSummary"><h2>Member Summary</h2><table class="summary" data-ice="summary">
-  <thead><tr><td data-ice="title" colspan="3">Public Members</td></tr></thead>
+
+<div data-ice="methodSummary"><h2>Method Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Methods</td></tr></thead>
   <tbody>
   
   <tr data-ice="target">
@@ -146,34 +147,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-member-elements">elements</a></span></span><span data-ice="signature">: <span>*</span></span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          <span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-member-policiesManager">policiesManager</a></span></span><span data-ice="signature">: <span>*</span></span>
+          <span data-ice="name"><span><a href="class/src/admin/PoliciesGUI.js~PoliciesGUI.html#instance-method-prepareAttributes">prepareAttributes</a></span></span><span data-ice="signature">(): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -195,7 +169,6 @@
 
 
 
-
 <div data-ice="constructorDetails"><h2 data-ice="title">Public Constructors</h2>
 
 <div class="detail" data-ice="detail">
@@ -206,7 +179,7 @@
     
     
     
-    <span data-ice="name">constructor</span><span data-ice="signature">(policyEngine: <span>*</span>)</span>
+    <span data-ice="name">constructor</span><span data-ice="signature">(pepGuiURL: <span>*</span>, pepURL: <span>*</span>, messageBus: <span>*</span>)</span>
     <span class="right-info">
       
       
@@ -230,7 +203,19 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">policyEngine</td>
+      <td data-ice="name" data-depth="0">pepGuiURL</td>
+      <td data-ice="type"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">pepURL</td>
+      <td data-ice="type"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">messageBus</td>
       <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
@@ -258,21 +243,22 @@
   
 </div>
 </div>
-<div data-ice="memberDetails"><h2 data-ice="title">Public Members</h2>
+
+<div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-member-elements">
+  <h3 data-ice="anchor" id="instance-method-prepareAttributes">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span data-ice="name">elements</span><span data-ice="signature">: <span>*</span></span>
+    <span data-ice="name">prepareAttributes</span><span data-ice="signature">(): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/admin/PoliciesGUI.js.html#lineNumber8">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/admin/PoliciesGUI.js.html#lineNumber11">source</a></span></span>
     </span>
   </h3>
 
@@ -286,50 +272,19 @@
   <div data-ice="properties">
 </div>
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
 </div>
-<div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-member-policiesManager">
-    <span class="access" data-ice="access">public</span>
-    
-    
-    
-    
-    
-    <span data-ice="name">policiesManager</span><span data-ice="signature">: <span>*</span></span>
-    <span class="right-info">
-      
-      
-      <span data-ice="source"><span><a href="file/src/admin/PoliciesGUI.js.html#lineNumber7">source</a></span></span>
-    </span>
-  </h3>
-
-  
-  
-  
-  
-
-  
-
-  <div data-ice="properties">
-</div>
-
-  
+  </div>
 
   
 
@@ -347,7 +302,6 @@
   
 </div>
 </div>
-
 </div>
 
 <footer class="footer">

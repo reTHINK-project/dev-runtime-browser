@@ -107,6 +107,7 @@ function searchHyperty(runtime, descriptor){
 
 let parameters = new URI(window.location).search(true)
 let runtimeURL = parameters.runtime
+let domain = parameters.domain
 let development = parameters.development === &apos;true&apos;
 let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
 let runtimeDescriptor;
@@ -117,50 +118,60 @@ catalogue.getRuntimeDescriptor(runtimeURL)
         if (sourcePackageURL === &apos;/sourcePackage&apos;) {
             return descriptor.sourcePackage;
         }
+        return catalogue.getSourcePackageFromURL(sourcePackageURL);
+    })
+    .then(function(sourcePackage) {
+        eval.apply(window,[sourcePackage.sourceCode]);
 
-		return catalogue.getSourcePackageFromURL(sourcePackageURL)
-	})
-.then(function(sourcePackage){
-	eval.apply(window,[sourcePackage.sourceCode])
+        //let runtime = new Runtime(RuntimeFactory, window.location.host);
+        if (!domain) domain = window.location.host;
+        let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, domain);
+        window.runtime = runtime;
+        runtime.init().then( function(result){
 
-	let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, window.location.host);
-	window.runtime = runtime;
-	runtime.init().then( function(result){
-	  new PoliciesGUI(runtime.policyEngine);
-	  let identitiesGUI = new IdentitiesGUI(runtime.identityModule);
+            // TIAGO
+            if (!runtime.policyEngine) throw Error(&apos;Policy Engine is not set!&apos;);
+            let pepGuiURL = runtime.policyEngine.context.guiURL;
+            let pepURL = runtime.policyEngine.context.pepURL;
+            let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
 
-	  window.addEventListener(&apos;message&apos;, function(event){
-		  if(event.data.to===&apos;core:loadHyperty&apos;){
-			  let descriptor = event.data.body.descriptor;
-			  let reuseAddress = event.data.body.reuseAddress
-			  let hyperty = searchHyperty(runtime, descriptor);
+            pepGUI.prepareAttributes().then(() =&gt; {
+                let idmGuiURL = runtime.identityModule._runtimeURL + &apos;/identity-gui&apos;;
+                let idmURL = runtime.identityModule._runtimeURL + &apos;/idm&apos;;
+                let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
 
-			  if(hyperty){
-				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
-			  }else{
-				  runtime.loadHyperty(descriptor, reuseAddress)
-					  .then(returnHyperty.bind(null, event.source));
-			  }
-		  }else if(event.data.to===&apos;core:loadStub&apos;){
-			  runtime.loadStub(event.data.body.domain).then((result) =&gt; {
-				console.log(&apos;Stub Loaded: &apos;, result);
-			  }).catch((error) =&gt; {
-				console.error(&apos;Stub error:&apos;, error);
-			  })
-		  }else if(event.data.to===&apos;core:close&apos;){
-			  runtime.close()
-				  .then(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: true}, &apos;*&apos;))
-				  .catch(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: false}, &apos;*&apos;))
-		  }
+                window.addEventListener(&apos;message&apos;, function(event){
+                if(event.data.to===&apos;core:loadHyperty&apos;){
+                    let descriptor = event.data.body.descriptor;
+                    let reuseAddress = event.data.body.reuseAddress;
+                    let hyperty = searchHyperty(runtime, descriptor);
 
-	  }, false);
-	  window.addEventListener(&apos;beforeunload&apos;, (e) =&gt; {
-		  runtime.close()
-	  })
-	  parent.postMessage({to:&apos;runtime:installed&apos;, body:{}}, &apos;*&apos;);
-	  console.log(&apos;AFTER PARENT&apos;);
-	});
-});
+    			  if(hyperty){
+    				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+    			  }else{
+    				  runtime.loadHyperty(descriptor, reuseAddress)
+    					  .then(returnHyperty.bind(null, event.source));
+    			  }
+    		  }else if(event.data.to===&apos;core:loadStub&apos;){
+    			  runtime.loadStub(event.data.body.domain).then((result) =&gt; {
+    				console.log(&apos;Stub Loaded: &apos;, result);
+    			  }).catch((error) =&gt; {
+    				console.error(&apos;Stub error:&apos;, error);
+    			  })
+    		  }else if(event.data.to===&apos;core:close&apos;){
+    			  runtime.close()
+    				  .then(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: true}, &apos;*&apos;))
+    				  .catch(event.source.postMessage({to: &apos;runtime:runtimeClosed&apos;, body: false}, &apos;*&apos;))
+    		  }
+
+            }, false);
+            window.addEventListener(&apos;beforeunload&apos;, (e) =&gt; {
+                runtime.close()
+            });
+            parent.postMessage({to:&apos;runtime:installed&apos;, body:{}}, &apos;*&apos;);
+            });
+        });
+    });
 </code></pre>
 
 </div>
