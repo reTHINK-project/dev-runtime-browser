@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rethink = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// version: 0.10.0
-// date: Wed Nov 08 2017 12:28:40 GMT+0000 (WET)
+// version: 0.10.1
+// date: Thu Nov 16 2017 15:27:09 GMT+0000 (WET)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -26,8 +26,8 @@
 **/
 
 
-// version: 0.10.0
-// date: Wed Nov 08 2017 12:28:40 GMT+0000 (WET)
+// version: 0.10.1
+// date: Thu Nov 16 2017 15:27:10 GMT+0000 (WET)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -510,14 +510,14 @@ return void 0===u.levels[t]&&(t=void 0),t}}var i,u=this,c="loglevel";t&&(c+=":"+
        * Public logger API - see https://github.com/pimterry/loglevel for details
        *
        */
-u.levels={TRACE:0,DEBUG:1,INFO:2,WARN:3,ERROR:4,SILENT:5},u.methodFactory=o||defaultMethodFactory,u.getLevel=function(){return i},u.setLevel=function(n,r){if("string"==typeof n&&void 0!==u.levels[n.toUpperCase()]&&(n=u.levels[n.toUpperCase()]),!("number"==typeof n&&n>=0&&n<=u.levels.SILENT))throw"log.setLevel() called with invalid level: "+n;if(i=n,!1!==r&&// defaults to true
+u.name=t,u.levels={TRACE:0,DEBUG:1,INFO:2,WARN:3,ERROR:4,SILENT:5},u.methodFactory=o||defaultMethodFactory,u.getLevel=function(){return i},u.setLevel=function(n,r){if("string"==typeof n&&void 0!==u.levels[n.toUpperCase()]&&(n=u.levels[n.toUpperCase()]),!("number"==typeof n&&n>=0&&n<=u.levels.SILENT))throw"log.setLevel() called with invalid level: "+n;if(i=n,!1!==r&&// defaults to true
 persistLevelIfPossible(n),replaceLoggingMethods.call(u,n,t),typeof console===e&&n<u.levels.SILENT)return"No console available for logging"},u.setDefaultLevel=function(t){getPersistedLevel()||u.setLevel(t,!1)},u.enableAll=function(t){u.setLevel(u.levels.TRACE,t)},u.disableAll=function(t){u.setLevel(u.levels.SILENT,t)};
 // Initialize with the right level
 var s=getPersistedLevel();null==s&&(s=null==r?"WARN":r),u.setLevel(s,!1)}
 // Slightly dubious tricks to cut down minimized file size
 var t=function(){},e="undefined",n=["trace","debug","info","warn","error"],r=new Logger,o={};r.getLogger=function(t){if("string"!=typeof t||""===t)throw new TypeError("You must supply a name when creating a logger.");var e=o[t];return e||(e=o[t]=new Logger(t,r.getLevel(),r.methodFactory)),e};
 // Grab the current global log variable in case of overwrite
-var i=typeof window!==e?window.log:void 0;return r.noConflict=function(){return typeof window!==e&&window.log===r&&(window.log=i),r},r})},/* 87 */
+var i=typeof window!==e?window.log:void 0;return r.noConflict=function(){return typeof window!==e&&window.log===r&&(window.log=i),r},r.getLoggers=function(){return o},r})},/* 87 */
 /***/
 function(t,e,n){n(88),t.exports=n(0).Object.getPrototypeOf},/* 88 */
 /***/
@@ -744,8 +744,8 @@ function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});va
                                      **/
 t.exports=e.default}])});
 },{}],2:[function(require,module,exports){
-// version: 0.10.0
-// date: Wed Nov 08 2017 12:28:40 GMT+0000 (WET)
+// version: 0.10.1
+// date: Thu Nov 16 2017 15:27:09 GMT+0000 (WET)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -771,8 +771,8 @@ t.exports=e.default}])});
 **/
 
 
-// version: 0.10.0
-// date: Wed Nov 08 2017 12:28:40 GMT+0000 (WET)
+// version: 0.10.1
+// date: Thu Nov 16 2017 15:27:10 GMT+0000 (WET)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -1255,14 +1255,14 @@ return void 0===u.levels[e]&&(e=void 0),e}}var i,u=this,s="loglevel";e&&(s+=":"+
        * Public logger API - see https://github.com/pimterry/loglevel for details
        *
        */
-u.levels={TRACE:0,DEBUG:1,INFO:2,WARN:3,ERROR:4,SILENT:5},u.methodFactory=o||defaultMethodFactory,u.getLevel=function(){return i},u.setLevel=function(n,r){if("string"==typeof n&&void 0!==u.levels[n.toUpperCase()]&&(n=u.levels[n.toUpperCase()]),!("number"==typeof n&&n>=0&&n<=u.levels.SILENT))throw"log.setLevel() called with invalid level: "+n;if(i=n,!1!==r&&// defaults to true
+u.name=e,u.levels={TRACE:0,DEBUG:1,INFO:2,WARN:3,ERROR:4,SILENT:5},u.methodFactory=o||defaultMethodFactory,u.getLevel=function(){return i},u.setLevel=function(n,r){if("string"==typeof n&&void 0!==u.levels[n.toUpperCase()]&&(n=u.levels[n.toUpperCase()]),!("number"==typeof n&&n>=0&&n<=u.levels.SILENT))throw"log.setLevel() called with invalid level: "+n;if(i=n,!1!==r&&// defaults to true
 persistLevelIfPossible(n),replaceLoggingMethods.call(u,n,e),typeof console===t&&n<u.levels.SILENT)return"No console available for logging"},u.setDefaultLevel=function(e){getPersistedLevel()||u.setLevel(e,!1)},u.enableAll=function(e){u.setLevel(u.levels.TRACE,e)},u.disableAll=function(e){u.setLevel(u.levels.SILENT,e)};
 // Initialize with the right level
 var c=getPersistedLevel();null==c&&(c=null==r?"WARN":r),u.setLevel(c,!1)}
 // Slightly dubious tricks to cut down minimized file size
 var e=function(){},t="undefined",n=["trace","debug","info","warn","error"],r=new Logger,o={};r.getLogger=function(e){if("string"!=typeof e||""===e)throw new TypeError("You must supply a name when creating a logger.");var t=o[e];return t||(t=o[e]=new Logger(e,r.getLevel(),r.methodFactory)),t};
 // Grab the current global log variable in case of overwrite
-var i=typeof window!==t?window.log:void 0;return r.noConflict=function(){return typeof window!==t&&window.log===r&&(window.log=i),r},r})},/* 87 */
+var i=typeof window!==t?window.log:void 0;return r.noConflict=function(){return typeof window!==t&&window.log===r&&(window.log=i),r},r.getLoggers=function(){return o},r})},/* 87 */
 /***/
 function(e,t,n){n(88),e.exports=n(0).Object.getPrototypeOf},/* 88 */
 /***/
