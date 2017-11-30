@@ -103,7 +103,7 @@ function bundle(file_name, bundle_name, dest) {
       .pipe(source(bundle_name + '.js'))
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}))
-      .pipe(uglify())
+      // .pipe(uglify())
       .pipe(sourcemaps.write('./'))
       .pipe(replace('{{version}}', pkg.version))
       .pipe(gulp.dest(dest));

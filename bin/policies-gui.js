@@ -1,2 +1,1275 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var i;i="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,i.policiesGui=e()}}(function(){return function e(i,t,n){function o(a,l){if(!t[a]){if(!i[a]){var c="function"==typeof require&&require;if(!l&&c)return c(a,!0);if(r)return r(a,!0);var s=new Error("Cannot find module '"+a+"'");throw s.code="MODULE_NOT_FOUND",s}var u=t[a]={exports:{}};i[a][0].call(u.exports,function(e){var t=i[a][1][e];return o(t?t:e)},u,u.exports,e,i,t,n)}return t[a].exports}for(var r="function"==typeof require&&require,a=0;a<n.length;a++)o(n[a]);return o}({1:[function(e,i,t){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function o(e,i){if(!(e instanceof i))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,i){for(var t=0;t<i.length;t++){var n=i[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(i,t,n){return t&&e(i.prototype,t),n&&e(i,n),i}}(),a=e("./PoliciesManager"),l=n(a),c=function(){function e(i,t,n){o(this,e);var r=this;r.policiesManager=new l["default"](i,t,n)}return r(e,[{key:"prepareAttributes",value:function(){var e=this;return new Promise(function(i,t){e.policiesManager.prepareAttributes().then(function(){e.elements=e._setElements(),e._setListeners(),i()})})}},{key:"_addMember",value:function(){var e=this,i=event.target.id;$(".member-new-intro").html('<h5>Add a member to a group</h5><p>Insert a user email below to add to the "'+i+'" group.</p>'),$(".member-new-modal").openModal(),$(".member-new-ok").off(),$(".member-new-ok").on("click",function(t){var n=$("#member-new").val();$("#member-new").val(""),e.policiesManager.addToGroup(i,n).then(function(){$(".member-new-modal").closeModal(),e._manageGroups()})})}},{key:"_createGroup",value:function(){var e=this;$("#group-new-name").val(""),$(".group-new-modal").openModal(),$(".group-new-ok").on("click",function(i){var t=$("#group-new-name").val();e.policiesManager.createGroup(t).then(function(){e._manageGroups()})})}},{key:"_addPolicy",value:function(){var e=this;$("#policy-new-title").val(""),$(".combining").html("");var i=["Block overrides","Allow overrides","First applicable"];$(".combining").append(this._getOptions("comb-algorithm","Choose a combining algorithm",i)),$(".policy-new").openModal(),$(".policy-new-ok").off(),$(".policy-new-ok").on("click",function(i){var t=$("#policy-new-title").val();if(t){var n=$("#comb-algorithm").val();e.policiesManager.addPolicy(t,n).then(function(){$(".help-menu").addClass("hide"),$(".policy-new").closeModal(),e._goHome()})}else Materialize.toast("Invalid policy title",4e3)}),$(".help-btn").off(),$(".help-btn").on("click",function(e){$(".help-menu").removeClass("hide")})}},{key:"_decreaseRulePriority",value:function(){var e=this,i=event.target.closest("tr").id,t=i.split(":"),n=parseInt(t[t.length-1]);t.pop();var o=t.join(":");e.policiesManager.getPolicy(o).then(function(i){var t=i.getLastPriority();if(t!=n){var r=parseInt(n+1);e.policiesManager.decreaseRulePriority(o,n,r).then(function(){e._goHome()})}})}},{key:"_deleteMember",value:function(){var e=this,i=event.target.closest("tr").id,t=i.split("::"),n=t[t.length-1];t.pop();var o=t.join("::");e.policiesManager.removeFromGroup(o,n).then(function(){e._manageGroups()})}},{key:"_deleteGroup",value:function(){var e=this,i=event.target.closest("tr").children[0].id;e.policiesManager.deleteGroup(i).then(function(){e._manageGroups()})}},{key:"_deletePolicy",value:function(){var e=this,i=event.target.closest("tr").id;e.policiesManager.deletePolicy(i).then(function(){e._goHome()})}},{key:"_deleteRule",value:function(){var e=this,i=event.target.closest("tr").id,t=i.split(":"),n=t[t.length-1];t.pop();var o=t.join(":"),r=e.policiesManager.getRuleOfPolicy(o,n);e.policiesManager.deleteRule(o,r).then(function(){e._goHome()})}},{key:"_getActivePolicy",value:function(){var e=this;e.policiesManager.getActivePolicy().then(function(i){$(".policy-active").html(""),e.policiesManager.getPoliciesTitles().then(function(t){t.push("Deactivate all policies"),$(".policy-active").append(e._getOptions("policies-list","Click to activate a policy",t,i)),$("#policies-list").on("click",function(i){var t=$("#policies-list").find(":selected")[0].textContent;"Deactivate all policies"===t&&(t=void 0),e.policiesManager.updateActivePolicy(t)})})})}},{key:"_getGroupOptions",value:function(e,i,t,n){var o="<option disabled selected>"+e+"</option>";for(var r in i){o+="<optgroup label="+i[r]+">";for(var a in n[r])o+='<option id="'+t[r]+'">'+n[r][a]+"</option>"}return o}},{key:"_getInfo",value:function(e){var i=void 0;switch(e){case"Date":if(i=$(".config").find("input").val(),i.indexOf(",")!==-1){var t=i.split(" ");t[1]=t[1].substring(0,t[1].length-1);var n=["January","February","March","April","May","June","July","August","September","October","November","December"];i=t[0]+"/"+(n.indexOf(t[1])+1)+"/"+t[2]}else{var o=i.split("-");i=o[2]+"/"+o[1]+"/"+o[0]}break;case"Group of users":i=$("#group").find(":selected").text();break;case"Subscription preferences":(i=void 0!==$("input[name='rule-new-subscription']:checked")[0])&&(i=$("input[name='rule-new-subscription']:checked")[0].id);break;case"Weekday":i=$("#weekday").find(":selected").text();break;default:i=$(".config").find("input").val()}return i}},{key:"_getList",value:function(e){for(var i="",t=e.length,n=0;n<t;n++)i+='<li class="divider"></li>',i+='<li><a class="center-align">'+e[n]+"</a></li>";return i}},{key:"_getOptions",value:function(e,i,t,n){var o='<select id="'+e+'" class="browser-default"><option disabled selected>'+i+"</option>";for(var r in t)o+=void 0!==n&n===t[r]?'<option selected id="'+e+'">'+t[r]+"</option>":'<option id="'+e+'">'+t[r]+"</option>";return o+="</select>"}},{key:"_getPoliciesTable",value:function(){var e=this;e.policiesManager.getFormattedPolicies().then(function(i){$(".policies-no").addClass("hide"),$(".policies-current").html("");var t=[],n=[],o=[];for(var r in i)t.push(i[r].title),n.push(i[r].rulesTitles),o.push(i[r].ids);var a="<table>",l=0===t.length;for(var c in t){a+='<thead><tr id="'+t[c]+'"><td></td><td></td><th class="center-align">'+t[c]+'</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';for(var s in n[c])a+='<tr id="'+o[c][s]+'" ><td><i class="material-icons clickable-cell rule-priority-increase" style="cursor: pointer; vertical-align: middle">arrow_upward</i></td><td><i class="material-icons clickable-cell rule-priority-decrease" style="cursor: pointer; vertical-align: middle">arrow_downward</i></td><td class="rule-show clickable-cell" style="cursor: pointer">'+n[c][s]+'</td><td><i class="material-icons clickable-cell rule-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';a+='<tr id="'+t[c]+'"></td><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell center-align rule-add" style="cursor: pointer">add_circle</i></td></tr>'}l?$(".policies-no").removeClass("hide"):(a+="</tbody></table>",$(".policies-current").append(a)),$(".rule-add").on("click",function(i){e._showVariablesTypes()}),$(".rule-delete").on("click",function(i){e._deleteRule()}),$(".rule-show").on("click",function(i){e._showRule()}),$(".rule-priority-increase").on("click",function(i){e._increaseRulePriority()}),$(".rule-priority-decrease").on("click",function(i){e._decreaseRulePriority()}),$(".policy-add").off(),$(".policy-add").on("click",function(i){e._addPolicy()}),$(".policy-delete").on("click",function(i){e._deletePolicy()})})}},{key:"_goHome",value:function(){this._getActivePolicy(),this._getPoliciesTable()}},{key:"_increaseRulePriority",value:function(){var e=this,i=event.target.closest("tr").id,t=i.split(":"),n=parseInt(t[t.length-1]);if(0!==n){t.pop();var o=t.join(":"),r=n-1;e.policiesManager.increaseRulePriority(o,n,r).then(function(){e._goHome()})}}},{key:"_manageGroups",value:function(){var e=this;e.policiesManager.getGroups().then(function(i){$(".groups-current").html("");var t=i.groupsNames,n=i.members,o=i.ids,r="<table>",a=0===t.length;for(var l in t){r+='<thead><tr><th id="'+t[l]+'">'+t[l]+'</th><td style="text-align:right"><i class="material-icons clickable-cell group-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';for(var c in n[l])r+='<tr id="'+o[l][c]+'" ><td style="cursor: pointer">'+n[l][c]+'</td><td style="text-align:right"><i class="material-icons clickable-cell member-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';r+='<tr id="'+t[l]+'"><td><i class="material-icons clickable-cell member-add" id="'+t[l]+'" style="cursor: pointer">add_circle</i></td></tr>'}a?$(".groups-current").append("<p>There are no groups set.</p>"):(r+="</tbody></table>",$(".groups-current").append(r)),$(".member-add").off(),$(".member-add").on("click",function(i){e._addMember()}),$(".member-delete").on("click",function(i){e._deleteMember()}),$(".group-add").off(),$(".group-add").on("click",function(i){e._createGroup()}),$(".group-delete").on("click",function(i){e._deleteGroup()})})}},{key:"_parseFileContent",value:function(e){var i=JSON.parse(e);for(var t in i)this.policiesManager.addPolicy(t,void 0,i[t]);$(".policy-new").closeModal()}},{key:"_setElements",value:function(){var e=this;return{date:function(e){return'<input type="date" class="datepicker">'},select:function(i){return e._getOptions(i[0],i[1],i[2])},form:function(e){return'<form><input type="text" placeholder="'+e+'"></input></form>'}}}},{key:"_showNewConfigurationPanel",value:function(e){var i=this,t=event.target.text;$(".variable").html(this._getNewConfiguration(e,t)),$(".scopes").empty().html("");var n=["Email","Hyperty","All"],o=["identity","hyperty","global"],r=[];this.policiesManager.getMyEmails().then(function(e){r.push(e),i.policiesManager.getMyHyperties().then(function(e){r.push(e),r.push(["All identities and hyperties"]),$(".scopes").append(i._getGroupOptions("Apply this configuration to:",n,o,r)),$(".variable").removeClass("hide")})})}},{key:"_showVariablesTypes",value:function(e){var i=this,t=e.target.closest("tr").id;$("#variables-types").empty().html("");var n=this.policiesManager.getVariables();$("#variables-types").append(this._getList(n)),$(".variable").addClass("hide"),$(".rule-new").openModal(),$("#variables-types").off(),$("#variables-types").on("click",function(e){i._showNewConfigurationPanel(t)})}},{key:"_getNewConfiguration",value:function(e,i){var t=this,n=t.policiesManager.getVariableInfo(i);$(".rule-new-title").html(n.title),$(".description").html(n.description),$(".config").html(""),"Subscription preferences"===i?$(".subscription-type").removeClass("hide"):!function(){$(".subscription-type").addClass("hide");var e=n.input,o=function(n){t.policiesManager.getGroupsNames().then(function(o){"Group of users"===i&&e[n][1].push(o),$(".config").append(t.elements[e[n][0]](e[n][1])),"Group of users"===i&&e[n][1].pop()})};for(var r in e)o(r);"date"===i&&$(".datepicker").pickadate({selectMonths:!0,selectYears:15})}(),document.getElementById("allow").checked=!1,document.getElementById("block").checked=!1,$(".ok-btn").off(),$(".ok-btn").on("click",function(n){if(void 0===$("input[name='rule-new-decision']:checked")[0])throw Error("INFORMATION MISSING: please specify an authorisation decision.");var o=t._getInfo(i),r=$("input[name='rule-new-decision']:checked")[0].id;r="allow"===r;var a=$(".scopes").find(":selected")[0].id,l=$(".scopes").find(":selected")[0].textContent;l="All identities and hyperties"===l?"global":l,t.policiesManager.setInfo(i,e,o,r,a,l).then(function(){$(".rule-new").closeModal(),t._goHome()})})}},{key:"_deleteInfo",value:function(e){var i=event.target.closest("tr").id,t=i.split(":"),n=t[0];t.shift();var o=t.join(""),r=event.target.closest("tr").children[0].id;this.policiesManager.deleteInfo(e,n,o,r),this._goHome()}},{key:"_setListeners",value:function(){var e=this;$(".settings-btn").on("click",function(e){parent.postMessage({body:{method:"showAdminPage"},to:"runtime:gui-manager"},"*"),$(".admin-page").removeClass("hide"),document.getElementsByTagName("body")[0].style="background-color:white;"}),$(".policies-page-show").on("click",function(i){$(".policies-section").removeClass("hide"),$(".identities-section").addClass("hide"),e._goHome(),e._manageGroups()}),$(".admin-page-exit").on("click",function(e){parent.postMessage({body:{method:"hideAdminPage"},to:"runtime:gui-manager"},"*"),$(".admin-page").addClass("hide"),document.getElementsByTagName("body")[0].style="background-color:transparent;"}),$(".exit-btn").on("click",function(e){$(".subscription-type").addClass("hide"),$(".help-menu").addClass("hide")}),$("#policy-file").on("change",function(i){var t=i.target.files[0],n=new FileReader;n.readAsText(t,"UTF-8"),n.onload=function(i){e._parseFileContent(i.target.result),e._goHome()},n.onerror=function(e){throw Error("Error reading the file")}})}},{key:"_showRule",value:function(e){var i=this,t=e.target.textContent,n=e.target.closest("tr").id,o=n.split(":"),r=o[o.length-1];o.pop();var a=o.join(":");this.policiesManager.getRuleOfPolicy(a,r).then(function(e){if("subscription"===e.condition.attribute&&"preauthorised"===e.condition.params)$(".authorise-btns").addClass("hide");else{var n=void 0;n=e.decision?document.getElementById("btn-allow"):document.getElementById("btn-block"),n.checked=!0,$(".authorise-btns").removeClass("hide")}$(".member-add").addClass("hide"),$(".member-new-btn").addClass("hide"),$(".rule-details").openModal(),$(".rule-title").html("<h5><b>"+t+"</b></h5>"),"subscription"===e.condition.attribute&&$(".subscription-type").removeClass("hide"),$(".subscription-decision").on("click",function(t){i._updateRule("subscription",a,e)}),$(".decision").off(),$(".decision").on("click",function(t){i._updateRule("authorisation",a,e)})})}},{key:"_updateRule",value:function(e,i,t){var n=this,o=$(".rule-title").text(),r=o.split(" "),a=r.indexOf("is");switch(a===-1&&(a=r.indexOf("are")),e){case"authorisation":var l=$("input[name='rule-update-decision']:checked")[0].id;"btn-allow"===l?(r[a+1]="allowed",l=!0):(r[a+1]="blocked",l=!1),o=r.join(" "),$(".rule-title").html("<h5><b>"+o+"</b></h5>"),n.policiesManager.updatePolicy(i,t,l).then(function(){n._goHome()});break;case"subscription":var c=event.target.labels[0].textContent;r[a+1];r=o.split("hyperties are"),"All subscribers"===c?($(".authorise-btns").removeClass("hide"),l=t.decision,c="*",o="Subscriptions from all hyperties are"+r[1]):($(".authorise-btns").addClass("hide"),l=!0,c="preauthorised",o="Subscriptions from previously authorised hyperties are"+r[1]),$(".rule-title").html("<h5><b>"+o+"</b></h5>"),n.policiesManager.updatePolicy(i,t,l,c).then(function(){n._goHome()})}}}]),e}();t["default"]=c},{"./PoliciesManager":2}],2:[function(e,i,t){"use strict";function n(e,i){if(!(e instanceof i))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var o=function(){function e(e,i){for(var t=0;t<i.length;t++){var n=i[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(i,t,n){return t&&e(i.prototype,t),n&&e(i,n),i}}(),r=function(){function e(i,t,o){n(this,e);var r=this;r._guiURL=i,r._pepURL=t,r._messageBus=o}return o(e,[{key:"callPolicyEngineFunc",value:function(e,i){var t=this,n=void 0;return new Promise(function(o,r){n={type:"execute",to:t._pepURL,from:t._guiURL,body:{resource:"policy",method:e,params:i}},t._messageBus.postMessage(n,function(e){var i=e.body.value;o(i)})})}},{key:"prepareAttributes",value:function(){var e=this;return new Promise(function(i,t){var n=e;n.callPolicyEngineFunc("userPolicies",{}).then(function(e){n.policies=e,n.variables=n.setVariables(),n.addition=n.setAdditionMethods(),n.validation=n.setValidationMethods(),i()})})}},{key:"addToGroup",value:function(e,i){return this.callPolicyEngineFunc("addToGroup",{groupName:e,userEmail:i})}},{key:"createGroup",value:function(e){return this.callPolicyEngineFunc("createGroup",{groupName:e})}},{key:"addPolicy",value:function(e,i,t){if(void 0===t)switch(i){case"Block overrides":i="blockOverrides";break;case"Allow overrides":i="allowOverrides";break;case"First applicable":i="firstApplicable";break;default:i=void 0}return this.callPolicyEngineFunc("addPolicy",{source:"USER",key:e,policy:t,combiningAlgorithm:i})}},{key:"decreaseRulePriority",value:function(e,i,t){return this.getRuleOfPolicy(e,t).priority=i,this.getRuleOfPolicy(e,i).priority=t,this.callPolicyEngineFunc("savePolicies",{source:"USER"})}},{key:"deleteGroup",value:function(e){return this.callPolicyEngineFunc("deleteGroup",{groupName:e})}},{key:"deletePolicy",value:function(e){return this.callPolicyEngineFunc("removePolicy",{source:"USER",key:e})}},{key:"deleteRule",value:function(e,i){var t=this;return new Promise(function(n,o){t.callPolicyEngineFunc("userPolicies",{}).then(function(o){o[e].deleteRule(i),t.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){n()})})})}},{key:"getActivePolicy",value:function(){return this.callPolicyEngineFunc("activeUserPolicy",{})}},{key:"getPolicy",value:function(e){return this.callPolicyEngineFunc("userPolicy",{key:e})}},{key:"getPoliciesTitles",value:function(){var e=this;return new Promise(function(i,t){e.callPolicyEngineFunc("userPolicies",{}).then(function(e){var t=[];for(var n in e)t.push(n);i(t)})})}},{key:"getTargets",value:function(e){var i=[];for(var t in this.policies[e])i.indexOf(t)===-1&&i.push(t);return i}},{key:"increaseRulePriority",value:function(e,i,t){var n=this;return n.getRuleOfPolicy(e,i).priority=t,n.getRuleOfPolicy(e,t).priority=i,n.callPolicyEngineFunc("savePolicies",{source:"USER"})}},{key:"setVariables",value:function(){return{Date:{title:"<br><h5>Updating date related configurations</h5><p>Incoming communications in the introduced date will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>",description:"<p>Date:</p>",input:[["date",[]]]},Domain:{title:"<br><h5>Updating domain configurations</h5><p>Incoming communications from a user whose identity is from the introduced domain allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>",description:"<p>Domain:</p>",input:[["form",[]]]},"Group of users":{title:"<br><h5>Updating groups configurations</h5><p>Incoming communications from a user whose identity is in the introduced group will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>",description:"<p>Group name:</p>",input:[["select",["group","Select a group:"]]]},"Subscription preferences":{title:"<br><h5>Updating subscriptions configurations</h5><p>The acceptance of subscriptions to your hyperties will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>",input:[]},"Time of the day":{title:'<br><h5>Updating time configurations</h5><p>Incoming communications in the introduced timeslot will be blocked, but this can be changed in the preferences page.</p><p>Please introduce a new timeslot in the following format:</p><p class="center-align">&lt;START-HOUR&gt;:&lt;START-MINUTES&gt; to &lt;END-HOUR&gt;:&lt;END-MINUTES&gt;</p><br>',description:"<p>Timeslot:</p>",input:[["form",[]]]},Weekday:{title:"<br><h5>Updating weekday configurations</h5><p>Incoming communications in the introduced weekday will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>",description:"<p>Weekday:</p>",input:[["select",["weekday","Select a weekday:",["Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"]]]]}}}},{key:"setAdditionMethods",value:function(){var e=this;return{Date:function(i){return new Promise(function(t,n){var o=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){n[o].createRule(i[4],{attribute:"date",operator:"equals",params:i[3]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})},Domain:function(i){return new Promise(function(t,n){var o=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){n[o].createRule(i[4],{attribute:"domain",operator:"equals",params:i[3]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})},"Group of users":function(i){return new Promise(function(t,n){var o=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){n[o].createRule(i[4],{attribute:"source",operator:"in",params:i[3]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})},"Subscription preferences":function(i){return new Promise(function(t,n){var o=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){var r="equals";"preauthorised"===i[3]&&(r="in"),n[o].createRule(i[4],{attribute:"subscription",operator:r,params:i[3]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})},"Time of the day":function(i){return new Promise(function(t,n){var o=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){i[3]=i[3].split(" to ");var r=i[3][0].split(":");r=r.join("");var a=i[3][1].split(":");a=a.join(""),n[o].createRule(i[4],{attribute:"time",operator:"between",params:[r,a]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})},Weekday:function(i){return new Promise(function(t,n){var o=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];i[3]=o.indexOf(i[3]);var r=i[0];e.callPolicyEngineFunc("userPolicies",{}).then(function(n){n[r].createRule(i[4],{attribute:"weekday",operator:"equals",params:i[3]},i[1],i[2]),e.callPolicyEngineFunc("savePolicies",{source:"USER"}).then(function(){t()})})})}}}},{key:"setValidationMethods",value:function(){var e=this;return{Date:function(i,t){return e.isValidDate(t)&e.isValidScope(i)},"Group of users":function(i,t){return e.isValidString(t)&e.isValidScope(i)},Domain:function(i,t){return e.isValidDomain(t)&e.isValidScope(i)},Weekday:function(i,t){return!0&e.isValidScope(i)},"Subscription preferences":function(i,t){return e.isValidSubscriptionType(t)&e.isValidScope(i)},"Time of the day":function(i,t){return e.isValidTimeslot(t)&e.isValidScope(i)}}}},{key:"updateActivePolicy",value:function(e){var i=this;return new Promise(function(t,n){i.callPolicyEngineFunc("activeUserPolicy",{userPolicy:e}).then(function(){i.callPolicyEngineFunc("saveActivePolicy",{}).then(function(){t()})})})}},{key:"isValidEmail",value:function(e){var i=/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;return i.test(e)}},{key:"isValidDomain",value:function(e){var i=/[a-z0-9.-]+\.[a-z]{2,3}$/;return i.test(e)}},{key:"isValidString",value:function(e){var i=/[a-z0-9.-]$/;return i.test(e)}},{key:"isValidSubscriptionType",value:function(e){return!0}},{key:"isValidDate",value:function(e){var i=e.split("/"),t=parseInt(i[0]),n=parseInt(i[1]),o=parseInt(i[2]),r=new Date(o,n-1,t),a=r.getFullYear()===o&&r.getMonth()+1===n&&r.getDate()===t,l=(r.getDate()+"/"+(r.getMonth()+1)+"/"+r.getFullYear(),new Date),c=(l.getDate()+"/"+(l.getMonth()+1)+"/"+l.getFullYear(),!1);return r.getFullYear()>l.getFullYear()?c=!0:r.getFullYear()==l.getFullYear()&&(r.getMonth()+1>l.getMonth()+1?c=!0:r.getMonth()+1==l.getMonth()+1&&r.getDate()>=l.getDate()&&(c=!0)),a&&c}},{key:"isValidScope",value:function(e){return""!==e}},{key:"isValidTimeslot",value:function(e){if(!e)return!1;var i=e.split(" to "),t=2===i.length;if(!t)return!1;var n=i[0].split(":"),o=i[1].split(":");if(2!==n.length||2!==o.length)return!1;var r=2===n[0].length&&2===n[1].length&&2===o[0].length&&2===o[1].length,a=n[0]==parseInt(n[0],10)&&n[1]==parseInt(n[1],10)&&o[0]==parseInt(o[0],10)&&o[1]==parseInt(o[1],10);return t&&r&&a}},{key:"getFormattedPolicies",value:function(){var e=this;return new Promise(function(i,t){e.callPolicyEngineFunc("userPolicies",{}).then(function(t){var n=[];for(var o in t){var r={title:t[o].key,rulesTitles:[],ids:[]};if(0!==t[o].rules.length){t[o].rules=t[o].sortRules();for(var a in t[o].rules){var l=e._getTitle(t[o].rules[a]);r.rulesTitles.push(l),r.ids.push(r.title+":"+t[o].rules[a].priority)}}n.push(r)}i(n)})})}},{key:"getRuleOfPolicy",value:function(e,i){var t=this;return new Promise(function(n,o){t.callPolicyEngineFunc("userPolicies",{}).then(function(t){var o=t[e];n(o.getRuleByPriority(i))})})}},{key:"_getTitle",value:function(e){var i=e.condition,t=e.decision?"allowed":"blocked",n="global"===e.target?"All identities and hyperties":e.target,o=i.attribute;switch(o){case"date":return"Date "+i.params+" is "+t+" ("+n+")";case"domain":return'Domain "'+i.params+'" is '+t+" ("+n+")";case"source":if("in"===i.operator)return'Group "'+i.params+'" is '+t+" ("+n+")";if("equals"===i.operator)return"User "+i.params+" is "+t+" ("+n+")";case"subscription":if("*"===i.params)return"Subscriptions from all hyperties are "+t+" ("+n+")";if("preauthorised"===i.params)return"Subscriptions from previously authorised hyperties are allowed ("+n+")";case"time":var r=i.params[0][0]+i.params[0][1]+":"+i.params[0][2]+i.params[0][3],a=i.params[1][0]+i.params[1][1]+":"+i.params[1][2]+i.params[1][3];return"Timeslot from "+r+" to "+a+" is "+t+" ("+n+")";case"weekday":var l=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],c=i.params;return'Weekday "'+l[c]+'" is '+t+" ("+n+")";default:return"Rule "+e.priority+" is "+t+" ("+n+")"}}},{key:"getVariables",value:function(){var e=[];for(var i in this.variables)e.push(i);return e}},{key:"getVariableInfo",value:function(e){return this.variables[e]}},{key:"getMyEmails",value:function(){return this.callPolicyEngineFunc("getMyEmails",{})}},{key:"getMyHyperties",value:function(){return this.callPolicyEngineFunc("getMyHyperties",{})}},{key:"setInfo",value:function(e,i,t,n,o,r){var a=this;return new Promise(function(l,c){a.validation[e](o,t)?a.addition[e]([i,o,r,t,n]).then(function(){l()}):c("Invalid configuration")})}},{key:"deleteInfo",value:function(e,i,t,n){var o=[i,t,n];if("member"===e){var r=n.split(" "),a=r[2];o=[i,a,n]}this.deletion[e](o)}},{key:"getGroups",value:function(){var e=this;return new Promise(function(i,t){e.callPolicyEngineFunc("groups",{}).then(function(e){var t={groupsNames:[],members:[],ids:[]};for(var n in e){t.groupsNames.push(n),t.members.push(e[n]);var o=[];for(var r in e[n])o.push(n+"::"+e[n][r]);t.ids.push(o)}i(t)})})}},{key:"getGroupsNames",value:function(){return this.callPolicyEngineFunc("getGroupsNames",{})}},{key:"removeFromGroup",value:function(e,i){return this.callPolicyEngineFunc("removeFromGroup",{groupName:e,userEmail:i})}},{key:"updatePolicy",value:function(e,i,t,n){var o=this;return new Promise(function(r,a){o.callPolicyEngineFunc("userPolicies",{}).then(function(a){if(a[e].deleteRule(i),n){var l="*"===n?"equals":"in";a[e].createRule(t,[{attribute:"subscription",opeator:l,params:n}],i.scope,i.target,i.priority)}else a[e].createRule(t,i.condition,i.scope,i.target,i.priority);o.callPolicyEngineFunc("saveActivePolicy",{}).then(function(){r()})})})}}]),e}();t["default"]=r},{}]},{},[1])(1)});
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.policiesGui = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _PoliciesManager = require('./PoliciesManager');
+
+var _PoliciesManager2 = _interopRequireDefault(_PoliciesManager);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var PoliciesGUI = function () {
+  function PoliciesGUI(pepGuiURL, pepURL, messageBus) {
+    _classCallCheck(this, PoliciesGUI);
+
+    var _this = this;
+    _this.policiesManager = new _PoliciesManager2.default(pepGuiURL, pepURL, messageBus);
+    // assume prepareAttributes is called after this
+  }
+
+  _createClass(PoliciesGUI, [{
+    key: 'prepareAttributes',
+    value: function prepareAttributes() {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.policiesManager.prepareAttributes().then(function () {
+          _this.elements = _this._setElements();
+          _this._setListeners();
+          resolve();
+        });
+      });
+    }
+  }, {
+    key: '_addMember',
+    value: function _addMember() {
+      var _this = this;
+      var group = event.target.id;
+      $('.member-new-intro').html('<h5>Add a member to a group</h5><p>Insert a user email below to add to the "' + group + '" group.</p>');
+      $('.member-new-modal').openModal();
+      $('.member-new-ok').off();
+      $('.member-new-ok').on('click', function (event) {
+        var member = $('#member-new').val();
+        $('#member-new').val('');
+        _this.policiesManager.addToGroup(group, member).then(function () {
+          $('.member-new-modal').closeModal();
+          _this._manageGroups();
+        });
+      });
+    }
+  }, {
+    key: '_createGroup',
+    value: function _createGroup() {
+      var _this = this;
+      $('#group-new-name').val('');
+      $('.group-new-modal').openModal();
+      $('.group-new-ok').on('click', function (event) {
+        var groupName = $('#group-new-name').val();
+        _this.policiesManager.createGroup(groupName).then(function () {
+          _this._manageGroups();
+        });
+      });
+    }
+  }, {
+    key: '_addPolicy',
+    value: function _addPolicy() {
+      var _this = this;
+      $('#policy-new-title').val('');
+      $('.combining').html('');
+      var algorithms = ['Block overrides', 'Allow overrides', 'First applicable'];
+      $('.combining').append(this._getOptions('comb-algorithm', 'Choose a combining algorithm', algorithms));
+      $('.policy-new').openModal();
+
+      $('.policy-new-ok').off();
+      $('.policy-new-ok').on('click', function (event) {
+        var policyTitle = $('#policy-new-title').val();
+        if (!policyTitle) {
+          Materialize.toast('Invalid policy title', 4000);
+        } else {
+          var combiningAlgorithm = $('#comb-algorithm').val();
+          _this.policiesManager.addPolicy(policyTitle, combiningAlgorithm).then(function () {
+            $('.help-menu').addClass('hide');
+            $('.policy-new').closeModal();
+            _this._goHome();
+          });
+        }
+      });
+      $('.help-btn').off();
+      $('.help-btn').on('click', function (event) {
+        $('.help-menu').removeClass('hide');
+      });
+    }
+  }, {
+    key: '_decreaseRulePriority',
+    value: function _decreaseRulePriority() {
+      var _this = this;
+      var id = event.target.closest('tr').id;
+      var splitId = id.split(':');
+      var thisPriority = parseInt(splitId[splitId.length - 1]);
+      splitId.pop();
+      var policyTitle = splitId.join(':');
+      _this.policiesManager.getPolicy(policyTitle).then(function (policy) {
+        var lastPriority = policy.getLastPriority();
+        if (lastPriority != thisPriority) {
+          var newPriority = parseInt(thisPriority + 1);
+          _this.policiesManager.decreaseRulePriority(policyTitle, thisPriority, newPriority).then(function () {
+            _this._goHome();
+          });
+        }
+      });
+    }
+  }, {
+    key: '_deleteMember',
+    value: function _deleteMember() {
+      var _this = this;
+      var id = event.target.closest('tr').id;
+      var splitId = id.split('::');
+      var member = splitId[splitId.length - 1];
+      splitId.pop();
+      var group = splitId.join('::');
+      _this.policiesManager.removeFromGroup(group, member).then(function () {
+        _this._manageGroups();
+      });
+    }
+  }, {
+    key: '_deleteGroup',
+    value: function _deleteGroup() {
+      var _this = this;
+      var groupName = event.target.closest('tr').children[0].id;
+      _this.policiesManager.deleteGroup(groupName).then(function () {
+        _this._manageGroups();
+      });
+    }
+  }, {
+    key: '_deletePolicy',
+    value: function _deletePolicy() {
+      var _this = this;
+      var policyTitle = event.target.closest('tr').id;
+      _this.policiesManager.deletePolicy(policyTitle).then(function () {
+        _this._goHome();
+      });
+    }
+  }, {
+    key: '_deleteRule',
+    value: function _deleteRule() {
+      var _this = this;
+      var id = event.target.closest('tr').id;
+      var splitId = id.split(':');
+      var priority = splitId[splitId.length - 1];
+      splitId.pop();
+      var policyTitle = splitId.join(':');
+      var rule = _this.policiesManager.getRuleOfPolicy(policyTitle, priority);
+
+      _this.policiesManager.deleteRule(policyTitle, rule).then(function () {
+        _this._goHome();
+      });
+    }
+  }, {
+    key: '_getActivePolicy',
+    value: function _getActivePolicy() {
+      var _this = this;
+      _this.policiesManager.getActivePolicy().then(function (activeUserPolicy) {
+        $('.policy-active').html('');
+        _this.policiesManager.getPoliciesTitles().then(function (policies) {
+          policies.push('Deactivate all policies');
+
+          $('.policy-active').append(_this._getOptions('policies-list', 'Click to activate a policy', policies, activeUserPolicy));
+
+          $('#policies-list').on('click', function (event) {
+            var policyTitle = $('#policies-list').find(":selected")[0].textContent;
+            if (policyTitle === 'Deactivate all policies') {
+              policyTitle = undefined;
+            }
+            _this.policiesManager.updateActivePolicy(policyTitle);
+          });
+        });
+      });
+    }
+  }, {
+    key: '_getGroupOptions',
+    value: function _getGroupOptions(title, keys, scopes, lists) {
+      var list = '<option disabled selected>' + title + '</option>';
+
+      for (var i in keys) {
+        list += '<optgroup label=' + keys[i] + '>';
+        for (var j in lists[i]) {
+          list += '<option id="' + scopes[i] + '">' + lists[i][j] + '</option>';
+        }
+      }
+
+      return list;
+    }
+  }, {
+    key: '_getInfo',
+    value: function _getInfo(variable) {
+      var info = void 0;
+
+      switch (variable) {
+        case 'Date':
+          info = $('.config').find('input').val();
+          if (info.indexOf(',') !== -1) {
+            //20 July, 2016
+            var splitInfo = info.split(' '); //['20', 'July,',' '2016']
+            splitInfo[1] = splitInfo[1].substring(0, splitInfo[1].length - 1); //'July'
+            var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            info = splitInfo[0] + '/' + (months.indexOf(splitInfo[1]) + 1) + '/' + splitInfo[2];
+          } else {
+            // 2016-07-20
+            var _splitInfo = info.split('-');
+            info = _splitInfo[2] + '/' + _splitInfo[1] + '/' + _splitInfo[0];
+          }
+          break;
+        case 'Group of users':
+          info = $('#group').find(":selected").text();
+          break;
+        case 'Subscription preferences':
+          if (info = $("input[name='rule-new-subscription']:checked")[0] !== undefined) {
+            info = $("input[name='rule-new-subscription']:checked")[0].id;
+          }
+          break;
+        case 'Weekday':
+          info = $('#weekday').find(":selected").text();
+          break;
+        default:
+          info = $('.config').find('input').val();
+          break;
+      }
+
+      return info;
+    }
+  }, {
+    key: '_getList',
+    value: function _getList(items) {
+      var list = '';
+      var numItems = items.length;
+
+      for (var i = 0; i < numItems; i++) {
+        list += '<li class="divider"></li>';
+        list += '<li><a class="center-align">' + items[i] + '</a></li>';
+      }
+
+      return list;
+    }
+  }, {
+    key: '_getOptions',
+    value: function _getOptions(id, title, list, selected) {
+      var options = '<select id="' + id + '" class="browser-default"><option disabled selected>' + title + '</option>';
+      for (var i in list) {
+        if (selected !== undefined & selected === list[i]) {
+          options += '<option selected id="' + id + '">' + list[i] + '</option>';
+        } else {
+          options += '<option id="' + id + '">' + list[i] + '</option>';
+        }
+      }
+      options += '</select>';
+
+      return options;
+    }
+  }, {
+    key: '_getPoliciesTable',
+    value: function _getPoliciesTable() {
+      var _this = this;
+
+      _this.policiesManager.getFormattedPolicies().then(function (policies) {
+        $('.policies-no').addClass('hide');
+        $('.policies-current').html('');
+
+        var policiesTitles = [];
+        var rulesTitles = [];
+        var ids = [];
+
+        for (var i in policies) {
+          policiesTitles.push(policies[i].title);
+          rulesTitles.push(policies[i].rulesTitles);
+          ids.push(policies[i].ids);
+        }
+
+        var table = '<table>';
+        var isEmpty = policiesTitles.length === 0;
+
+        for (var _i in policiesTitles) {
+          table += '<thead><tr id="' + policiesTitles[_i] + '"><td></td><td></td><th class="center-align">' + policiesTitles[_i] + '</th><td><i class="material-icons clickable-cell policy-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+
+          for (var j in rulesTitles[_i]) {
+            table += '<tr id="' + ids[_i][j] + '" ><td><i class="material-icons clickable-cell rule-priority-increase" style="cursor: pointer; vertical-align: middle">arrow_upward</i></td><td><i class="material-icons clickable-cell rule-priority-decrease" style="cursor: pointer; vertical-align: middle">arrow_downward</i></td><td class="rule-show clickable-cell" style="cursor: pointer">' + rulesTitles[_i][j] + '</td><td><i class="material-icons clickable-cell rule-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+          }
+          table += '<tr id="' + policiesTitles[_i] + '"></td><td></td><td></td><td style="text-align:center"><i class="material-icons clickable-cell center-align rule-add" style="cursor: pointer">add_circle</i></td></tr>';
+        }
+        if (!isEmpty) {
+          table += '</tbody></table>';
+          $('.policies-current').append(table);
+        } else {
+          $('.policies-no').removeClass('hide');
+        }
+        $('.rule-add').on('click', function (event) {
+          _this._showVariablesTypes();
+        });
+        $('.rule-delete').on('click', function (event) {
+          _this._deleteRule();
+        });
+        $('.rule-show').on('click', function (event) {
+          _this._showRule();
+        });
+        $('.rule-priority-increase').on('click', function (event) {
+          _this._increaseRulePriority();
+        });
+        $('.rule-priority-decrease').on('click', function (event) {
+          _this._decreaseRulePriority();
+        });
+        $('.policy-add').off();
+        $('.policy-add').on('click', function (event) {
+          _this._addPolicy();
+        });
+        $('.policy-delete').on('click', function (event) {
+          _this._deletePolicy();
+        });
+      });
+    }
+  }, {
+    key: '_goHome',
+    value: function _goHome() {
+      this._getActivePolicy();
+      this._getPoliciesTable();
+    }
+  }, {
+    key: '_increaseRulePriority',
+    value: function _increaseRulePriority() {
+      var _this = this;
+      var id = event.target.closest('tr').id;
+      var splitId = id.split(':');
+      var thisPriority = parseInt(splitId[splitId.length - 1]);
+      if (thisPriority !== 0) {
+        splitId.pop();
+        var policyTitle = splitId.join(':');
+        var newPriority = thisPriority - 1;
+
+        _this.policiesManager.increaseRulePriority(policyTitle, thisPriority, newPriority).then(function () {
+          _this._goHome();
+        });
+      }
+    }
+  }, {
+    key: '_manageGroups',
+    value: function _manageGroups() {
+      var _this = this;
+      _this.policiesManager.getGroups().then(function (groupsPE) {
+        $('.groups-current').html('');
+        var groups = groupsPE.groupsNames;
+        var members = groupsPE.members;
+        var ids = groupsPE.ids;
+
+        var table = '<table>';
+        var isEmpty = groups.length === 0;
+
+        for (var i in groups) {
+          table += '<thead><tr><th id="' + groups[i] + '">' + groups[i] + '</th><td style="text-align:right"><i class="material-icons clickable-cell group-delete" style="cursor: pointer; vertical-align: middle">delete_forever</i></td></tr></thead><tbody>';
+          for (var j in members[i]) {
+            table += '<tr id="' + ids[i][j] + '" ><td style="cursor: pointer">' + members[i][j] + '</td><td style="text-align:right"><i class="material-icons clickable-cell member-delete" style="cursor: pointer; vertical-align: middle">clear</i></td></tr>';
+          }
+
+          table += '<tr id="' + groups[i] + '"><td><i class="material-icons clickable-cell member-add" id="' + groups[i] + '" style="cursor: pointer">add_circle</i></td></tr>';
+        }
+
+        if (!isEmpty) {
+          table += '</tbody></table>';
+          $('.groups-current').append(table);
+        } else {
+          $('.groups-current').append('<p>There are no groups set.</p>');
+        }
+
+        $('.member-add').off();
+        $('.member-add').on('click', function (event) {
+          _this._addMember();
+        });
+        $('.member-delete').on('click', function (event) {
+          _this._deleteMember();
+        });
+        $('.group-add').off();
+        $('.group-add').on('click', function (event) {
+          _this._createGroup();
+        });
+        $('.group-delete').on('click', function (event) {
+          _this._deleteGroup();
+        });
+      });
+    }
+  }, {
+    key: '_parseFileContent',
+    value: function _parseFileContent(content) {
+      var parsedContent = JSON.parse(content);
+      for (var i in parsedContent) {
+        this.policiesManager.addPolicy(i, undefined, parsedContent[i]);
+      }
+      $('.policy-new').closeModal();
+    }
+  }, {
+    key: '_setElements',
+    value: function _setElements() {
+      var _this2 = this;
+
+      return {
+        date: function date(params) {
+          return '<input type="date" class="datepicker">';
+        },
+        select: function select(params) {
+          return _this2._getOptions(params[0], params[1], params[2]);
+        },
+        form: function form(params) {
+          return '<form><input type="text" placeholder="' + params + '"></input></form>';
+        }
+      };
+    }
+  }, {
+    key: '_showNewConfigurationPanel',
+    value: function _showNewConfigurationPanel(policyTitle) {
+      var _this3 = this;
+
+      var variable = event.target.text;
+      $('.variable').html(this._getNewConfiguration(policyTitle, variable));
+      $('.scopes').empty().html('');
+
+      var keys = ['Email', 'Hyperty', 'All'];
+      var scopes = ['identity', 'hyperty', 'global'];
+      var lists = [];
+
+      this.policiesManager.getMyEmails().then(function (emails) {
+        lists.push(emails);
+        _this3.policiesManager.getMyHyperties().then(function (hyperties) {
+          lists.push(hyperties);
+          lists.push(['All identities and hyperties']);
+          $('.scopes').append(_this3._getGroupOptions('Apply this configuration to:', keys, scopes, lists));
+          $('.variable').removeClass('hide');
+        });
+      });
+    }
+  }, {
+    key: '_showVariablesTypes',
+    value: function _showVariablesTypes(event) {
+      var _this4 = this;
+
+      var policyTitle = event.target.closest('tr').id;
+
+      $('#variables-types').empty().html('');
+      var variables = this.policiesManager.getVariables();
+      $('#variables-types').append(this._getList(variables));
+      $('.variable').addClass('hide');
+      $('.rule-new').openModal();
+      $('#variables-types').off();
+      $('#variables-types').on('click', function (event) {
+        _this4._showNewConfigurationPanel(policyTitle);
+      });
+    }
+  }, {
+    key: '_getNewConfiguration',
+    value: function _getNewConfiguration(policyTitle, variable) {
+      var _this = this;
+      var info = _this.policiesManager.getVariableInfo(variable);
+      $('.rule-new-title').html(info.title);
+      $('.description').html(info.description);
+      $('.config').html('');
+
+      if (variable === 'Subscription preferences') {
+        $('.subscription-type').removeClass('hide');
+      } else {
+        (function () {
+          $('.subscription-type').addClass('hide');
+          var tags = info.input;
+
+          var _loop = function _loop(i) {
+            _this.policiesManager.getGroupsNames().then(function (groupsNames) {
+              if (variable === 'Group of users') {
+                tags[i][1].push(groupsNames);
+              }
+              $('.config').append(_this.elements[tags[i][0]](tags[i][1]));
+              if (variable === 'Group of users') {
+                tags[i][1].pop();
+              }
+            });
+          };
+
+          for (var i in tags) {
+            _loop(i);
+          }
+          if (variable === 'date') {
+            $('.datepicker').pickadate({
+              selectMonths: true,
+              selectYears: 15
+            });
+          }
+        })();
+      }
+      document.getElementById('allow').checked = false;
+      document.getElementById('block').checked = false;
+      $('.ok-btn').off();
+      $('.ok-btn').on('click', function (event) {
+        if ($("input[name='rule-new-decision']:checked")[0] !== undefined) {
+          var _info = _this._getInfo(variable);
+          var decision = $("input[name='rule-new-decision']:checked")[0].id;
+          decision = decision === 'allow';
+          var scope = $('.scopes').find(":selected")[0].id;
+          var target = $('.scopes').find(":selected")[0].textContent;
+          target = target === 'All identities and hyperties' ? 'global' : target;
+          _this.policiesManager.setInfo(variable, policyTitle, _info, decision, scope, target).then(function () {
+            $('.rule-new').closeModal();
+            _this._goHome();
+          });
+        } else {
+          throw Error('INFORMATION MISSING: please specify an authorisation decision.');
+        }
+      });
+    }
+  }, {
+    key: '_deleteInfo',
+    value: function _deleteInfo(resourceType) {
+      var id = event.target.closest('tr').id;
+      var splitId = id.split(':');
+      var scope = splitId[0];
+      splitId.shift();
+      var target = splitId.join('');
+      var condition = event.target.closest('tr').children[0].id;
+      this.policiesManager.deleteInfo(resourceType, scope, target, condition);
+      this._goHome();
+    }
+  }, {
+    key: '_setListeners',
+    value: function _setListeners() {
+      var _this5 = this;
+
+      $('.settings-btn').on('click', function (event) {
+        parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
+        $('.admin-page').removeClass('hide');
+        document.getElementsByTagName('body')[0].style = 'background-color:white;';
+      });
+
+      $('.policies-page-show').on('click', function (event) {
+        $('.policies-section').removeClass('hide');
+        $('.identities-section').addClass('hide');
+        _this5._goHome();
+        _this5._manageGroups();
+      });
+
+      $('.admin-page-exit').on('click', function (event) {
+        parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
+        $('.admin-page').addClass('hide');
+        document.getElementsByTagName('body')[0].style = 'background-color:transparent;';
+      });
+
+      $('.exit-btn').on('click', function (event) {
+        $('.subscription-type').addClass('hide');
+        $('.help-menu').addClass('hide');
+      });
+
+      $('#policy-file').on('change', function (event) {
+        var file = event.target.files[0];
+        var reader = new FileReader();
+        reader.readAsText(file, "UTF-8");
+        reader.onload = function (event) {
+          _this5._parseFileContent(event.target.result);
+          _this5._goHome();
+        };
+        reader.onerror = function (event) {
+          throw Error("Error reading the file");
+        };
+      });
+    }
+  }, {
+    key: '_showRule',
+    value: function _showRule(event) {
+      var _this6 = this;
+
+      var ruleTitle = event.target.textContent;
+      var id = event.target.closest('tr').id;
+      var splitId = id.split(':');
+      var priority = splitId[splitId.length - 1];
+      splitId.pop();
+      var policyTitle = splitId.join(':');
+      this.policiesManager.getRuleOfPolicy(policyTitle, priority).then(function (rule) {
+        if (rule.condition.attribute === 'subscription' && rule.condition.params === 'preauthorised') {
+          $('.authorise-btns').addClass('hide');
+        } else {
+          var element = void 0;
+          if (rule.decision) {
+            element = document.getElementById('btn-allow');
+          } else {
+            element = document.getElementById('btn-block');
+          }
+          element.checked = true;
+          $('.authorise-btns').removeClass('hide');
+        }
+        $('.member-add').addClass('hide');
+        $('.member-new-btn').addClass('hide');
+
+        $('.rule-details').openModal();
+        $('.rule-title').html('<h5><b>' + ruleTitle + '</b></h5>');
+        if (rule.condition.attribute === 'subscription') {
+          $('.subscription-type').removeClass('hide');
+        }
+        $('.subscription-decision').on('click', function (event) {
+          _this6._updateRule('subscription', policyTitle, rule);
+        });
+        $('.decision').off();
+        $('.decision').on('click', function (event) {
+          _this6._updateRule('authorisation', policyTitle, rule);
+        });
+      });
+    }
+  }, {
+    key: '_updateRule',
+    value: function _updateRule(type, policyTitle, rule) {
+      var _this = this;
+      var title = $('.rule-title').text();
+      var splitTitle = title.split(' ');
+      var index = splitTitle.indexOf('is');
+      if (index === -1) {
+        index = splitTitle.indexOf('are');
+      }
+      switch (type) {
+        case 'authorisation':
+          var newDecision = $("input[name='rule-update-decision']:checked")[0].id;
+
+          if (newDecision === 'btn-allow') {
+            splitTitle[index + 1] = 'allowed';
+            newDecision = true;
+          } else {
+            splitTitle[index + 1] = 'blocked';
+            newDecision = false;
+          }
+          title = splitTitle.join(' ');
+          $('.rule-title').html('<h5><b>' + title + '</b></h5>');
+          _this.policiesManager.updatePolicy(policyTitle, rule, newDecision).then(function () {
+            _this._goHome();
+          });
+          break;
+        case 'subscription':
+          var newSubscriptionType = event.target.labels[0].textContent;
+
+          var decision = splitTitle[index + 1];
+          splitTitle = title.split('hyperties are');
+          if (newSubscriptionType === 'All subscribers') {
+            $('.authorise-btns').removeClass('hide');
+            newDecision = rule.decision;
+            newSubscriptionType = '*';
+            title = 'Subscriptions from all hyperties are' + splitTitle[1];
+          } else {
+            $('.authorise-btns').addClass('hide');
+            newDecision = true;
+            newSubscriptionType = 'preauthorised';
+            title = 'Subscriptions from previously authorised hyperties are' + splitTitle[1];
+          }
+
+          $('.rule-title').html('<h5><b>' + title + '</b></h5>');
+          _this.policiesManager.updatePolicy(policyTitle, rule, newDecision, newSubscriptionType).then(function () {
+            _this._goHome();
+          });
+          break;
+      }
+    }
+  }]);
+
+  return PoliciesGUI;
+}();
+
+exports.default = PoliciesGUI;
+
+},{"./PoliciesManager":2}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var PoliciesManager = function () {
+  function PoliciesManager(pepGuiURL, pepURL, messageBus) {
+    _classCallCheck(this, PoliciesManager);
+
+    var _this = this;
+    _this._guiURL = pepGuiURL;
+    _this._pepURL = pepURL;
+    _this._messageBus = messageBus;
+
+    // assume prepare attributes is called after this
+  }
+
+  _createClass(PoliciesManager, [{
+    key: 'callPolicyEngineFunc',
+    value: function callPolicyEngineFunc(methodName, parameters) {
+      var _this = this;
+      var message = void 0;
+
+      return new Promise(function (resolve, reject) {
+        message = { type: 'execute', to: _this._pepURL, from: _this._guiURL,
+          body: { resource: 'policy', method: methodName, params: parameters } };
+        _this._messageBus.postMessage(message, function (res) {
+          var result = res.body.value;
+          resolve(result);
+        });
+      });
+    }
+  }, {
+    key: 'prepareAttributes',
+    value: function prepareAttributes() {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        var _this = _this2;
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+          _this.policies = userPolicies;
+          _this.variables = _this.setVariables();
+          _this.addition = _this.setAdditionMethods();
+          _this.validation = _this.setValidationMethods();
+          resolve();
+        });
+      });
+    }
+  }, {
+    key: 'addToGroup',
+    value: function addToGroup(groupName, user) {
+      return this.callPolicyEngineFunc('addToGroup', { groupName: groupName, userEmail: user });
+    }
+  }, {
+    key: 'createGroup',
+    value: function createGroup(groupName) {
+      return this.callPolicyEngineFunc('createGroup', { groupName: groupName });
+    }
+  }, {
+    key: 'addPolicy',
+    value: function addPolicy(title, combiningAlgorithm, policy) {
+      if (policy === undefined) {
+        switch (combiningAlgorithm) {
+          case 'Block overrides':
+            combiningAlgorithm = 'blockOverrides';
+            break;
+          case 'Allow overrides':
+            combiningAlgorithm = 'allowOverrides';
+            break;
+          case 'First applicable':
+            combiningAlgorithm = 'firstApplicable';
+            break;
+          default:
+            combiningAlgorithm = undefined;
+        }
+      }
+
+      return this.callPolicyEngineFunc('addPolicy', { source: 'USER', key: title, policy: policy, combiningAlgorithm: combiningAlgorithm });
+    }
+  }, {
+    key: 'decreaseRulePriority',
+    value: function decreaseRulePriority(policyTitle, thisPriority, newPriority) {
+      this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
+      this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
+      return this.callPolicyEngineFunc('savePolicies', { source: 'USER' });
+    }
+  }, {
+    key: 'deleteGroup',
+    value: function deleteGroup(groupName) {
+      return this.callPolicyEngineFunc('deleteGroup', { groupName: groupName });
+    }
+  }, {
+    key: 'deletePolicy',
+    value: function deletePolicy(title) {
+      return this.callPolicyEngineFunc('removePolicy', { source: 'USER', key: title });
+    }
+  }, {
+    key: 'deleteRule',
+    value: function deleteRule(policyTitle, rule) {
+      var _this = this;
+
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+          userPolicies[policyTitle].deleteRule(rule);
+          _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+            resolve();
+          });
+        });
+      });
+    }
+  }, {
+    key: 'getActivePolicy',
+    value: function getActivePolicy() {
+      return this.callPolicyEngineFunc('activeUserPolicy', {});
+    }
+  }, {
+    key: 'getPolicy',
+    value: function getPolicy(key) {
+      return this.callPolicyEngineFunc('userPolicy', { key: key });
+    }
+  }, {
+    key: 'getPoliciesTitles',
+    value: function getPoliciesTitles() {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (policies) {
+          var titles = [];
+
+          for (var i in policies) {
+            titles.push(i);
+          }
+
+          resolve(titles);
+        });
+      });
+    }
+  }, {
+    key: 'getTargets',
+    value: function getTargets(scope) {
+      var targets = [];
+
+      for (var i in this.policies[scope]) {
+        if (targets.indexOf(i) === -1) {
+          targets.push(i);
+        }
+      }
+
+      return targets;
+    }
+  }, {
+    key: 'increaseRulePriority',
+    value: function increaseRulePriority(policyTitle, thisPriority, newPriority) {
+      var _this = this;
+      _this.getRuleOfPolicy(policyTitle, thisPriority).priority = newPriority;
+      _this.getRuleOfPolicy(policyTitle, newPriority).priority = thisPriority;
+      return _this.callPolicyEngineFunc('savePolicies', { source: 'USER' });
+    }
+  }, {
+    key: 'setVariables',
+    value: function setVariables() {
+      return {
+        'Date': {
+          title: '<br><h5>Updating date related configurations</h5><p>Incoming communications in the introduced date will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>',
+          description: '<p>Date:</p>',
+          input: [['date', []]]
+        },
+        'Domain': {
+          title: '<br><h5>Updating domain configurations</h5><p>Incoming communications from a user whose identity is from the introduced domain allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>',
+          description: '<p>Domain:</p>',
+          input: [['form', []]]
+        },
+        'Group of users': {
+          title: '<br><h5>Updating groups configurations</h5><p>Incoming communications from a user whose identity is in the introduced group will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>',
+          description: '<p>Group name:</p>',
+          input: [['select', ['group', 'Select a group:']]]
+        },
+        'Subscription preferences': {
+          title: '<br><h5>Updating subscriptions configurations</h5><p>The acceptance of subscriptions to your hyperties will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>',
+          input: []
+        },
+        'Time of the day': {
+          title: '<br><h5>Updating time configurations</h5><p>Incoming communications in the introduced timeslot will be blocked, but this can be changed in the preferences page.</p><p>Please introduce a new timeslot in the following format:</p><p class="center-align">&lt;START-HOUR&gt;:&lt;START-MINUTES&gt; to &lt;END-HOUR&gt;:&lt;END-MINUTES&gt;</p><br>',
+          description: '<p>Timeslot:</p>',
+          input: [['form', []]]
+        },
+        Weekday: {
+          title: '<br><h5>Updating weekday configurations</h5><p>Incoming communications in the introduced weekday will be allowed or blocked according to your configurations, which can be changed in the preferences page.</p><br>',
+          description: '<p>Weekday:</p>',
+          input: [['select', ['weekday', 'Select a weekday:', ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']]]]
+        }
+      };
+    }
+  }, {
+    key: 'setAdditionMethods',
+    value: function setAdditionMethods() {
+      var _this = this;
+      return {
+        Date: function Date(params) {
+          return new Promise(function (resolve, reject) {
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'date', operator: 'equals', params: params[3] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        },
+        Domain: function Domain(params) {
+          return new Promise(function (resolve, reject) {
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'domain', operator: 'equals', params: params[3] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        },
+        'Group of users': function GroupOfUsers(params) {
+          return new Promise(function (resolve, reject) {
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'source', operator: 'in', params: params[3] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        },
+        'Subscription preferences': function SubscriptionPreferences(params) {
+          return new Promise(function (resolve, reject) {
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              var operator = 'equals';
+              if (params[3] === 'preauthorised') {
+                operator = 'in';
+              }
+
+              // TIAGO: this is giving me an error...
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'subscription', operator: operator, params: params[3] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        },
+        'Time of the day': function TimeOfTheDay(params) {
+          return new Promise(function (resolve, reject) {
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              params[3] = params[3].split(' to ');
+              var start = params[3][0].split(':');
+              start = start.join('');
+              var end = params[3][1].split(':');
+              end = end.join('');
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'time', operator: 'between', params: [start, end] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        },
+
+        Weekday: function Weekday(params) {
+          return new Promise(function (resolve, reject) {
+            var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            params[3] = weekdays.indexOf(params[3]);
+            var policyTitle = params[0];
+            _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+              userPolicies[policyTitle].createRule(params[4], { attribute: 'weekday', operator: 'equals', params: params[3] }, params[1], params[2]);
+              _this.callPolicyEngineFunc('savePolicies', { source: 'USER' }).then(function () {
+                resolve();
+              });
+            });
+          });
+        }
+      };
+    }
+  }, {
+    key: 'setValidationMethods',
+    value: function setValidationMethods() {
+      var _this3 = this;
+
+      return {
+        Date: function Date(scope, info) {
+          return _this3.isValidDate(info) & _this3.isValidScope(scope);
+        },
+        'Group of users': function GroupOfUsers(scope, info) {
+          return _this3.isValidString(info) & _this3.isValidScope(scope);
+        },
+        Domain: function Domain(scope, info) {
+          return _this3.isValidDomain(info) & _this3.isValidScope(scope);
+        },
+        Weekday: function Weekday(scope, info) {
+          return true & _this3.isValidScope(scope);
+        },
+        'Subscription preferences': function SubscriptionPreferences(scope, info) {
+          return _this3.isValidSubscriptionType(info) & _this3.isValidScope(scope);
+        },
+        'Time of the day': function TimeOfTheDay(scope, info) {
+          return _this3.isValidTimeslot(info) & _this3.isValidScope(scope);
+        }
+      };
+    }
+  }, {
+    key: 'updateActivePolicy',
+    value: function updateActivePolicy(title) {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('activeUserPolicy', { userPolicy: title }).then(function () {
+          _this.callPolicyEngineFunc('saveActivePolicy', {}).then(function () {
+            resolve();
+          });
+        });
+      });
+    }
+  }, {
+    key: 'isValidEmail',
+    value: function isValidEmail(info) {
+      var pattern = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
+      return pattern.test(info);
+    }
+  }, {
+    key: 'isValidDomain',
+    value: function isValidDomain(info) {
+      var pattern = /[a-z0-9.-]+\.[a-z]{2,3}$/;
+      return pattern.test(info);
+    }
+  }, {
+    key: 'isValidString',
+    value: function isValidString(info) {
+      var pattern = /[a-z0-9.-]$/;
+      return pattern.test(info);
+    }
+  }, {
+    key: 'isValidSubscriptionType',
+    value: function isValidSubscriptionType(info) {
+      return true;
+    }
+  }, {
+    key: 'isValidDate',
+    value: function isValidDate(info) {
+      var infoSplit = info.split('/');
+      var day = parseInt(infoSplit[0]);
+      var month = parseInt(infoSplit[1]);
+      var year = parseInt(infoSplit[2]);
+
+      var date = new Date(year, month - 1, day);
+      var isValidFormat = date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+      var formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
+      var now = new Date();
+      var today = now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
+
+      var isFuture = false;
+      if (date.getFullYear() > now.getFullYear()) {
+        isFuture = true;
+      } else {
+        if (date.getFullYear() == now.getFullYear()) {
+          if (date.getMonth() + 1 > now.getMonth() + 1) {
+            isFuture = true;
+          } else {
+            if (date.getMonth() + 1 == now.getMonth() + 1) {
+              if (date.getDate() >= now.getDate()) {
+                isFuture = true;
+              }
+            }
+          }
+        }
+      }
+
+      return isValidFormat && isFuture;
+    }
+  }, {
+    key: 'isValidScope',
+    value: function isValidScope(scope) {
+      return scope !== '';
+    }
+  }, {
+    key: 'isValidTimeslot',
+    value: function isValidTimeslot(info) {
+      if (!info) {
+        return false;
+      }
+      var splitInfo = info.split(' to '); // [12:00, 13:00]
+      var twoTimes = splitInfo.length === 2;
+      if (!twoTimes) {
+        return false;
+      }
+      var splitStart = splitInfo[0].split(':'); // [12, 00]
+      var splitEnd = splitInfo[1].split(':'); // [13, 00]
+      if (splitStart.length !== 2 || splitEnd.length !== 2) {
+        return false;
+      }
+      var okSize = splitStart[0].length === 2 && splitStart[1].length === 2 && splitEnd[0].length === 2 && splitEnd[1].length === 2;
+      var areIntegers = splitStart[0] == parseInt(splitStart[0], 10) && splitStart[1] == parseInt(splitStart[1], 10) && splitEnd[0] == parseInt(splitEnd[0], 10) && splitEnd[1] == parseInt(splitEnd[1], 10);
+      return twoTimes && okSize && areIntegers;
+    }
+  }, {
+    key: 'getFormattedPolicies',
+    value: function getFormattedPolicies() {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (policiesPE) {
+          var policiesGUI = [];
+
+          for (var i in policiesPE) {
+            var policy = {
+              title: policiesPE[i].key,
+              rulesTitles: [],
+              ids: []
+            };
+
+            if (policiesPE[i].rules.length !== 0) {
+              policiesPE[i].rules = policiesPE[i].sortRules();
+              for (var j in policiesPE[i].rules) {
+                var title = _this._getTitle(policiesPE[i].rules[j]);
+                policy.rulesTitles.push(title);
+                policy.ids.push(policy.title + ':' + policiesPE[i].rules[j].priority);
+              }
+            }
+
+            policiesGUI.push(policy);
+          }
+
+          resolve(policiesGUI);
+        });
+      });
+    }
+  }, {
+    key: 'getRuleOfPolicy',
+    value: function getRuleOfPolicy(title, priority) {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (policies) {
+          var policy = policies[title];
+          resolve(policy.getRuleByPriority(priority));
+        });
+      });
+    }
+  }, {
+    key: '_getTitle',
+    value: function _getTitle(rule) {
+      var condition = rule.condition;
+      var authorise = rule.decision ? 'allowed' : 'blocked';
+      var target = rule.target === 'global' ? 'All identities and hyperties' : rule.target;
+      var attribute = condition.attribute;
+      switch (attribute) {
+        case 'date':
+          return 'Date ' + condition.params + ' is ' + authorise + ' (' + target + ')';
+        case 'domain':
+          return 'Domain \"' + condition.params + '\" is ' + authorise + ' (' + target + ')';
+        case 'source':
+          if (condition.operator === 'in') {
+            return 'Group \"' + condition.params + '\" is ' + authorise + ' (' + target + ')';
+          } else {
+            if (condition.operator === 'equals') {
+              return 'User ' + condition.params + ' is ' + authorise + ' (' + target + ')';
+            }
+          }
+        case 'subscription':
+          if (condition.params === '*') {
+            return 'Subscriptions from all hyperties are ' + authorise + ' (' + target + ')';
+          } else {
+            if (condition.params === 'preauthorised') {
+              return 'Subscriptions from previously authorised hyperties are allowed (' + target + ')';
+            }
+          }
+        case 'time':
+          var start = condition.params[0][0] + condition.params[0][1] + ':' + condition.params[0][2] + condition.params[0][3];
+          var end = condition.params[1][0] + condition.params[1][1] + ':' + condition.params[1][2] + condition.params[1][3];
+          return 'Timeslot from ' + start + ' to ' + end + ' is ' + authorise + ' (' + target + ')';
+        case 'weekday':
+          var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          var weekdayID = condition.params;
+          return 'Weekday \"' + weekdays[weekdayID] + '\" is ' + authorise + ' (' + target + ')';
+        default:
+          return 'Rule ' + rule.priority + ' is ' + authorise + ' (' + target + ')';
+      }
+    }
+  }, {
+    key: 'getVariables',
+    value: function getVariables() {
+      var variablesTitles = [];
+      for (var i in this.variables) {
+        variablesTitles.push(i);
+      }
+      return variablesTitles;
+    }
+  }, {
+    key: 'getVariableInfo',
+    value: function getVariableInfo(variable) {
+      return this.variables[variable];
+    }
+  }, {
+    key: 'getMyEmails',
+    value: function getMyEmails() {
+      return this.callPolicyEngineFunc('getMyEmails', {});
+    }
+  }, {
+    key: 'getMyHyperties',
+    value: function getMyHyperties() {
+      return this.callPolicyEngineFunc('getMyHyperties', {});
+    }
+
+    //TODO If there is a problem with the input, show it to the user
+
+  }, {
+    key: 'setInfo',
+    value: function setInfo(variable, policyTitle, info, authorise, scope, target) {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        if (_this.validation[variable](scope, info)) {
+          _this.addition[variable]([policyTitle, scope, target, info, authorise]).then(function () {
+            resolve();
+          });
+        } else {
+          reject('Invalid configuration');
+        }
+      });
+    }
+  }, {
+    key: 'deleteInfo',
+    value: function deleteInfo(variable, scope, target, info) {
+      var params = [scope, target, info];
+      if (variable === 'member') {
+        var conditionSplit = info.split(' ');
+        var groupName = conditionSplit[2];
+        params = [scope, groupName, info];
+      }
+      this.deletion[variable](params);
+    }
+  }, {
+    key: 'getGroups',
+    value: function getGroups() {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('groups', {}).then(function (groups) {
+          var groupsGUI = {
+            groupsNames: [],
+            members: [],
+            ids: []
+          };
+
+          for (var i in groups) {
+            groupsGUI.groupsNames.push(i);
+            groupsGUI.members.push(groups[i]);
+            var ids = [];
+            for (var j in groups[i]) {
+              ids.push(i + '::' + groups[i][j]);
+            }
+            groupsGUI.ids.push(ids);
+          }
+
+          //console.log('TIAGO groups', groupsGUI)
+          resolve(groupsGUI);
+        });
+      });
+    }
+  }, {
+    key: 'getGroupsNames',
+    value: function getGroupsNames() {
+      return this.callPolicyEngineFunc('getGroupsNames', {});
+    }
+  }, {
+    key: 'removeFromGroup',
+    value: function removeFromGroup(groupName, user) {
+      return this.callPolicyEngineFunc('removeFromGroup', { groupName: groupName, userEmail: user });
+    }
+  }, {
+    key: 'updatePolicy',
+    value: function updatePolicy(policyTitle, rule, newDecision, newSubscriptionType) {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        _this.callPolicyEngineFunc('userPolicies', {}).then(function (userPolicies) {
+          userPolicies[policyTitle].deleteRule(rule);
+          if (!newSubscriptionType) {
+            userPolicies[policyTitle].createRule(newDecision, rule.condition, rule.scope, rule.target, rule.priority);
+          } else {
+            var operator = newSubscriptionType === '*' ? 'equals' : 'in';
+            userPolicies[policyTitle].createRule(newDecision, [{ attribute: 'subscription', opeator: operator, params: newSubscriptionType }], rule.scope, rule.target, rule.priority);
+          }
+
+          _this.callPolicyEngineFunc('saveActivePolicy', {}).then(function () {
+            resolve();
+          });
+        });
+      });
+    }
+  }]);
+
+  return PoliciesManager;
+}();
+
+exports.default = PoliciesManager;
+
+},{}]},{},[1])(1)
+});
+
 //# sourceMappingURL=policies-gui.js.map
