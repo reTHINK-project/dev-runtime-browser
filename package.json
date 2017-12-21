@@ -7,7 +7,7 @@
     "test": "karma start",
     "build:doc": "esdoc -c esdoc.json",
     "build:dist": "gulp bundle",
-    "build:dev": "webpack"
+    "build:dev": "webpack && cp -TRv ./bin ../dev-hyperty-toolkit/node_modules/runtime-browser/bin"
   },
   "repository": {
     "type": "git",
