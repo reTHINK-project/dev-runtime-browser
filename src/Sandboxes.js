@@ -29,7 +29,7 @@ import RuntimeFactory from './RuntimeFactory';
  * */
 export class SandboxWorker extends Sandbox {
   static capabilities() {
-    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities()
+    return RuntimeFactory.runtimeCapabilities().getRuntimeCapabilities()
       .then(capabilities =>Object.assign(capabilities, { mic: false, camera: false, windowSandbox: false }));
   }
 
@@ -71,7 +71,7 @@ export class SandboxWorker extends Sandbox {
 
 export class SandboxWindow extends Sandbox {
   static capabilities() {
-    return RuntimeFactory.runtimeCapabilities(RuntimeFactory.storageManager()).getRuntimeCapabilities();
+    return RuntimeFactory.runtimeCapabilities().getRuntimeCapabilities();
   }
 
   static new(capabilities) {
