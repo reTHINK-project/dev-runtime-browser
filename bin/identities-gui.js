@@ -29,6 +29,7 @@ var IdentitiesGUI = function () {
         var identityInfo = msg.body.value;
         var funcName = msg.body.method;
         var value = void 0;
+        console.log('[IdentitiesGUI] received msg: ', msg);
 
         if (funcName === 'openPopup') {
           var urlreceived = msg.body.params.urlreceived;
@@ -46,6 +47,7 @@ var IdentitiesGUI = function () {
         $('.admin-page').removeClass('hide');
         _this.showIdentitiesGUI(msg.body.value).then(function (identityInfo) {
           var replyMsg = void 0;
+          console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
 
           //hide config page with the identity GUI
           parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
@@ -112,26 +114,31 @@ var IdentitiesGUI = function () {
 
             if (code || error) {
               win.close();
-              resolve(url);
+              return resolve(url);
+            } else {
+              return reject('openPopup error 1 - should not happen');
             }
           });
         } else {
+
           var pollTimer = setInterval(function () {
             try {
               if (win.closed) {
-                reject('Some error occured when trying to get identity.');
+                return reject('Some error occured when trying to get identity.');
                 clearInterval(pollTimer);
               }
 
-              if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
+              //            if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
+              if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
                 window.clearInterval(pollTimer);
                 var url = win.document.URL;
 
                 win.close();
-                resolve(url);
+                return resolve(url);
               }
             } catch (e) {
-              //console.log(e);
+              //return reject('openPopup error 2 - should not happen');
+              console.log(e);
             }
           }, 500);
         }
@@ -143,6 +150,7 @@ var IdentitiesGUI = function () {
       var _this = this;
 
       return new Promise(function (resolve, reject) {
+        console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
 
         var identityInfo = void 0;
         var toRemoveID = void 0;
@@ -207,17 +215,21 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: 'showMyIdentities',
-    value: function showMyIdentities(emails, toRemoveID) {
+    value: function showMyIdentities(iDs, toRemoveID) {
       var _this = this;
+      // TODO: iDs should be replaced by user urls
 
       return new Promise(function (resolve, reject) {
-
+        console.log('[IdentitiesGUI.showMyIdentities] : ', iDs);
         // let identities = _this.identityModule.getIdentities();
         var identities = [];
 
-        for (var i in emails) {
-          var domain = emails[i].split('@');
-          identities.push({ email: emails[i], domain: domain[1] });
+        for (var i in iDs) {
+          var split1 = iDs[i].split('://');
+
+          var identifier = split1[1].split('/')[1];
+          var domain = iDs[i].replace('/' + identifier, '');
+          identities.push({ email: iDs[i], domain: domain });
         }
 
         var myIdentities = document.getElementById('my-ids');
@@ -246,7 +258,7 @@ var IdentitiesGUI = function () {
         }
 
         $('.remove-id').on('click', function (event) {
-          return _this.removeID(emails);
+          return _this.removeID(iDs);
         });
       });
     }
@@ -334,12 +346,12 @@ var IdentitiesGUI = function () {
       var idProvider = event.target.textContent;
       var idProvider2 = event.target.text;
 
-      _this.callIdentityModuleFunc('generateRSAKeyPair', {}).then(function (keyPair) {
-        var publicKey = btoa(keyPair.public);
+      _this.callIdentityModuleFunc('getMyPublicKey', {}).then(function (publicKey) {
+        //      let publicKey = btoa(keyPair.public);
 
         _this.callIdentityModuleFunc('sendGenerateMessage', { contents: publicKey, origin: 'origin', usernameHint: undefined,
           idpDomain: idProvider }).then(function (value) {
-          console.log('receivedURL: ' + value.loginUrl.substring(0, 20) + '...');
+          console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
           var url = value.loginUrl;
           var finalURL = void 0;
@@ -366,7 +378,7 @@ var IdentitiesGUI = function () {
           $('.login-btn').off();
           $('.login-btn').on('click', function (event) {
             $('.login').addClass('hide');
-            _this._authenticateUser(keyPair, publicKey, value, 'origin', idProvider).then(function (email) {
+            _this._authenticateUser(publicKey, value, 'origin', idProvider).then(function (email) {
               callback(email);
               _this.showIdentitiesGUI();
             });
@@ -391,7 +403,7 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: '_authenticateUser',
-    value: function _authenticateUser(keyPair, publicKey, value, origin, idProvider) {
+    value: function _authenticateUser(publicKey, value, origin, idProvider) {
       var _this = this;
       var url = _this.resultURL;
 
@@ -404,8 +416,8 @@ var IdentitiesGUI = function () {
             if (result) {
 
               //_this.identityModule.storeIdentity(result, keyPair).then((value) => {
-              _this.callIdentityModuleFunc('storeIdentity', { result: result, keyPair: keyPair }).then(function (value) {
-                resolve(value.userProfile.username);
+              _this.callIdentityModuleFunc('addAssertion', result).then(function (value) {
+                resolve(value.userProfile.userURL);
               }, function (err) {
                 reject(err);
               });

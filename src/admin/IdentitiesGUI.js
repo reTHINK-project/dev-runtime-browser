@@ -17,6 +17,7 @@ class IdentitiesGUI {
         let identityInfo = msg.body.value;
         let funcName = msg.body.method;
         let value;
+        console.log('[IdentitiesGUI] received msg: ', msg);
 
         if (funcName === 'openPopup') {
           let urlreceived = msg.body.params.urlreceived;
@@ -34,6 +35,7 @@ class IdentitiesGUI {
         $('.admin-page').removeClass('hide');
         _this.showIdentitiesGUI(msg.body.value).then((identityInfo) => {
           let replyMsg;
+          console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
 
           //hide config page with the identity GUI
           parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
@@ -97,29 +99,34 @@ class IdentitiesGUI {
 
           if (code || error) {
             win.close();
-            resolve(url);
+            return resolve(url);
+          } else {
+            return reject('openPopup error 1 - should not happen');
           }
         });
       } else {
+  
         let pollTimer = setInterval(function() {
           try {
             if (win.closed) {
-              reject('Some error occured when trying to get identity.');
+              return reject('Some error occured when trying to get identity.');
               clearInterval(pollTimer);
             }
 
-            if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
-              window.clearInterval(pollTimer);
+//            if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
+            if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
+                window.clearInterval(pollTimer);
               let url =   win.document.URL;
 
               win.close();
-              resolve(url);
+              return resolve(url);
+            }            } catch (e) {
+              //return reject('openPopup error 2 - should not happen');
+              console.log(e);
             }
-          } catch (e) {
-            //console.log(e);
-          }
-        }, 500);
-      }
+          }, 500);
+        }
+  
     });
   }
 
@@ -127,6 +134,7 @@ class IdentitiesGUI {
     let _this = this;
 
     return new Promise((resolve, reject) => {
+      console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
 
       let identityInfo;
       let toRemoveID;
@@ -184,17 +192,21 @@ class IdentitiesGUI {
     });
   }
 
-  showMyIdentities(emails, toRemoveID) {
+  showMyIdentities(iDs, toRemoveID) {
     let _this = this;
+    // TODO: iDs should be replaced by user urls
 
     return new Promise((resolve, reject) => {
-
+      console.log('[IdentitiesGUI.showMyIdentities] : ', iDs);
       // let identities = _this.identityModule.getIdentities();
       let identities = [];
 
-      for (let i in emails) {
-        let domain = emails[i].split('@');
-        identities.push({ email: emails[i], domain: domain[1] });
+      for (let i in iDs) {
+        let split1 = iDs[i].split('://')
+
+        let identifier = split1[1].split('/')[1];
+        let domain = iDs[i].replace('/'+identifier,'');
+        identities.push({ email: iDs[i], domain: domain });
       }
 
       let myIdentities = document.getElementById('my-ids');
@@ -220,7 +232,7 @@ class IdentitiesGUI {
         $('.clickable-cell').on('click', (event) => _this.changeID(event, callback));
       }
 
-      $('.remove-id').on('click', (event) => _this.removeID(emails));
+      $('.remove-id').on('click', (event) => _this.removeID(iDs));
 
     });
   }
@@ -304,13 +316,13 @@ class IdentitiesGUI {
     let idProvider = event.target.textContent;
     let idProvider2 = event.target.text;
 
-    _this.callIdentityModuleFunc('generateRSAKeyPair', {}).then((keyPair) => {
-      let publicKey = btoa(keyPair.public);
+    _this.callIdentityModuleFunc('getMyPublicKey', {}).then((publicKey) => {
+//      let publicKey = btoa(keyPair.public);
 
       _this.callIdentityModuleFunc('sendGenerateMessage',
         { contents: publicKey, origin: 'origin', usernameHint: undefined,
         idpDomain: idProvider, }).then((value) => {
-        console.log('receivedURL: ' + value.loginUrl.substring(0, 20) + '...');
+        console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
         let url = value.loginUrl;
         let finalURL;
@@ -337,7 +349,7 @@ class IdentitiesGUI {
         $('.login-btn').off();
         $('.login-btn').on('click', (event) => {
           $('.login').addClass('hide');
-          _this._authenticateUser(keyPair, publicKey, value, 'origin', idProvider).then((email) => {
+          _this._authenticateUser(publicKey, value, 'origin', idProvider).then((email) => {
             callback(email);
             _this.showIdentitiesGUI();
           });
@@ -359,7 +371,7 @@ class IdentitiesGUI {
     return list;
   }
 
-  _authenticateUser(keyPair, publicKey, value, origin, idProvider) {
+  _authenticateUser(publicKey, value, origin, idProvider) {
     let _this = this;
     let url = _this.resultURL;
 
@@ -373,8 +385,8 @@ class IdentitiesGUI {
           if (result) {
 
            //_this.identityModule.storeIdentity(result, keyPair).then((value) => {
-           _this.callIdentityModuleFunc('storeIdentity', {result: result, keyPair: keyPair}).then((value) => {
-             resolve(value.userProfile.username);
+           _this.callIdentityModuleFunc('addAssertion', result).then((value) => {
+             resolve(value.userProfile.userURL);
            }, (err) => {
              reject(err);
            });
