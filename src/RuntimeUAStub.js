@@ -92,10 +92,12 @@ let GuiManager = function() {
       if (e.data.body.method === 'showAdminPage') {
         iframe.style.width = '100%';
         iframe.style.height = '100%';
+        iframe.style.zIndex = 99999;
       } else {
         if (e.data.body.method === 'hideAdminPage') {
-          iframe.style.width = '40px';
-          iframe.style.height = '40px';
+          iframe.style.width = '48px';
+          iframe.style.height = '48px';
+          iframe.style.zIndex = 1;
         }
       }
 
@@ -112,7 +114,7 @@ let RethinkBrowser = {
     console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
     return new Promise((resolve, reject)=>{
       let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL);
-      iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`);
+      iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`, 99999);
       let installed = (e)=>{
         if (e.data.to === 'runtime:installed') {
           window.removeEventListener('message', installed);
