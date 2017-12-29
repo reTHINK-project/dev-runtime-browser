@@ -25,7 +25,7 @@ import { createSandbox } from './Sandboxes';
 import SandboxApp from './SandboxApp';
 import Request from './Request';
 import RuntimeCapabilities from './RuntimeCapabilities';
-import storageManager from 'service-framework/dist/StorageManager';
+import StorageManager from 'service-framework/dist/StorageManager';
 import Dexie from 'dexie';
 import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
 
@@ -69,15 +69,38 @@ export default {
     let localStorage = window.localStorage;
     return new PersistenceManager(localStorage);
   },
+  storageManager(name, schemas) {
 
-  storageManager() {
-    const db = new Dexie('cache');
-    const storeName = 'objects';
+    if (!this.databases) { this.databases = {}; }
+    if (!this.storeManager) { this.storeManager = {}; }
 
-    return new storageManager(db, storeName);
+    // To make the storage persitent and now allow the system clear the storage when is under pressure;
+    if (navigator && navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then(function(persistent) {
+        if (persistent) { console.log('Storage will not be cleared except by explicit user action'); } else { console.log('Storage may be cleared by the UA under storage pressure.'); }
+      });
+    }
+
+    // Using the implementation of Service Framework
+    // Dexie is the IndexDB Wrapper
+    if (!this.databases.hasOwnProperty(name)) {
+      this.databases[name] = new Dexie(name);
+    }
+
+    if (!this.storeManager.hasOwnProperty(name)) {
+      this.storeManager[name] = new StorageManager(this.databases[name], name, schemas);
+    }
+
+    return this.storeManager[name];
   },
 
-  runtimeCapabilities(storageManager) {
-    return new RuntimeCapabilities(storageManager);
+  runtimeCapabilities() {
+
+    if (!this.capabilitiesManager) {
+      let storageManager = this.storageManager('capabilities');
+      this.capabilitiesManager = new RuntimeCapabilities(storageManager);
+    }
+
+    return this.capabilitiesManager;
   }
 };
