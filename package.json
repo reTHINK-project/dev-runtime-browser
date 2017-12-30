@@ -45,7 +45,7 @@
     "chai": "^3.5.0",
     "copyfiles": "^0.2.1",
     "esdoc": "0.5.2",
-    "eslint": "^4.8.0",
+    "eslint": "^4.14.0",
     "eslint-plugin-import": "^2.7.0",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
@@ -70,10 +70,10 @@
     "mocha": "^2.4.5",
     "sinon": "1.17.6",
     "tv4": "^1.2.7",
-    "uglifyjs-webpack-plugin": "^1.1.1",
+    "uglifyjs-webpack-plugin": "^1.1.5",
     "urijs": "^1.19.0",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^1.1.2",
     "watchify": "^3.4.0",
     "webpack": "^3.10.0"
   }
