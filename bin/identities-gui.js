@@ -1,308 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      } else {
-        // At least give some kind of context to the user
-        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
-        err.context = er;
-        throw err;
-      }
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.prototype.listenerCount = function(type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-
-    if (isFunction(evlistener))
-      return 1;
-    else if (evlistener)
-      return evlistener.length;
-  }
-  return 0;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  return emitter.listenerCount(type);
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},{}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -310,8 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _events = require('events');
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -330,11 +24,18 @@ var IdentitiesGUI = function () {
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
 
+    this.callIdentityModuleFunc('deployGUI', {}).then(function (result) {
+      return _this2._buildDrawer();
+    }).then(function (result) {
+      console.log('READY:', result);
+    });
+
     var drawerEl = document.querySelector('.mdc-temporary-drawer');
     var MDCTemporaryDrawer = mdc.drawer.MDCTemporaryDrawer;
     var drawer = new MDCTemporaryDrawer(drawerEl);
 
     this._drawerEl = drawerEl;
+    this._drawer = drawer;
 
     document.querySelector('.settings-btn').addEventListener('click', function () {
       drawer.open = true;
@@ -342,91 +43,171 @@ var IdentitiesGUI = function () {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', function () {
       console.log('Received MDCTemporaryDrawer:open');
-
-      _this2._openDrawer();
+      _this2._isDrawerOpen = true;
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', function () {
       console.log('Received MDCTemporaryDrawer:close');
+      _this2._isDrawerOpen = false;
 
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
   }
 
   _createClass(IdentitiesGUI, [{
-    key: '_openDrawer',
-    value: function _openDrawer() {
+    key: '_buildDrawer',
+    value: function _buildDrawer() {
+      var _this3 = this;
 
-      var _this = this;
-      var guiURL = _this._guiURL;
+      var guiURL = this._guiURL;
 
-      _this.showIdentitiesGUI(msg.body.value).then(function (identityInfo) {
-        var replyMsg = void 0;
-        console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
+      this._messageBus.addListener(guiURL, function (msg) {
 
-        //hide config page with the identity GUI
-        parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
-        $('.admin-page').addClass('hide');
+        var funcName = msg.body.method;
 
-        // document.getElementsByTagName('body')[0].style = 'background-color:transparent';
-        $('.identities-section').addClass('hide');
-        $('.policies-section').addClass('hide');
+        console.log('AQUI:', funcName);
 
-        switch (identityInfo.type) {
-          case 'idp':
-            value = { type: 'idp', value: identityInfo.value, code: 200 };
-            replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-            _this._messageBus.postMessage(replyMsg);
-            break;
+        var callback = function callback(identityInfo) {
+          _this3._buildMessage(msg, identityInfo);
+        };
 
-          case 'identity':
-            value = { type: 'identity', value: identityInfo.value, code: 200 };
-            replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-            _this._messageBus.postMessage(replyMsg);
-            break;
+        if (funcName === 'openPopup') {
 
-          default:
-            value = { type: 'error', value: 'Error on identity GUI', code: 400 };
-            replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-            _this._messageBus.postMessage(replyMsg);
+          var urlreceived = msg.body.params.urlreceived;
+          _this3.openPopup(urlreceived).then(function (returnedValue) {
+            var value = { type: 'execute', value: returnedValue, code: 200 };
+            var replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+            _this3._messageBus.postMessage(replyMsg);
+          });
+          return; // this avoids getting stuck in the identities page
         }
+
+        _this3._getIdentities(callback);
+
+        var clickClose = new MouseEvent('click');
+        document.querySelector('.settings-btn').dispatchEvent(clickClose);
       });
 
-      _this.callIdentityModuleFunc('deployGUI', {}).then(function () {
-        _this.resultURL = undefined;
+      var callback = function callback(identityInfo) {
+        _this3._buildMessage(null, identityInfo);
+      };
 
-        _this._messageBus.addListener(guiURL, function (msg) {
+      this._getIdentities(callback);
+    }
+  }, {
+    key: '_buildMessage',
+    value: function _buildMessage(msg, identityInfo) {
+      var replyMsg = void 0;
+      var value = void 0;
 
-          var identityInfo = msg.body.value;
-          var funcName = msg.body.method;
-          var value = void 0;
-          console.log('[IdentitiesGUI] received msg: ', msg);
+      var from = msg ? msg.from : this._guiURL;
+      var to = msg ? msg.to : this._idmURL;
 
-          if (funcName === 'openPopup') {
-            var urlreceived = msg.body.params.urlreceived;
-            _this.openPopup(urlreceived).then(function (returnedValue) {
-              var value = { type: 'execute', value: returnedValue, code: 200 };
-              var replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-              _this._messageBus.postMessage(replyMsg);
-            });
-            return; // this avoids getting stuck in the identities page
-          }
+      console.log('chosen identity: ', identityInfo);
 
-          // unhide the config page with the identity GUI
-          // document.getElementsByTagName('body')[0].style = 'background-color:white;';
-          parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
+      switch (identityInfo.type) {
+        case 'idp':
+          value = { type: 'idp', value: identityInfo.value, code: 200 };
+          break;
 
-          var clickOpen = new MouseEvent('click');
-          document.querySelector('.settings-btn').dispatchEvent(clickOpen);
+        case 'identity':
+          value = { type: 'identity', value: identityInfo.value, code: 200 };
+          break;
 
-          $('.admin-page').removeClass('hide');
-        });
+        default:
+          value = { type: 'error', value: 'Error on identity GUI', code: 400 };
+      }
+
+      if (msg && msg.type === 'execute') {
+        replyMsg = { id: msg.id, type: 'response', to: from, from: to, body: value };
+      } else {
+        // replyMsg = {type: 'execute', to: from, from: to, body: value };
+      }
+
+      this._messageBus.postMessage(replyMsg);
+    }
+  }, {
+    key: '_getIdentities',
+    value: function _getIdentities(callback) {
+      var _this4 = this;
+
+      return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then(function (resultObject) {
+        return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showIdentities(resultObject.identities, callback)]);
       });
     }
+
+    // _openDrawer() {
+
+    //   let _this = this;
+    //   const guiURL = _this._guiURL;
+
+    //   _this.resultURL  = undefined;
+
+    //   _this._messageBus.addListener(guiURL, msg => {
+    //     let identityInfo = msg.body.value;
+    //     let funcName = msg.body.method;
+    //     let value;
+    //     console.log('[IdentitiesGUI] received msg: ', msg);
+
+    //     _this.showIdentitiesGUI(msg.body.value).then((identityInfo) => {
+
+    //       let replyMsg;
+    //       console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
+
+    //       //hide config page with the identity GUI
+    //       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
+    //       $('.admin-page').addClass('hide');
+
+    //       // document.getElementsByTagName('body')[0].style = 'background-color:transparent';
+    //       $('.identities-section').addClass('hide');
+    //       $('.policies-section').addClass('hide');
+
+    //       switch (identityInfo.type) {
+    //         case 'idp':
+    //           value = { type: 'idp', value: identityInfo.value, code: 200 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //           break;
+
+    //         case 'identity':
+    //           value = { type: 'identity', value: identityInfo.value, code: 200 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //           break;
+
+    //         default:
+    //           value = { type: 'error', value: 'Error on identity GUI', code: 400 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //       }
+    //     });
+
+    //     if (funcName === 'openPopup') {
+    //       let urlreceived = msg.body.params.urlreceived;
+    //       _this.openPopup(urlreceived).then((returnedValue) => {
+    //         let value = {type: 'execute', value: returnedValue, code: 200};
+    //         let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
+    //         _this._messageBus.postMessage(replyMsg);
+    //       });
+    //       return; // this avoids getting stuck in the identities page
+    //     }
+
+    //     // unhide the config page with the identity GUI
+    //     // document.getElementsByTagName('body')[0].style = 'background-color:white;';
+    //     parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
+
+    //     const clickOpen = new MouseEvent('click');
+    //     document.querySelector('.settings-btn').dispatchEvent(clickOpen);
+
+    //     $('.admin-page').removeClass('hide');
+
+    //   });
+    // }
+
   }, {
     key: 'callIdentityModuleFunc',
     value: function callIdentityModuleFunc(methodName, parameters) {
-      var _this3 = this;
+      var _this5 = this;
 
       var _this = this;
 
@@ -434,7 +215,7 @@ var IdentitiesGUI = function () {
         var message = { type: 'execute', to: _this._idmURL, from: _this._guiURL,
           body: { resource: 'identity', method: methodName, params: parameters } };
 
-        _this3._messageBus.postMessage(message, function (res) {
+        _this5._messageBus.postMessage(message, function (res) {
           var result = res.body.value;
           resolve(result);
         });
@@ -484,69 +265,67 @@ var IdentitiesGUI = function () {
         }
       });
     }
-  }, {
-    key: 'showIdentitiesGUI',
-    value: function showIdentitiesGUI(receivedInfo) {
-      var _this = this;
 
-      return new Promise(function (resolve, reject) {
-        console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
+    // showIdentitiesGUI(receivedInfo) {
+    //   let _this = this;
 
-        var identityInfo = void 0;
-        var toRemoveID = void 0;
+    //   return new Promise((resolve, reject) => {
+    //     console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
 
-        var callback = function callback(value) {
-          console.log('chosen identity: ', value);
+    //     let identityInfo;
+    //     let toRemoveID;
 
-          var clickClose = new MouseEvent('click');
-          document.querySelector('.settings-btn').dispatchEvent(clickClose);
+    //     let callback = (value) => {
+    //       console.log('chosen identity: ', value);
 
-          resolve({ type: 'identity', value: value });
-        };
+    //       const clickClose = new MouseEvent('click');
+    //       document.querySelector('.settings-btn').dispatchEvent(clickClose);
 
-        _this._checkReceivedInfo(receivedInfo).then(function (resultObject) {
-          identityInfo = resultObject.identityInfo;
-          toRemoveID = resultObject.toRemoveID;
+    //       resolve({type: 'identity', value: value});
+    //     };
 
-          $('.policies-section').addClass('hide');
-          $('.identities-section').removeClass('hide');
+    //     _this._checkReceivedInfo(receivedInfo).then((resultObject) => {
+    //       identityInfo = resultObject.identityInfo;
+    //       toRemoveID = resultObject.toRemoveID;
 
-          _this.showIdps(receivedInfo.idps, callback);
+    //       $('.policies-section').addClass('hide');
+    //       $('.identities-section').removeClass('hide');
 
-          _this.showMyIdentities(identityInfo.identities, toRemoveID).then(function (identity) {
-            console.log('chosen identity: ', identity);
-            resolve({ type: 'identity', value: identity });
-          });
+    //       _this.showIdps(receivedInfo.idps, callback);
 
-          var idps = [];
-          var idpsObjects = identityInfo.idps;
+    //       _this.showIdentities(identityInfo.identities, toRemoveID).then((identity) => {
+    //         console.log('chosen identity: ', identity);
+    //         resolve({type: 'identity', value: identity});
+    //       });
 
-          idpsObjects.forEach(function (entry) {
-            if (entry.type && entry.type == 'idToken') {
-              idps.push(entry.domain);
-            }
-          });
+    //       let idps = [];
+    //       let idpsObjects = identityInfo.idps;
 
-          $('#idproviders').html(_this._getList(idps));
-          $('#idproviders').off();
-          $('#idproviders').on('click', function (event) {
-            return _this.obtainNewIdentity(event, callback, toRemoveID);
-          });
-          //$('.back').on('click', (event) => _this.goHome());
-          $('.identities-reset').off();
-          $('.identities-reset').on('click', function (event) {
-            return _this._resetIdentities(callback);
-          });
-        });
-      });
-    }
+    //       idpsObjects.forEach(function(entry) {
+    //         if(entry.type && entry.type == 'idToken') {
+    //           idps.push(entry.domain);
+    //         }
+    //       });
+
+    //       $('#idproviders').html(_this._getList(idps));
+    //       $('#idproviders').off();
+    //       // $('#idproviders').on('click', (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
+    //       //$('.back').on('click', (event) => _this.goHome());
+    //       $('.identities-reset').off();
+    //       // $('.identities-reset').on('click', (event) => _this._resetIdentities(callback));
+    //     });
+    //   });
+    // }
+
   }, {
     key: '_checkReceivedInfo',
     value: function _checkReceivedInfo(receivedInfo) {
       var _this = this;
       return new Promise(function (resolve, reject) {
-        var identityInfo = void 0,
-            toRemoveID = void 0;
+
+        var identityInfo = void 0;
+        var toRemoveID = void 0;
+
         if (receivedInfo) {
           identityInfo = receivedInfo;
           toRemoveID = false;
@@ -562,25 +341,25 @@ var IdentitiesGUI = function () {
   }, {
     key: 'showIdps',
     value: function showIdps(idps, callback) {
-      var _this4 = this;
+      var _this6 = this;
 
       var idpsList = document.getElementById('idps-list');
 
       idps.forEach(function (key) {
 
+        var exist = document.getElementById('link-' + key.domain);
+        if (exist) {
+          return;
+        }
+
         var linkEl = document.createElement('a');
+        linkEl.setAttribute('id', 'link-' + key.domain);
         linkEl.setAttribute('data-idp', key.domain);
         linkEl.classList = 'mdc-list-item';
         linkEl.href = '#';
 
         linkEl.addEventListener('click', function (event) {
-
-          event.preventDefault();
-
-          var el = event.currentTarget;
-          var idp = el.getAttribute('data-idp');
-
-          _this4.loginWithIDP(idp, callback);
+          _this6.loginWithIDP.call(_this6, event);
         });
 
         var linkElText = document.createTextNode(key.domain);
@@ -597,8 +376,10 @@ var IdentitiesGUI = function () {
       });
     }
   }, {
-    key: 'showMyIdentities',
-    value: function showMyIdentities(iDs, toRemoveID) {
+    key: 'showIdentities',
+    value: function showIdentities(iDs, callback) {
+      var _this7 = this;
+
       var _this = this;
 
       // TODO: iDs should be replaced by user urls
@@ -639,27 +420,27 @@ var IdentitiesGUI = function () {
         });
 
         if (identities.length === 1) {
-          return resolve(identities[0].userURL);
+
+          if (callback) {
+            callback({ type: 'identity', value: identities[0] });
+          }
+
+          return resolve({ type: 'identity', value: identities[0] });
         }
 
         if (identities.length > 1) {
-          var clickOpen = new MouseEvent('click');
-          document.querySelector('.settings-btn').dispatchEvent(clickOpen);
+          _this7._drawer.open = true;
         }
 
-        var callback = function callback(identity) {
-          resolve(identity);
-        };
+        // let callback = (identity) => {
+        //   resolve(identity);
+        // };
 
-        if (!toRemoveID) {
-          $('.clickable-cell').on('click', function (event) {
-            return _this.changeID(event, callback);
-          });
-        }
+        // if (!toRemoveID) {
+        //   $('.clickable-cell').on('click', (event) => _this.changeID(event, callback));
+        // }
 
-        $('.remove-id').on('click', function (event) {
-          return _this.removeID(iDs);
-        });
+        // $('.remove-id').on('click', (event) => _this.removeID(iDs));
       });
     }
   }, {
@@ -680,23 +461,28 @@ var IdentitiesGUI = function () {
         }
 
         // -------------------------------------------------------------------------//
-        _this.showMyIdentities(emails, true);
+        _this.showIdentities(emails, true);
       });
 
       //_this.identityModule.unregisterIdentity(idToRemove);
     }
   }, {
     key: 'loginWithIDP',
-    value: function loginWithIDP(idProvider, callback) {
-      var _this5 = this;
+    value: function loginWithIDP(event) {
+      var _this8 = this;
 
-      console.log(idProvider);
+      // event.preventDefault();
+
+      var el = event.currentTarget;
+      var idp = el.getAttribute('data-idp');
+
+      console.log('this:', this, idp);
 
       var _publicKey = void 0;
       this.callIdentityModuleFunc('getMyPublicKey', {}).then(function (publicKey) {
         _publicKey = publicKey;
-        var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idProvider };
-        return _this5.callIdentityModuleFunc('sendGenerateMessage', data);
+        var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
+        return _this8.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (value) {
         console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
@@ -718,65 +504,68 @@ var IdentitiesGUI = function () {
           }
         }
 
-        _this5.resultURL = finalURL || url;
+        _this8.resultURL = finalURL || url;
 
-        console.log('AQUI:', _this5.resultURL);
+        console.log('AQUI:', _this8.resultURL);
 
-        return _this5._authenticateUser(_publicKey, value, 'origin', idProvider);
+        return _this8._authenticateUser(_publicKey, value, 'origin', idp);
       }).then(function (email) {
-        console.log('AQUI:', email);
-        callback(email);
+        _this8._drawer.open = false;
+        var value = { type: 'identity', value: email };
+
+        console.log('AQUI:', value);
+
+        // return resolve(value);
       });
     }
-  }, {
-    key: 'obtainNewIdentity',
-    value: function obtainNewIdentity(event, callback, toRemoveID) {
-      var _this = this;
-      var idProvider = event.target.textContent;
-      var idProvider2 = event.target.text;
 
-      _this.callIdentityModuleFunc('getMyPublicKey', {}).then(function (publicKey) {
-        //      let publicKey = btoa(keyPair.public);
+    // obtainNewIdentity(event, callback, toRemoveID) {
+    //   let _this = this;
+    //   let idProvider = event.target.textContent;
+    //   let idProvider2 = event.target.text;
 
-        _this.callIdentityModuleFunc('sendGenerateMessage', { contents: publicKey, origin: 'origin', usernameHint: undefined,
-          idpDomain: idProvider }).then(function (value) {
-          console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
+    //   _this.callIdentityModuleFunc('getMyPublicKey', {}).then((publicKey) => {
+    //     // let publicKey = btoa(keyPair.public);
 
-          var url = value.loginUrl;
-          var finalURL = void 0;
+    //     _this.callIdentityModuleFunc('sendGenerateMessage',
+    //       { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idProvider, }).then((value) => {
+    //       console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
-          //check if the receivedURL contains the redirect field and replace it
-          if (url.indexOf('redirect_uri') !== -1) {
-            var firstPart = url.substring(0, url.indexOf('redirect_uri'));
-            var secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+    //       let url = value.loginUrl;
+    //       let finalURL;
 
-            var secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+    //       //check if the receivedURL contains the redirect field and replace it
+    //       if (url.indexOf('redirect_uri') !== -1) {
+    //         let firstPart = url.substring(0, url.indexOf('redirect_uri'));
+    //         let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
 
-            //check if the reddirect field is the last field of the URL
-            if (secondPart.indexOf('&') !== -1) {
-              finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
-            } else {
-              finalURL = firstPart + 'redirect_uri=' + location.origin;
-            }
-          }
+    //         let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
 
-          _this.resultURL = finalURL || url;
+    //         //check if the reddirect field is the last field of the URL
+    //         if (secondPart.indexOf('&') !== -1) {
+    //           finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+    //         } else {
+    //           finalURL = firstPart + 'redirect_uri=' + location.origin;
+    //         }
+    //       }
 
-          $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
-          $('.login').removeClass('hide');
-          $('.login-btn').off();
-          $('.login-btn').on('click', function (event) {
-            $('.login').addClass('hide');
-            _this._authenticateUser(publicKey, value, 'origin', idProvider).then(function (email) {
-              callback(email);
-              _this.showIdentitiesGUI();
-            });
-          });
-        });
-      }).catch(function (err) {
-        return console.log('obtanin new identity', err);
-      });
-    }
+    //       _this.resultURL = finalURL || url;
+
+    //       $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
+    //       $('.login').removeClass('hide');
+    //       $('.login-btn').off();
+    //       $('.login-btn').on('click', (event) => {
+    //         $('.login').addClass('hide');
+    //         // _this._authenticateUser(publicKey, value, 'origin', idProvider).then((email) => {
+    //         //   callback(email);
+    //         //   _this.showIdentitiesGUI();
+    //         // });
+    //       });
+    //     });
+    //   }).catch(err => console.log('obtanin new identity', err));
+
+    // }
+
   }, {
     key: '_getList',
     value: function _getList(items) {
@@ -797,6 +586,8 @@ var IdentitiesGUI = function () {
       var url = _this.resultURL;
 
       return new Promise(function (resolve, reject) {
+
+        console.log('OPENPOUP: ', url);
 
         _this.openPopup(url).then(function (identity) {
 
@@ -831,7 +622,7 @@ var IdentitiesGUI = function () {
 
 exports.default = IdentitiesGUI;
 
-},{"events":1}]},{},[2])(2)
+},{}]},{},[1])(1)
 });
 
 //# sourceMappingURL=identities-gui.js.map
