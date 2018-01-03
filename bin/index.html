@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <style>
       body {
         padding: 0;
@@ -20,12 +22,23 @@
         overflow: hidden;
       }
 
+      .mdc-temporary-drawer__header {
+        height: 100px;
+      }
+
       .settings-btn {
         width: 48px;
         min-width: 48px;
         height: 48px;
         float: right;
       }
+
+      #idps-list .mdc-list-item__start-detail,
+      #active-identities .mdc-list-item__start-detail {
+        width: 20px;
+        height: 20px;
+      }
+
     </style>
 
   </head>
@@ -36,18 +49,20 @@
 
     <aside class="mdc-temporary-drawer">
         <nav class="mdc-temporary-drawer__drawer">
-          <header class="mdc-temporary-drawer__header">
-            <div class="mdc-temporary-drawer__header-content mdc-theme--primary-bg mdc-theme--text-primary-on-primary">
-              Header here
+          <header class="mdc-temporary-drawer__header mdc-theme--dark">
+            <div class="mdc-temporary-drawer__header-content mdc-theme--primary-bg">
+              <ul class="mdc-list mdc-list--avatar-list">
+                <li class="mdc-list-item"></li>
+              </ul>
             </div>
           </header>
           <nav class="mdc-temporary-drawer__content mdc-list-group">
 
-            <div id="active-identities" class="mdc-list"></div>
+            <div id="active-identities" class="mdc-list mdc-list--avatar-list"></div>
 
             <hr class="mdc-list-divider">
 
-            <div id="idps-list" class="mdc-list"></div>
+            <div id="idps-list" class="mdc-list mdc-list--avatar-list"></div>
 
           </nav>
         </nav>

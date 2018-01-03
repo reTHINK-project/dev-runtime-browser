@@ -8893,6 +8893,8 @@ var IdentitiesGUI = function () {
 
         var callback = function callback(identityInfo) {
           _this3._buildMessage(msg, identityInfo);
+
+          _this3._getIdentities(callback);
         };
 
         if (funcName === 'openPopup') {
@@ -8912,11 +8914,11 @@ var IdentitiesGUI = function () {
         document.querySelector('.settings-btn').dispatchEvent(clickClose);
       });
 
-      var callback = function callback(identityInfo) {
-        _this3._buildMessage(null, identityInfo);
-      };
+      // const callback = (identityInfo) => {
+      //   this._buildMessage(null, identityInfo);
+      // };
 
-      this._getIdentities(callback);
+      this._getIdentities();
     }
   }, {
     key: '_buildMessage',
@@ -8942,11 +8944,7 @@ var IdentitiesGUI = function () {
           value = { type: 'error', value: 'Error on identity GUI', code: 400 };
       }
 
-      if (msg && msg.type === 'execute') {
-        replyMsg = { id: msg.id, type: 'response', to: from, from: to, body: value };
-      } else {
-        // replyMsg = {type: 'execute', to: from, from: to, body: value };
-      }
+      replyMsg = { id: msg.id, type: 'response', to: from, from: to, body: value };
 
       this._messageBus.postMessage(replyMsg);
     }
@@ -8956,7 +8954,16 @@ var IdentitiesGUI = function () {
       var _this4 = this;
 
       return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then(function (resultObject) {
-        return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showIdentities(resultObject.identities, callback)]);
+        if (callback) {
+          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback)]);
+        } else {
+          return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
+        }
+      }).then(function () {
+
+        console.log('GET IDENTIES is Ready:');
+
+        return _this4.loginWithIDP();
       });
     }
 
@@ -9048,10 +9055,21 @@ var IdentitiesGUI = function () {
   }, {
     key: 'openPopup',
     value: function openPopup(urlreceived) {
+      var _this6 = this;
 
       return new Promise(function (resolve, reject) {
 
-        var win = window.open(urlreceived, 'openIDrequest', 'width=800, height=600');
+        var win = void 0;
+        if (!urlreceived) {
+          win = window.open('', 'openIDrequest', 'location=1,status=1,scrollbars=1');
+          _this6.win = win;
+          resolve();
+        } else {
+          win = _this6.win;
+          win.location.href = urlreceived;
+        }
+
+        // let win = window.open(urlreceived, 'openIDrequest', 'location=1,status=1,scrollbars=1');
         if (window.cordova) {
           win.addEventListener('loadstart', function (e) {
             var url = e.url;
@@ -9165,77 +9183,121 @@ var IdentitiesGUI = function () {
   }, {
     key: 'showIdps',
     value: function showIdps(idps, callback) {
-      var _this6 = this;
+      var _this7 = this;
 
-      var idpsList = document.getElementById('idps-list');
+      return new Promise(function (resolve) {
 
-      idps.forEach(function (key) {
+        var idpsList = document.getElementById('idps-list');
 
-        var exist = document.getElementById('link-' + key.domain);
-        if (exist) {
-          return;
-        }
+        idps.forEach(function (key) {
 
-        var linkEl = document.createElement('a');
-        linkEl.setAttribute('id', 'link-' + key.domain);
-        linkEl.setAttribute('data-idp', key.domain);
-        linkEl.classList = 'mdc-list-item';
-        linkEl.href = '#';
+          var exist = document.getElementById('link-' + key.domain);
+          if (exist) {
+            return;
+          }
 
-        linkEl.addEventListener('click', function (event) {
-          _this6.loginWithIDP.call(_this6, event);
+          var linkEl = document.createElement('a');
+          linkEl.setAttribute('id', 'link-' + key.domain);
+          linkEl.setAttribute('data-idp', key.domain);
+          linkEl.classList = 'mdc-list-item link-' + key.domain;
+          linkEl.href = '#';
+
+          linkEl.addEventListener('click', function (event) {
+            _this7.loginWithIDP(event, callback);
+          });
+
+          var linkElText = document.createTextNode(key.domain);
+
+          var name = key.domain;
+          if (name.indexOf('.') !== -1) {
+            name = name.substring(0, name.indexOf('.'));
+          } else {
+            name = 'question';
+          }
+
+          var imgEl = document.createElement('img');
+          imgEl.classList = 'mdc-list-item__start-detail';
+          imgEl.src = './assets/' + name + '.svg';
+          imgEl.width = 30;
+          imgEl.height = 30;
+
+          imgEl.onerror = function (e) {
+            e.srcElement.src = './assets/question.svg';
+          };
+
+          linkEl.appendChild(imgEl);
+          linkEl.appendChild(linkElText);
+
+          idpsList.appendChild(linkEl);
         });
-
-        var linkElText = document.createTextNode(key.domain);
-
-        var iconEl = document.createElement('i');
-        iconEl.classList = 'material-icons mdc-list-item__start-detail';
-        iconEl.setAttribute('aria-hidden', true);
-        iconEl.textContent = 'inbox';
-
-        linkEl.appendChild(iconEl);
-        linkEl.appendChild(linkElText);
-
-        idpsList.appendChild(linkEl);
       });
+    }
+  }, {
+    key: 'showDefaultIdentity',
+    value: function showDefaultIdentity(identity) {
+
+      if (identity) {
+        var header = document.querySelector('.mdc-list--avatar-list .mdc-list-item');
+
+        var profileImage = document.createElement('img');
+        profileImage.classList = 'mdc-list-item__start-detail';
+        profileImage.width = 56;
+        profileImage.height = 56;
+        profileImage.alt = identity.userProfile.name;
+        profileImage.src = identity.userProfile.picture;
+        header.appendChild(profileImage);
+
+        var text1 = document.createElement('span');
+        text1.classList = 'name mdc-list-item__text';
+        text1.textContent = identity.userProfile.name;
+
+        var text2 = document.createElement('span');
+        text2.classList = 'email mdc-list-item__secondary-text';
+        text2.textContent = identity.userProfile.email;
+
+        text1.appendChild(text2);
+        header.appendChild(text1);
+      }
     }
   }, {
     key: 'showIdentities',
     value: function showIdentities(iDs, callback) {
-      var _this7 = this;
-
-      var _this = this;
-
-      // TODO: iDs should be replaced by user urls
+      var _this8 = this;
 
       return new Promise(function (resolve, reject) {
 
-        console.log('[IdentitiesGUI.showMyIdentities] : ', iDs);
+        console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
 
-        var identities = [];
-
-        for (var i in iDs) {
-          var split1 = iDs[i].split('://');
-
-          var identifier = split1[1].split('/')[1];
-          var domain = iDs[i].replace('/' + identifier, '');
-          identities.push({ userURL: iDs[i], domain: domain });
-        }
+        var identities = iDs.identities;
+        var current = iDs.defaultIdentity.userURL;
 
         var activeIdentities = document.getElementById('active-identities');
 
-        identities.forEach(function (key) {
+        Object.keys(identities).forEach(function (key) {
+
+          var exist = document.getElementById('link-' + key);
+          if (exist) {
+            return;
+          }
 
           var linkEl = document.createElement('a');
+          linkEl.id = 'link-' + key;
           linkEl.classList = 'mdc-list-item';
+          linkEl.setAttribute('data-userURL', key);
+
+          if (key === current) {
+            linkEl.classList += ' mdc-temporary-drawer--selected';
+          }
+
           linkEl.href = '#';
 
-          var linkElText = document.createTextNode(key.userURL);
+          var linkElText = document.createTextNode(identities[key].userProfile.name);
 
           var iconEl = document.createElement('i');
           iconEl.classList = 'material-icons mdc-list-item__start-detail';
           iconEl.setAttribute('aria-hidden', true);
-          iconEl.textContent = 'inbox';
+
+          // iconEl.textContent = 'inbox';
 
           linkEl.appendChild(iconEl);
           linkEl.appendChild(linkElText);
@@ -9246,14 +9308,14 @@ var IdentitiesGUI = function () {
         if (identities.length === 1) {
 
           if (callback) {
-            callback({ type: 'identity', value: identities[0] });
+            callback({ type: 'identity', value: current });
           }
 
-          return resolve({ type: 'identity', value: identities[0] });
+          return resolve({ type: 'identity', value: current });
         }
 
         if (identities.length > 1) {
-          _this7._drawer.open = true;
+          _this8._drawer.open = true;
         }
 
         // let callback = (identity) => {
@@ -9292,10 +9354,8 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: 'loginWithIDP',
-    value: function loginWithIDP(event) {
-      var _this8 = this;
-
-      // event.preventDefault();
+    value: function loginWithIDP(event, callback) {
+      var _this9 = this;
 
       var el = event.currentTarget;
       var idp = el.getAttribute('data-idp');
@@ -9303,10 +9363,13 @@ var IdentitiesGUI = function () {
       console.log('this:', this, idp);
 
       var _publicKey = void 0;
-      this.callIdentityModuleFunc('getMyPublicKey', {}).then(function (publicKey) {
+
+      return this.openPopup().then(function (result) {
+        return _this9.callIdentityModuleFunc('getMyPublicKey', {});
+      }).then(function (publicKey) {
         _publicKey = publicKey;
         var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
-        return _this8.callIdentityModuleFunc('sendGenerateMessage', data);
+        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (value) {
         console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
@@ -9328,18 +9391,26 @@ var IdentitiesGUI = function () {
           }
         }
 
-        _this8.resultURL = finalURL || url;
+        _this9.resultURL = finalURL || url;
 
-        console.log('AQUI:', _this8.resultURL);
+        // return this._authenticateUser(_publicKey, value, 'origin', idp);
+        return _this9.openPopup(_this9.resultURL);
+      }).then(function (identity) {
 
-        return _this8._authenticateUser(_publicKey, value, 'origin', idp);
-      }).then(function (email) {
-        _this8._drawer.open = false;
-        var value = { type: 'identity', value: email };
+        var data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
+        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+      }).then(function (result) {
 
-        console.log('AQUI:', value);
+        if (result) {
+          return _this9.callIdentityModuleFunc('addAssertion', result);
+        }
+      }).then(function (value) {
+        _this9._drawer.open = false;
+        var userURL = { type: 'identity', value: value.userProfile.userURL };
 
-        // return resolve(value);
+        console.log('AQUI:', userURL);
+        callback(userURL);
+        return userURL;
       });
     }
 
@@ -9410,8 +9481,6 @@ var IdentitiesGUI = function () {
       var url = _this.resultURL;
 
       return new Promise(function (resolve, reject) {
-
-        console.log('OPENPOUP: ', url);
 
         _this.openPopup(url).then(function (identity) {
 
