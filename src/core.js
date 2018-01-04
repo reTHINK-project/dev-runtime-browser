@@ -38,7 +38,7 @@ function searchHyperty(runtime, descriptor) {
   let hyperty = undefined;
   let index = 0;
   while (!hyperty && index < runtime.registry.hypertiesList.length) {
-    if (runtime.registry.hypertiesList[index].descriptor === descriptor) { hyperty = runtime.registry.hypertiesList[index] ;}
+    if (runtime.registry.hypertiesList[index].descriptor === descriptor) { hyperty = runtime.registry.hypertiesList[index]; }
 
     index++;
   }
@@ -87,29 +87,31 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             let reuseAddress = event.data.body.reuseAddress;
             let hyperty = searchHyperty(runtime, descriptor);
 
-    			  if (hyperty) {
-    				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
-    			  } else {
-    				  runtime.loadHyperty(descriptor, reuseAddress)
-    					  .then(returnHyperty.bind(null, event.source));
-    			  }
-    		  } else if (event.data.to === 'core:loadStub') {
-    			  runtime.loadStub(event.data.body.domain).then((result) => {
-    				console.log('Stub Loaded: ', result);
-    			  }).catch((error) => {
-    				console.error('Stub error:', error);
-    			  });
-    		  } else if (event.data.to === 'core:close') {
-    			  runtime.close()
-    				  .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-    				  .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
-    		  }
+            if (hyperty) {
+              returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+            } else {
+              runtime.loadHyperty(descriptor, reuseAddress).then(returnHyperty.bind(null, event.source));
+            }
+          } else if (event.data.to === 'core:loadStub') {
+            runtime.loadStub(event.data.body.domain).then((result) => {
+              console.log('Stub Loaded: ', result);
+            }).catch((error) => {
+              console.error('Stub error:', error);
+            });
+          } else if (event.data.to === 'core:close') {
+            runtime.close()
+              .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
+              .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+          }
 
         }, false);
+
         window.addEventListener('beforeunload', (e) => {
           runtime.close();
         });
+
         parent.postMessage({to: 'runtime:installed', body: {}}, '*');
+
       });
     });
   });

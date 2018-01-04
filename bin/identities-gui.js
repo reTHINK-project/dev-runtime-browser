@@ -13,6 +13,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var IdentitiesGUI = function () {
   function IdentitiesGUI(guiURL, idmURL, messageBus) {
+    var _this2 = this;
+
     _classCallCheck(this, IdentitiesGUI);
 
     //if (!identityModule) throw Error('Identity Module not set!');
@@ -22,78 +24,188 @@ var IdentitiesGUI = function () {
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
 
-    _this.callIdentityModuleFunc('deployGUI', {}).then(function () {
-      _this.resultURL = undefined;
+    this.callIdentityModuleFunc('deployGUI', {}).then(function (result) {
+      return _this2._buildDrawer();
+    }).then(function (result) {
+      console.log('READY:', result);
+    });
 
-      _this._messageBus.addListener(guiURL, function (msg) {
-        var identityInfo = msg.body.value;
-        var funcName = msg.body.method;
-        var value = void 0;
-        console.log('[IdentitiesGUI] received msg: ', msg);
+    var drawerEl = document.querySelector('.mdc-temporary-drawer');
+    var MDCTemporaryDrawer = mdc.drawer.MDCTemporaryDrawer;
+    var drawer = new MDCTemporaryDrawer(drawerEl);
 
-        if (funcName === 'openPopup') {
-          var urlreceived = msg.body.params.urlreceived;
-          _this.openPopup(urlreceived).then(function (returnedValue) {
-            var value = { type: 'execute', value: returnedValue, code: 200 };
-            var replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-            _this._messageBus.postMessage(replyMsg);
-          });
-          return; // this avoids getting stuck in the identities page
-        }
+    this._drawerEl = drawerEl;
+    this._drawer = drawer;
 
-        // unhide the config page with the identity GUI
-        document.getElementsByTagName('body')[0].style = 'background-color:white;';
-        parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
-        $('.admin-page').removeClass('hide');
-        _this.showIdentitiesGUI(msg.body.value).then(function (identityInfo) {
-          var replyMsg = void 0;
-          console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
+    document.querySelector('.settings-btn').addEventListener('click', function () {
+      drawer.open = true;
+    });
 
-          //hide config page with the identity GUI
-          parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
-          $('.admin-page').addClass('hide');
-          document.getElementsByTagName('body')[0].style = 'background-color:transparent';
-          $('.identities-section').addClass('hide');
-          $('.policies-section').addClass('hide');
+    drawerEl.addEventListener('MDCTemporaryDrawer:open', function () {
+      console.log('Received MDCTemporaryDrawer:open');
+      _this2._isDrawerOpen = true;
+    });
 
-          switch (identityInfo.type) {
-            case 'idp':
-              value = { type: 'idp', value: identityInfo.value, code: 200 };
-              replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-              _this._messageBus.postMessage(replyMsg);
-              break;
+    drawerEl.addEventListener('MDCTemporaryDrawer:close', function () {
+      console.log('Received MDCTemporaryDrawer:close');
+      _this2._isDrawerOpen = false;
 
-            case 'identity':
-              value = { type: 'identity', value: identityInfo.value, code: 200 };
-              replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-              _this._messageBus.postMessage(replyMsg);
-              break;
-
-            default:
-              value = { type: 'error', value: 'Error on identity GUI', code: 400 };
-              replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-              _this._messageBus.postMessage(replyMsg);
-          }
-        });
-      });
-
-      $('.identities-page-show').on('click', function () {
-        //TODO call a IdM method that requests the identities
-        _this.showIdentitiesGUI();
-      });
+      parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
   }
 
   _createClass(IdentitiesGUI, [{
+    key: '_buildDrawer',
+    value: function _buildDrawer() {
+      var _this3 = this;
+
+      var guiURL = this._guiURL;
+
+      this._messageBus.addListener(guiURL, function (msg) {
+
+        var funcName = msg.body.method;
+
+        if (msg.type !== 'response') {
+          var clickClose = new MouseEvent('click');
+          document.querySelector('.settings-btn').dispatchEvent(clickClose);
+        }
+
+        var callback = function callback(identityInfo) {
+
+          _this3._buildMessage(msg, identityInfo);
+
+          // this._getIdentities(callback);
+        };
+
+        _this3.callback = callback;
+
+        _this3._getIdentities(callback);
+      });
+
+      this._getIdentities();
+    }
+  }, {
+    key: '_buildMessage',
+    value: function _buildMessage(msg, identityInfo) {
+      var replyMsg = void 0;
+      var value = void 0;
+
+      var from = msg ? msg.from : this._guiURL;
+      var to = msg ? msg.to : this._idmURL;
+
+      console.log('chosen identity: ', identityInfo);
+
+      switch (identityInfo.type) {
+        case 'idp':
+          value = { type: 'idp', value: identityInfo.value, code: 200 };
+          break;
+
+        case 'identity':
+          value = { type: 'identity', value: identityInfo.value, code: 200 };
+          break;
+
+        default:
+          value = { type: 'error', value: 'Error on identity GUI', code: 400 };
+      }
+
+      replyMsg = { id: msg.id, type: 'response', to: from, from: to, body: value };
+
+      this._messageBus.postMessage(replyMsg);
+    }
+  }, {
+    key: '_getIdentities',
+    value: function _getIdentities(callback) {
+      var _this4 = this;
+
+      return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then(function (resultObject) {
+        if (callback) {
+          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback)]);
+        } else {
+          return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
+        }
+      });
+    }
+
+    // _openDrawer() {
+
+    //   let _this = this;
+    //   const guiURL = _this._guiURL;
+
+    //   _this.resultURL  = undefined;
+
+    //   _this._messageBus.addListener(guiURL, msg => {
+    //     let identityInfo = msg.body.value;
+    //     let funcName = msg.body.method;
+    //     let value;
+    //     console.log('[IdentitiesGUI] received msg: ', msg);
+
+    //     _this.showIdentitiesGUI(msg.body.value).then((identityInfo) => {
+
+    //       let replyMsg;
+    //       console.log('[IdentitiesGUI] identityInfo from GUI: ', identityInfo);
+
+    //       //hide config page with the identity GUI
+    //       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
+    //       $('.admin-page').addClass('hide');
+
+    //       // document.getElementsByTagName('body')[0].style = 'background-color:transparent';
+    //       $('.identities-section').addClass('hide');
+    //       $('.policies-section').addClass('hide');
+
+    //       switch (identityInfo.type) {
+    //         case 'idp':
+    //           value = { type: 'idp', value: identityInfo.value, code: 200 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //           break;
+
+    //         case 'identity':
+    //           value = { type: 'identity', value: identityInfo.value, code: 200 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //           break;
+
+    //         default:
+    //           value = { type: 'error', value: 'Error on identity GUI', code: 400 };
+    //           replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+    //           _this._messageBus.postMessage(replyMsg);
+    //       }
+    //     });
+
+    //     if (funcName === 'openPopup') {
+    //       let urlreceived = msg.body.params.urlreceived;
+    //       _this.openPopup(urlreceived).then((returnedValue) => {
+    //         let value = {type: 'execute', value: returnedValue, code: 200};
+    //         let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
+    //         _this._messageBus.postMessage(replyMsg);
+    //       });
+    //       return; // this avoids getting stuck in the identities page
+    //     }
+
+    //     // unhide the config page with the identity GUI
+    //     // document.getElementsByTagName('body')[0].style = 'background-color:white;';
+    //     parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
+
+    //     const clickOpen = new MouseEvent('click');
+    //     document.querySelector('.settings-btn').dispatchEvent(clickOpen);
+
+    //     $('.admin-page').removeClass('hide');
+
+    //   });
+    // }
+
+  }, {
     key: 'callIdentityModuleFunc',
     value: function callIdentityModuleFunc(methodName, parameters) {
+      var _this5 = this;
+
       var _this = this;
-      var message = void 0;
 
       return new Promise(function (resolve, reject) {
-        message = { type: 'execute', to: _this._idmURL, from: _this._guiURL,
+        var message = { type: 'execute', to: _this._idmURL, from: _this._guiURL,
           body: { resource: 'identity', method: methodName, params: parameters } };
-        _this._messageBus.postMessage(message, function (res) {
+
+        _this5._messageBus.postMessage(message, function (res) {
           var result = res.body.value;
           resolve(result);
         });
@@ -102,10 +214,21 @@ var IdentitiesGUI = function () {
   }, {
     key: 'openPopup',
     value: function openPopup(urlreceived) {
+      var _this6 = this;
 
       return new Promise(function (resolve, reject) {
 
-        var win = window.open(urlreceived, 'openIDrequest', 'width=800, height=600');
+        var win = void 0;
+        if (!urlreceived) {
+          win = window.open('', 'openIDrequest', 'location=1,status=1');
+          _this6.win = win;
+          resolve();
+        } else {
+          win = _this6.win;
+          win.location.href = urlreceived;
+        }
+
+        // let win = window.open(urlreceived, 'openIDrequest', 'location=1,status=1,scrollbars=1');
         if (window.cordova) {
           win.addEventListener('loadstart', function (e) {
             var url = e.url;
@@ -124,83 +247,86 @@ var IdentitiesGUI = function () {
           var pollTimer = setInterval(function () {
             try {
               if (win.closed) {
-                return reject('Some error occured when trying to get identity.');
                 clearInterval(pollTimer);
+                // return reject('Some error occured when trying to get identity.');
               }
 
-              //            if (win.document.URL.indexOf('id_token') !== -1 || win.document.URL.indexOf(location.origin) !== -1) {
               if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
                 window.clearInterval(pollTimer);
                 var url = win.document.URL;
 
-                win.close();
-                return resolve(url);
+                resolve(url);
+                return win.close();
               }
             } catch (e) {
               //return reject('openPopup error 2 - should not happen');
-              console.log(e);
+              // console.log(e);
             }
           }, 500);
         }
       });
     }
-  }, {
-    key: 'showIdentitiesGUI',
-    value: function showIdentitiesGUI(receivedInfo) {
-      var _this = this;
 
-      return new Promise(function (resolve, reject) {
-        console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
+    // showIdentitiesGUI(receivedInfo) {
+    //   let _this = this;
 
-        var identityInfo = void 0;
-        var toRemoveID = void 0;
+    //   return new Promise((resolve, reject) => {
+    //     console.log('[IdentitiesGUI.showIdentitiesGUI] receivedInfo: ', receivedInfo);
 
-        _this._checkReceivedInfo(receivedInfo).then(function (resultObject) {
-          identityInfo = resultObject.identityInfo;
-          toRemoveID = resultObject.toRemoveID;
+    //     let identityInfo;
+    //     let toRemoveID;
 
-          $('.policies-section').addClass('hide');
-          $('.identities-section').removeClass('hide');
+    //     let callback = (value) => {
+    //       console.log('chosen identity: ', value);
 
-          _this.showMyIdentities(identityInfo.identities, toRemoveID).then(function (identity) {
-            console.log('chosen identity: ', identity);
-            resolve({ type: 'identity', value: identity });
-          });
+    //       const clickClose = new MouseEvent('click');
+    //       document.querySelector('.settings-btn').dispatchEvent(clickClose);
 
-          var callback = function callback(value) {
-            console.log('chosen identity: ', value);
-            resolve({ type: 'identity', value: value });
-          };
+    //       resolve({type: 'identity', value: value});
+    //     };
 
-          var idps = [];
-          var idpsObjects = identityInfo.idps;
+    //     _this._checkReceivedInfo(receivedInfo).then((resultObject) => {
+    //       identityInfo = resultObject.identityInfo;
+    //       toRemoveID = resultObject.toRemoveID;
 
-          idpsObjects.forEach(function (entry) {
-            if (entry.type && entry.type == 'idToken') {
-              idps.push(entry.domain);
-            }
-          });
+    //       $('.policies-section').addClass('hide');
+    //       $('.identities-section').removeClass('hide');
 
-          $('#idproviders').html(_this._getList(idps));
-          $('#idproviders').off();
-          $('#idproviders').on('click', function (event) {
-            return _this.obtainNewIdentity(event, callback, toRemoveID);
-          });
-          //$('.back').on('click', (event) => _this.goHome());
-          $('.identities-reset').off();
-          $('.identities-reset').on('click', function (event) {
-            return _this._resetIdentities(callback);
-          });
-        });
-      });
-    }
+    //       _this.showIdps(receivedInfo.idps, callback);
+
+    //       _this.showIdentities(identityInfo.identities, toRemoveID).then((identity) => {
+    //         console.log('chosen identity: ', identity);
+    //         resolve({type: 'identity', value: identity});
+    //       });
+
+    //       let idps = [];
+    //       let idpsObjects = identityInfo.idps;
+
+    //       idpsObjects.forEach(function(entry) {
+    //         if(entry.type && entry.type == 'idToken') {
+    //           idps.push(entry.domain);
+    //         }
+    //       });
+
+    //       $('#idproviders').html(_this._getList(idps));
+    //       $('#idproviders').off();
+    //       // $('#idproviders').on('click', (event) => _this.obtainNewIdentity(event, callback, toRemoveID));
+    //       //$('.back').on('click', (event) => _this.goHome());
+    //       $('.identities-reset').off();
+    //       // $('.identities-reset').on('click', (event) => _this._resetIdentities(callback));
+    //     });
+    //   });
+    // }
+
   }, {
     key: '_checkReceivedInfo',
     value: function _checkReceivedInfo(receivedInfo) {
       var _this = this;
       return new Promise(function (resolve, reject) {
-        var identityInfo = void 0,
-            toRemoveID = void 0;
+
+        var identityInfo = void 0;
+        var toRemoveID = void 0;
+
         if (receivedInfo) {
           identityInfo = receivedInfo;
           toRemoveID = false;
@@ -214,107 +340,199 @@ var IdentitiesGUI = function () {
       });
     }
   }, {
-    key: 'showMyIdentities',
-    value: function showMyIdentities(iDs, toRemoveID) {
-      var _this = this;
-      // TODO: iDs should be replaced by user urls
+    key: 'showIdps',
+    value: function showIdps(idps) {
+      var _this7 = this;
 
-      return new Promise(function (resolve, reject) {
-        console.log('[IdentitiesGUI.showMyIdentities] : ', iDs);
-        // let identities = _this.identityModule.getIdentities();
-        var identities = [];
+      console.log('[IdentitiesGUI.showIdps] : ', idps);
 
-        for (var i in iDs) {
-          var split1 = iDs[i].split('://');
+      var idpsListEl = document.getElementById('idps-list');
 
-          var identifier = split1[1].split('/')[1];
-          var domain = iDs[i].replace('/' + identifier, '');
-          identities.push({ email: iDs[i], domain: domain });
-        }
+      var clickEvent = function clickEvent(event) {
+        var el = event.currentTarget;
+        var idp = el.getAttribute('data-idp');
 
-        var myIdentities = document.getElementById('my-ids');
-        myIdentities.innerHTML = '';
+        _this7.loginWithIDP(idp).then(function (result) {
 
-        var table = _this.createTable();
-
-        var tbody = document.createElement('tbody');
-        var numIdentities = identities.length;
-        for (var _i = 0; _i < numIdentities; _i++) {
-          var tr = _this.createTableRow(identities[_i], toRemoveID);
-          tbody.appendChild(tr);
-        }
-
-        table.appendChild(tbody);
-        myIdentities.appendChild(table);
-
-        var callback = function callback(identity) {
-          resolve(identity);
-        };
-
-        if (!toRemoveID) {
-          $('.clickable-cell').on('click', function (event) {
-            return _this.changeID(event, callback);
-          });
-        }
-
-        $('.remove-id').on('click', function (event) {
-          return _this.removeID(iDs);
+          if (_this7.callback) {
+            _this7.callback(result);
+          }
         });
+      };
+
+      idps.forEach(function (key) {
+
+        var linkEl = document.getElementById('link-' + key.domain);
+
+        if (!linkEl) {
+          linkEl = document.createElement('a');
+          linkEl.setAttribute('id', 'link-' + key.domain);
+          linkEl.setAttribute('data-idp', key.domain);
+          linkEl.classList = 'mdc-list-item link-' + key.domain;
+          linkEl.href = '#';
+
+          var linkElText = document.createTextNode(key.domain);
+
+          var name = key.domain;
+          if (name.indexOf('.') !== -1) {
+            name = name.substring(0, name.indexOf('.'));
+          } else {
+            name = 'question';
+          }
+
+          var imgEl = document.createElement('img');
+          imgEl.classList = 'mdc-list-item__start-detail';
+          imgEl.src = './assets/' + name + '.svg';
+          imgEl.width = 30;
+          imgEl.height = 30;
+
+          imgEl.onerror = function (e) {
+            e.srcElement.src = './assets/question.svg';
+          };
+
+          linkEl.appendChild(imgEl);
+          linkEl.appendChild(linkElText);
+
+          idpsListEl.appendChild(linkEl);
+        } else {
+          linkEl.removeEventListener('click', clickEvent);
+        }
+
+        linkEl.addEventListener('click', clickEvent);
       });
     }
   }, {
-    key: 'createTable',
-    value: function createTable() {
-      var table = document.createElement('table');
-      table.className = 'centered';
-      var thead = document.createElement('thead');
-      var tr = document.createElement('tr');
-      var thEmail = document.createElement('th');
-      thEmail.textContent = 'Email';
-      tr.appendChild(thEmail);
-      thead.appendChild(tr);
-      table.appendChild(thead);
-      return table;
+    key: 'showDefaultIdentity',
+    value: function showDefaultIdentity(identity) {
+
+      if (identity) {
+        var header = document.querySelector('.mdc-list--avatar-list');
+
+        var itemEl = document.getElementById('item-' + identity.userProfile.userURL);
+
+        if (!itemEl) {
+
+          itemEl = document.createElement('li');
+          itemEl.id = 'item-' + identity.userProfile.userURL;
+          itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
+          itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
+
+          var profileImage = document.createElement('img');
+          profileImage.classList = 'mdc-list-item__start-detail';
+          profileImage.width = 56;
+          profileImage.height = 56;
+          profileImage.alt = identity.userProfile.name;
+          profileImage.src = identity.userProfile.picture;
+          itemEl.appendChild(profileImage);
+
+          var text1 = document.createElement('span');
+          text1.classList = 'name mdc-list-item__text';
+          text1.textContent = identity.userProfile.name;
+
+          var text2 = document.createElement('span');
+          text2.classList = 'email mdc-list-item__secondary-text';
+          text2.textContent = identity.userProfile.email;
+
+          text1.appendChild(text2);
+          itemEl.appendChild(text1);
+          header.appendChild(itemEl);
+        }
+      }
     }
   }, {
-    key: 'createTableRow',
-    value: function createTableRow(identity, toRemoveID) {
-      var tr = document.createElement('tr');
+    key: 'showIdentities',
+    value: function showIdentities(iDs, callback) {
+      var _this8 = this;
 
-      var td = document.createElement('td');
-      td.textContent = identity.email;
-      td.className = 'clickable-cell';
-      td.style = 'cursor: pointer';
-      tr.appendChild(td);
+      return new Promise(function (resolve, reject) {
 
-      td = document.createElement('td');
+        console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
 
-      if (toRemoveID) {
-        var btn = document.createElement('button');
-        btn.textContent = 'Remove';
-        btn.className = 'remove-id waves-effect waves-light btn';
-        td.appendChild(btn);
-      }
+        var identities = iDs.identities;
+        var current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
-      tr.appendChild(td);
+        var activeIdentities = document.getElementById('active-identities');
 
-      return tr;
-    }
-  }, {
-    key: 'changeID',
-    value: function changeID(event, callback) {
-      var _this = this;
+        Object.keys(identities).forEach(function (key) {
 
-      var idToUse = event.target.innerText;
+          var exist = document.getElementById('link-' + key);
+          if (exist) {
+            return;
+          }
 
-      //TODO improve later.
-      //prevents when the users selects an hyperty, exit the identity page and
-      //goes again to the identity page, from selecting "settings" button as identity.
-      if (idToUse !== 'settings') {
+          var linkEl = document.createElement('a');
+          linkEl.href = '#';
+          linkEl.id = 'link-' + key;
+          linkEl.classList = 'mdc-list-item';
+          linkEl.setAttribute('data-userURL', key);
 
-        callback(idToUse);
-        return idToUse;
-      }
+          if (key === current) {
+            linkEl.classList += ' mdc-temporary-drawer--selected';
+          }
+
+          linkEl.addEventListener('click', function (event) {
+
+            event.preventDefault();
+
+            var el = event.currentTarget;
+            var userURL = el.getAttribute('data-userURL');
+
+            console.log('userURL:', userURL, callback, el);
+
+            if (callback) {
+              callback(userURL);
+            }
+          });
+
+          var profileImage = document.createElement('img');
+          profileImage.classList = 'mdc-list-item__start-detail';
+          profileImage.width = 40;
+          profileImage.height = 40;
+          profileImage.alt = identities[key].userProfile.name;
+          profileImage.src = identities[key].userProfile.picture;
+          profileImage.onerror = function (e) {
+            e.srcElement.src = './assets/question.svg';
+          };
+
+          var text1 = document.createElement('span');
+          text1.classList = 'name mdc-list-item__text';
+          text1.textContent = identities[key].userProfile.name;
+
+          var text2 = document.createElement('span');
+          text2.classList = 'email mdc-list-item__secondary-text';
+          text2.textContent = identities[key].userProfile.email;
+
+          text1.appendChild(text2);
+
+          linkEl.appendChild(profileImage);
+          linkEl.appendChild(text1);
+
+          activeIdentities.appendChild(linkEl);
+        });
+
+        if (identities.length === 1) {
+
+          if (callback) {
+            callback({ type: 'identity', value: current });
+          }
+
+          return resolve({ type: 'identity', value: current });
+        }
+
+        if (identities.length > 1) {
+          _this8._drawer.open = true;
+        }
+
+        // let callback = (identity) => {
+        //   resolve(identity);
+        // };
+
+        // if (!toRemoveID) {
+        //   $('.clickable-cell').on('click', (event) => _this.changeID(event, callback));
+        // }
+
+        // $('.remove-id').on('click', (event) => _this.removeID(iDs));
+      });
     }
   }, {
     key: 'removeID',
@@ -334,60 +552,116 @@ var IdentitiesGUI = function () {
         }
 
         // -------------------------------------------------------------------------//
-        _this.showMyIdentities(emails, true);
+        _this.showIdentities(emails, true);
       });
 
       //_this.identityModule.unregisterIdentity(idToRemove);
     }
   }, {
-    key: 'obtainNewIdentity',
-    value: function obtainNewIdentity(event, callback, toRemoveID) {
-      var _this = this;
-      var idProvider = event.target.textContent;
-      var idProvider2 = event.target.text;
+    key: 'loginWithIDP',
+    value: function loginWithIDP(idp) {
+      var _this9 = this;
 
-      _this.callIdentityModuleFunc('getMyPublicKey', {}).then(function (publicKey) {
-        //      let publicKey = btoa(keyPair.public);
+      var _publicKey = void 0;
 
-        _this.callIdentityModuleFunc('sendGenerateMessage', { contents: publicKey, origin: 'origin', usernameHint: undefined,
-          idpDomain: idProvider }).then(function (value) {
-          console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
+      return this.openPopup().then(function (result) {
+        return _this9.callIdentityModuleFunc('getMyPublicKey', {});
+      }).then(function (publicKey) {
+        _publicKey = publicKey;
+        var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
+        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+      }).then(function (value) {
+        console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
-          var url = value.loginUrl;
-          var finalURL = void 0;
+        var url = value.loginUrl;
+        var finalURL = void 0;
 
-          //check if the receivedURL contains the redirect field and replace it
-          if (url.indexOf('redirect_uri') !== -1) {
-            var firstPart = url.substring(0, url.indexOf('redirect_uri'));
-            var secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+        //check if the receivedURL contains the redirect field and replace it
+        if (url.indexOf('redirect_uri') !== -1) {
+          var firstPart = url.substring(0, url.indexOf('redirect_uri'));
+          var secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
 
-            var secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+          var secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
 
-            //check if the reddirect field is the last field of the URL
-            if (secondPart.indexOf('&') !== -1) {
-              finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
-            } else {
-              finalURL = firstPart + 'redirect_uri=' + location.origin;
-            }
+          //check if the reddirect field is the last field of the URL
+          if (secondPart.indexOf('&') !== -1) {
+            finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+          } else {
+            finalURL = firstPart + 'redirect_uri=' + location.origin;
           }
+        }
 
-          _this.resultURL = finalURL || url;
+        _this9.resultURL = finalURL || url;
 
-          $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
-          $('.login').removeClass('hide');
-          $('.login-btn').off();
-          $('.login-btn').on('click', function (event) {
-            $('.login').addClass('hide');
-            _this._authenticateUser(publicKey, value, 'origin', idProvider).then(function (email) {
-              callback(email);
-              _this.showIdentitiesGUI();
-            });
-          });
-        });
-      }).catch(function (err) {
-        return console.log('obtanin new identity', err);
+        console.log('[IdentitiesGUI.openPopup]', _this9.resultURL);
+        return _this9.openPopup(_this9.resultURL);
+      }).then(function (identity) {
+
+        console.log('[IdentitiesGUI.openPopup.result]', identity);
+
+        var data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
+        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+      }).then(function (result) {
+
+        console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
+        return _this9.callIdentityModuleFunc('addAssertion', result);
+      }).then(function (value) {
+
+        _this9._drawer.open = false;
+        var userURL = { type: 'identity', value: value.userProfile.userURL };
+
+        console.log('[IdentitiesGUI.loginWithIDP final]', value);
+        return userURL;
       });
     }
+
+    // obtainNewIdentity(event, callback, toRemoveID) {
+    //   let _this = this;
+    //   let idProvider = event.target.textContent;
+    //   let idProvider2 = event.target.text;
+
+    //   _this.callIdentityModuleFunc('getMyPublicKey', {}).then((publicKey) => {
+    //     // let publicKey = btoa(keyPair.public);
+
+    //     _this.callIdentityModuleFunc('sendGenerateMessage',
+    //       { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idProvider, }).then((value) => {
+    //       console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
+
+    //       let url = value.loginUrl;
+    //       let finalURL;
+
+    //       //check if the receivedURL contains the redirect field and replace it
+    //       if (url.indexOf('redirect_uri') !== -1) {
+    //         let firstPart = url.substring(0, url.indexOf('redirect_uri'));
+    //         let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+
+    //         let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+
+    //         //check if the reddirect field is the last field of the URL
+    //         if (secondPart.indexOf('&') !== -1) {
+    //           finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+    //         } else {
+    //           finalURL = firstPart + 'redirect_uri=' + location.origin;
+    //         }
+    //       }
+
+    //       _this.resultURL = finalURL || url;
+
+    //       $('.login-idp').html('<p>Chosen IDP: ' + idProvider + '</p>');
+    //       $('.login').removeClass('hide');
+    //       $('.login-btn').off();
+    //       $('.login-btn').on('click', (event) => {
+    //         $('.login').addClass('hide');
+    //         // _this._authenticateUser(publicKey, value, 'origin', idProvider).then((email) => {
+    //         //   callback(email);
+    //         //   _this.showIdentitiesGUI();
+    //         // });
+    //       });
+    //     });
+    //   }).catch(err => console.log('obtanin new identity', err));
+
+    // }
+
   }, {
     key: '_getList',
     value: function _getList(items) {

@@ -30,22 +30,22 @@
  * @param {string} src - Url to load into the iframe
  * @return {iframe} - iFrame element
  */
-export function create(src) {
-	var iframe = document.createElement('iframe')
-	iframe.setAttribute('id', 'rethink')
-	iframe.style.position = 'absolute'
-	iframe.style.top = '0'
-	iframe.style.right = '0'
-	iframe.style.border = '0'
-	iframe.style.zIndex = 9999
-	iframe.width = '40px'
-	iframe.height = '40px'
-	iframe.title = 'reTHINK-project'
-	iframe.setAttribute('seamless', '')
-	iframe.setAttribute('src', src)
-	iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation')
-	iframe.style.display = 'block'
-	document.querySelector('body').appendChild(iframe)
+export function create(src, zIndex = -10) {
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('id', 'rethink');
+  iframe.style.position = 'absolute';
+  iframe.style.top = '0';
+  iframe.style.right = '0';
+  iframe.style.border = '0';
+  iframe.style.zIndex = zIndex;
+  iframe.width = '48px';
+  iframe.height = '48px';
+  iframe.title = 'reTHINK-project';
+  iframe.setAttribute('seamless', '');
+  iframe.setAttribute('src', src);
+  iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation');
+  iframe.style.display = 'block';
+  document.querySelector('body').appendChild(iframe);
 
-	return iframe
+  return iframe;
 }
