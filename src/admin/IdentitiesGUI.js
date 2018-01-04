@@ -49,35 +49,24 @@ class IdentitiesGUI {
 
       const funcName = msg.body.method;
 
-      console.log('AQUI:', funcName);
+      if (msg.type !== 'response') {
+        const clickClose = new MouseEvent('click');
+        document.querySelector('.settings-btn').dispatchEvent(clickClose);
+      }
 
       const callback = (identityInfo) => {
+
         this._buildMessage(msg, identityInfo);
 
-        this._getIdentities(callback);
+        // this._getIdentities(callback);
+
       };
 
-      if (funcName === 'openPopup') {
-
-        let urlreceived = msg.body.params.urlreceived;
-        this.openPopup(urlreceived).then((returnedValue) => {
-          let value = {type: 'execute', value: returnedValue, code: 200};
-          let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
-          this._messageBus.postMessage(replyMsg);
-        });
-        return; // this avoids getting stuck in the identities page
-      }
+      this.callback = callback;
 
       this._getIdentities(callback);
 
-      const clickClose = new MouseEvent('click');
-      document.querySelector('.settings-btn').dispatchEvent(clickClose);
-
     });
-
-    // const callback = (identityInfo) => {
-    //   this._buildMessage(null, identityInfo);
-    // };
 
     this._getIdentities();
 
@@ -118,12 +107,8 @@ class IdentitiesGUI {
       } else {
         return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
       }
-    }).then(() => {
-
-      console.log('GET IDENTIES is Ready:');
-
-      return this.loginWithIDP();
     });
+
   }
 
   // _openDrawer() {
@@ -215,7 +200,7 @@ class IdentitiesGUI {
 
       let win;
       if (!urlreceived) {
-        win = window.open('', 'openIDrequest', 'location=1,status=1,scrollbars=1');
+        win = window.open('', 'openIDrequest', 'location=1,status=1');
         this.win = win;
         resolve();
       } else {
@@ -243,19 +228,19 @@ class IdentitiesGUI {
           try {
             if (win.closed) {
               clearInterval(pollTimer);
-              return reject('Some error occured when trying to get identity.');
+              // return reject('Some error occured when trying to get identity.');
             }
 
             if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
               window.clearInterval(pollTimer);
               let url =   win.document.URL;
 
-              win.close();
-              return resolve(url);
+              resolve(url);
+              return win.close();
             }
           } catch (e) {
             //return reject('openPopup error 2 - should not happen');
-            console.log(e);
+            // console.log(e);
           }
 
         }, 500);
@@ -335,26 +320,36 @@ class IdentitiesGUI {
     });
   }
 
-  showIdps(idps, callback) {
+  showIdps(idps) {
 
-    return new Promise((resolve) => {
+    console.log('[IdentitiesGUI.showIdps] : ', idps);
 
-      let idpsList = document.getElementById('idps-list');
+    let idpsListEl = document.getElementById('idps-list');
 
-      idps.forEach((key) => {
+    const clickEvent = (event) => {
+      const el = event.currentTarget;
+      const idp = el.getAttribute('data-idp');
 
-        const exist = document.getElementById('link-' + key.domain);
-        if (exist) { return; }
+      this.loginWithIDP(idp).then((result) => {
 
-        const linkEl = document.createElement('a');
+
+        if (this.callback) {
+          this.callback(result);
+        }
+
+      });
+    };
+
+    idps.forEach((key) => {
+
+      let linkEl = document.getElementById('link-' + key.domain);
+
+      if (!linkEl) {
+        linkEl = document.createElement('a');
         linkEl.setAttribute('id', 'link-' + key.domain);
         linkEl.setAttribute('data-idp', key.domain);
         linkEl.classList = 'mdc-list-item link-' + key.domain;
         linkEl.href = '#';
-
-        linkEl.addEventListener('click', (event) => {
-          this.loginWithIDP(event, callback);
-        });
 
         const linkElText = document.createTextNode(key.domain);
 
@@ -376,8 +371,12 @@ class IdentitiesGUI {
         linkEl.appendChild(imgEl);
         linkEl.appendChild(linkElText);
 
-        idpsList.appendChild(linkEl);
-      });
+        idpsListEl.appendChild(linkEl);
+      } else {
+        linkEl.removeEventListener('click', clickEvent);
+      }
+
+      linkEl.addEventListener('click', clickEvent);
 
     });
 
@@ -386,26 +385,39 @@ class IdentitiesGUI {
   showDefaultIdentity(identity) {
 
     if (identity) {
-      const header = document.querySelector('.mdc-list--avatar-list .mdc-list-item');
+      const header = document.querySelector('.mdc-list--avatar-list');
 
-      const profileImage = document.createElement('img');
-      profileImage.classList = 'mdc-list-item__start-detail';
-      profileImage.width = 56;
-      profileImage.height = 56;
-      profileImage.alt = identity.userProfile.name;
-      profileImage.src = identity.userProfile.picture;
-      header.appendChild(profileImage);
+      let itemEl = document.getElementById('item-' + identity.userProfile.userURL);
 
-      const text1 = document.createElement('span');
-      text1.classList = 'name mdc-list-item__text';
-      text1.textContent = identity.userProfile.name;
+      if (!itemEl) {
 
-      const text2 = document.createElement('span');
-      text2.classList = 'email mdc-list-item__secondary-text';
-      text2.textContent = identity.userProfile.email;
+        itemEl = document.createElement('li');
+        itemEl.id = 'item-' + identity.userProfile.userURL;
+        itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
+        itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
 
-      text1.appendChild(text2);
-      header.appendChild(text1);
+        const profileImage = document.createElement('img');
+        profileImage.classList = 'mdc-list-item__start-detail';
+        profileImage.width = 56;
+        profileImage.height = 56;
+        profileImage.alt = identity.userProfile.name;
+        profileImage.src = identity.userProfile.picture;
+        itemEl.appendChild(profileImage);
+
+        const text1 = document.createElement('span');
+        text1.classList = 'name mdc-list-item__text';
+        text1.textContent = identity.userProfile.name;
+
+        const text2 = document.createElement('span');
+        text2.classList = 'email mdc-list-item__secondary-text';
+        text2.textContent = identity.userProfile.email;
+
+        text1.appendChild(text2);
+        itemEl.appendChild(text1);
+        header.appendChild(itemEl);
+
+      }
+
     }
 
   }
@@ -417,7 +429,7 @@ class IdentitiesGUI {
       console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
 
       const identities = iDs.identities;
-      const current = iDs.defaultIdentity.userURL;
+      const current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
       let activeIdentities = document.getElementById('active-identities');
 
@@ -427,6 +439,7 @@ class IdentitiesGUI {
         if (exist) { return; }
 
         const linkEl = document.createElement('a');
+        linkEl.href = '#';
         linkEl.id = 'link-' + key;
         linkEl.classList = 'mdc-list-item';
         linkEl.setAttribute('data-userURL', key);
@@ -435,18 +448,41 @@ class IdentitiesGUI {
           linkEl.classList += ' mdc-temporary-drawer--selected';
         }
 
-        linkEl.href = '#';
+        linkEl.addEventListener('click', (event) => {
 
-        const linkElText = document.createTextNode(identities[key].userProfile.name);
+          event.preventDefault();
 
-        const iconEl = document.createElement('i');
-        iconEl.classList = 'material-icons mdc-list-item__start-detail';
-        iconEl.setAttribute('aria-hidden', true);
+          const el = event.currentTarget;
+          const userURL = el.getAttribute('data-userURL');
 
-        // iconEl.textContent = 'inbox';
+          console.log('userURL:', userURL, callback, el);
 
-        linkEl.appendChild(iconEl);
-        linkEl.appendChild(linkElText);
+          if (callback) {
+            callback(userURL);
+          }
+
+        });
+
+        const profileImage = document.createElement('img');
+        profileImage.classList = 'mdc-list-item__start-detail';
+        profileImage.width = 40;
+        profileImage.height = 40;
+        profileImage.alt = identities[key].userProfile.name;
+        profileImage.src = identities[key].userProfile.picture;
+        profileImage.onerror = (e) => { e.srcElement.src = './assets/question.svg'; };
+
+        const text1 = document.createElement('span');
+        text1.classList = 'name mdc-list-item__text';
+        text1.textContent = identities[key].userProfile.name;
+
+        const text2 = document.createElement('span');
+        text2.classList = 'email mdc-list-item__secondary-text';
+        text2.textContent = identities[key].userProfile.email;
+
+        text1.appendChild(text2);
+
+        linkEl.appendChild(profileImage);
+        linkEl.appendChild(text1);
 
         activeIdentities.appendChild(linkEl);
 
@@ -501,12 +537,8 @@ class IdentitiesGUI {
 
   }
 
-  loginWithIDP(event, callback) {
+  loginWithIDP(idp) {
 
-    const el = event.currentTarget;
-    const idp = el.getAttribute('data-idp');
-
-    console.log('this:', this, idp);
 
     let _publicKey;
 
@@ -541,28 +573,27 @@ class IdentitiesGUI {
 
         this.resultURL = finalURL || url;
 
-        // return this._authenticateUser(_publicKey, value, 'origin', idp);
+        console.log('[IdentitiesGUI.openPopup]', this.resultURL);
         return this.openPopup(this.resultURL);
       }).then((identity) => {
 
+        console.log('[IdentitiesGUI.openPopup.result]', identity);
+
         const data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
         return this.callIdentityModuleFunc('sendGenerateMessage', data);
-
       }).then((result) => {
 
-        if (result) {
-          return this.callIdentityModuleFunc('addAssertion', result);
-        }
-
+        console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
+        return this.callIdentityModuleFunc('addAssertion', result);
       }).then((value) => {
+
         this._drawer.open = false;
         const userURL = {type: 'identity', value: value.userProfile.userURL};
 
-        console.log('AQUI:', userURL);
-        callback(userURL);
+        console.log('[IdentitiesGUI.loginWithIDP final]', value);
         return userURL;
-
       });
+
   }
 
   // obtainNewIdentity(event, callback, toRemoveID) {
@@ -655,9 +686,9 @@ class IdentitiesGUI {
     });
   }
 
-_resetIdentities() {
-  console.log('_resetIdentities');
-}
+  _resetIdentities() {
+    console.log('_resetIdentities');
+  }
 
 
 }

@@ -65,34 +65,22 @@ var IdentitiesGUI = function () {
 
         var funcName = msg.body.method;
 
-        console.log('AQUI:', funcName);
-
-        var callback = function callback(identityInfo) {
-          _this3._buildMessage(msg, identityInfo);
-
-          _this3._getIdentities(callback);
-        };
-
-        if (funcName === 'openPopup') {
-
-          var urlreceived = msg.body.params.urlreceived;
-          _this3.openPopup(urlreceived).then(function (returnedValue) {
-            var value = { type: 'execute', value: returnedValue, code: 200 };
-            var replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
-            _this3._messageBus.postMessage(replyMsg);
-          });
-          return; // this avoids getting stuck in the identities page
+        if (msg.type !== 'response') {
+          var clickClose = new MouseEvent('click');
+          document.querySelector('.settings-btn').dispatchEvent(clickClose);
         }
 
+        var callback = function callback(identityInfo) {
+
+          _this3._buildMessage(msg, identityInfo);
+
+          // this._getIdentities(callback);
+        };
+
+        _this3.callback = callback;
+
         _this3._getIdentities(callback);
-
-        var clickClose = new MouseEvent('click');
-        document.querySelector('.settings-btn').dispatchEvent(clickClose);
       });
-
-      // const callback = (identityInfo) => {
-      //   this._buildMessage(null, identityInfo);
-      // };
 
       this._getIdentities();
     }
@@ -135,11 +123,6 @@ var IdentitiesGUI = function () {
         } else {
           return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
         }
-      }).then(function () {
-
-        console.log('GET IDENTIES is Ready:');
-
-        return _this4.loginWithIDP();
       });
     }
 
@@ -237,7 +220,7 @@ var IdentitiesGUI = function () {
 
         var win = void 0;
         if (!urlreceived) {
-          win = window.open('', 'openIDrequest', 'location=1,status=1,scrollbars=1');
+          win = window.open('', 'openIDrequest', 'location=1,status=1');
           _this6.win = win;
           resolve();
         } else {
@@ -265,19 +248,19 @@ var IdentitiesGUI = function () {
             try {
               if (win.closed) {
                 clearInterval(pollTimer);
-                return reject('Some error occured when trying to get identity.');
+                // return reject('Some error occured when trying to get identity.');
               }
 
               if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
                 window.clearInterval(pollTimer);
                 var url = win.document.URL;
 
-                win.close();
-                return resolve(url);
+                resolve(url);
+                return win.close();
               }
             } catch (e) {
               //return reject('openPopup error 2 - should not happen');
-              console.log(e);
+              // console.log(e);
             }
           }, 500);
         }
@@ -358,29 +341,35 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: 'showIdps',
-    value: function showIdps(idps, callback) {
+    value: function showIdps(idps) {
       var _this7 = this;
 
-      return new Promise(function (resolve) {
+      console.log('[IdentitiesGUI.showIdps] : ', idps);
 
-        var idpsList = document.getElementById('idps-list');
+      var idpsListEl = document.getElementById('idps-list');
 
-        idps.forEach(function (key) {
+      var clickEvent = function clickEvent(event) {
+        var el = event.currentTarget;
+        var idp = el.getAttribute('data-idp');
 
-          var exist = document.getElementById('link-' + key.domain);
-          if (exist) {
-            return;
+        _this7.loginWithIDP(idp).then(function (result) {
+
+          if (_this7.callback) {
+            _this7.callback(result);
           }
+        });
+      };
 
-          var linkEl = document.createElement('a');
+      idps.forEach(function (key) {
+
+        var linkEl = document.getElementById('link-' + key.domain);
+
+        if (!linkEl) {
+          linkEl = document.createElement('a');
           linkEl.setAttribute('id', 'link-' + key.domain);
           linkEl.setAttribute('data-idp', key.domain);
           linkEl.classList = 'mdc-list-item link-' + key.domain;
           linkEl.href = '#';
-
-          linkEl.addEventListener('click', function (event) {
-            _this7.loginWithIDP(event, callback);
-          });
 
           var linkElText = document.createTextNode(key.domain);
 
@@ -404,8 +393,12 @@ var IdentitiesGUI = function () {
           linkEl.appendChild(imgEl);
           linkEl.appendChild(linkElText);
 
-          idpsList.appendChild(linkEl);
-        });
+          idpsListEl.appendChild(linkEl);
+        } else {
+          linkEl.removeEventListener('click', clickEvent);
+        }
+
+        linkEl.addEventListener('click', clickEvent);
       });
     }
   }, {
@@ -413,26 +406,37 @@ var IdentitiesGUI = function () {
     value: function showDefaultIdentity(identity) {
 
       if (identity) {
-        var header = document.querySelector('.mdc-list--avatar-list .mdc-list-item');
+        var header = document.querySelector('.mdc-list--avatar-list');
 
-        var profileImage = document.createElement('img');
-        profileImage.classList = 'mdc-list-item__start-detail';
-        profileImage.width = 56;
-        profileImage.height = 56;
-        profileImage.alt = identity.userProfile.name;
-        profileImage.src = identity.userProfile.picture;
-        header.appendChild(profileImage);
+        var itemEl = document.getElementById('item-' + identity.userProfile.userURL);
 
-        var text1 = document.createElement('span');
-        text1.classList = 'name mdc-list-item__text';
-        text1.textContent = identity.userProfile.name;
+        if (!itemEl) {
 
-        var text2 = document.createElement('span');
-        text2.classList = 'email mdc-list-item__secondary-text';
-        text2.textContent = identity.userProfile.email;
+          itemEl = document.createElement('li');
+          itemEl.id = 'item-' + identity.userProfile.userURL;
+          itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
+          itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
 
-        text1.appendChild(text2);
-        header.appendChild(text1);
+          var profileImage = document.createElement('img');
+          profileImage.classList = 'mdc-list-item__start-detail';
+          profileImage.width = 56;
+          profileImage.height = 56;
+          profileImage.alt = identity.userProfile.name;
+          profileImage.src = identity.userProfile.picture;
+          itemEl.appendChild(profileImage);
+
+          var text1 = document.createElement('span');
+          text1.classList = 'name mdc-list-item__text';
+          text1.textContent = identity.userProfile.name;
+
+          var text2 = document.createElement('span');
+          text2.classList = 'email mdc-list-item__secondary-text';
+          text2.textContent = identity.userProfile.email;
+
+          text1.appendChild(text2);
+          itemEl.appendChild(text1);
+          header.appendChild(itemEl);
+        }
       }
     }
   }, {
@@ -445,7 +449,7 @@ var IdentitiesGUI = function () {
         console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
 
         var identities = iDs.identities;
-        var current = iDs.defaultIdentity.userURL;
+        var current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
         var activeIdentities = document.getElementById('active-identities');
 
@@ -457,6 +461,7 @@ var IdentitiesGUI = function () {
           }
 
           var linkEl = document.createElement('a');
+          linkEl.href = '#';
           linkEl.id = 'link-' + key;
           linkEl.classList = 'mdc-list-item';
           linkEl.setAttribute('data-userURL', key);
@@ -465,18 +470,42 @@ var IdentitiesGUI = function () {
             linkEl.classList += ' mdc-temporary-drawer--selected';
           }
 
-          linkEl.href = '#';
+          linkEl.addEventListener('click', function (event) {
 
-          var linkElText = document.createTextNode(identities[key].userProfile.name);
+            event.preventDefault();
 
-          var iconEl = document.createElement('i');
-          iconEl.classList = 'material-icons mdc-list-item__start-detail';
-          iconEl.setAttribute('aria-hidden', true);
+            var el = event.currentTarget;
+            var userURL = el.getAttribute('data-userURL');
 
-          // iconEl.textContent = 'inbox';
+            console.log('userURL:', userURL, callback, el);
 
-          linkEl.appendChild(iconEl);
-          linkEl.appendChild(linkElText);
+            if (callback) {
+              callback(userURL);
+            }
+          });
+
+          var profileImage = document.createElement('img');
+          profileImage.classList = 'mdc-list-item__start-detail';
+          profileImage.width = 40;
+          profileImage.height = 40;
+          profileImage.alt = identities[key].userProfile.name;
+          profileImage.src = identities[key].userProfile.picture;
+          profileImage.onerror = function (e) {
+            e.srcElement.src = './assets/question.svg';
+          };
+
+          var text1 = document.createElement('span');
+          text1.classList = 'name mdc-list-item__text';
+          text1.textContent = identities[key].userProfile.name;
+
+          var text2 = document.createElement('span');
+          text2.classList = 'email mdc-list-item__secondary-text';
+          text2.textContent = identities[key].userProfile.email;
+
+          text1.appendChild(text2);
+
+          linkEl.appendChild(profileImage);
+          linkEl.appendChild(text1);
 
           activeIdentities.appendChild(linkEl);
         });
@@ -530,13 +559,8 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: 'loginWithIDP',
-    value: function loginWithIDP(event, callback) {
+    value: function loginWithIDP(idp) {
       var _this9 = this;
-
-      var el = event.currentTarget;
-      var idp = el.getAttribute('data-idp');
-
-      console.log('this:', this, idp);
 
       var _publicKey = void 0;
 
@@ -569,23 +593,24 @@ var IdentitiesGUI = function () {
 
         _this9.resultURL = finalURL || url;
 
-        // return this._authenticateUser(_publicKey, value, 'origin', idp);
+        console.log('[IdentitiesGUI.openPopup]', _this9.resultURL);
         return _this9.openPopup(_this9.resultURL);
       }).then(function (identity) {
+
+        console.log('[IdentitiesGUI.openPopup.result]', identity);
 
         var data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
         return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (result) {
 
-        if (result) {
-          return _this9.callIdentityModuleFunc('addAssertion', result);
-        }
+        console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
+        return _this9.callIdentityModuleFunc('addAssertion', result);
       }).then(function (value) {
+
         _this9._drawer.open = false;
         var userURL = { type: 'identity', value: value.userProfile.userURL };
 
-        console.log('AQUI:', userURL);
-        callback(userURL);
+        console.log('[IdentitiesGUI.loginWithIDP final]', value);
         return userURL;
       });
     }
