@@ -30,6 +30,8 @@ var IdentitiesGUI = function () {
       console.log('READY:', result);
     });
 
+    this.isLogged = false;
+
     var drawerEl = document.querySelector('.mdc-temporary-drawer');
     var MDCTemporaryDrawer = mdc.drawer.MDCTemporaryDrawer;
     var drawer = new MDCTemporaryDrawer(drawerEl);
@@ -66,15 +68,34 @@ var IdentitiesGUI = function () {
         var funcName = msg.body.method;
 
         if (msg.type !== 'response') {
-          var clickClose = new MouseEvent('click');
-          document.querySelector('.settings-btn').dispatchEvent(clickClose);
+
+          if (!_this3.isLogged) {
+
+            var clickClose = new MouseEvent('click');
+            document.querySelector('.settings-btn').dispatchEvent(clickClose);
+          }
+        }
+
+        if (funcName === 'openPopup') {
+
+          _this3.openPopup().then(function () {
+
+            var urlreceived = msg.body.params.urlreceived;
+            _this3.openPopup(urlreceived).then(function (returnedValue) {
+              var value = { type: 'execute', value: returnedValue, code: 200 };
+              var replyMsg = { id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value };
+              _this3._messageBus.postMessage(replyMsg);
+            });
+          });
+
+          return;
         }
 
         var callback = function callback(identityInfo) {
 
-          _this3._buildMessage(msg, identityInfo);
+          _this3.isLogged = true;
 
-          // this._getIdentities(callback);
+          _this3._buildMessage(msg, identityInfo);
         };
 
         _this3.callback = callback;
@@ -406,6 +427,9 @@ var IdentitiesGUI = function () {
     value: function showDefaultIdentity(identity) {
 
       if (identity) {
+
+        this.isLogged = true;
+
         var header = document.querySelector('.mdc-list--avatar-list');
 
         var itemEl = document.getElementById('item-' + identity.userProfile.userURL);

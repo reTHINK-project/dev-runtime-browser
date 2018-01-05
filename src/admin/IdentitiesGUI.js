@@ -16,6 +16,8 @@ class IdentitiesGUI {
       console.log('READY:', result);
     });
 
+    this.isLogged = false;
+
     const drawerEl = document.querySelector('.mdc-temporary-drawer');
     const MDCTemporaryDrawer = mdc.drawer.MDCTemporaryDrawer;
     const drawer = new MDCTemporaryDrawer(drawerEl);
@@ -50,15 +52,39 @@ class IdentitiesGUI {
       const funcName = msg.body.method;
 
       if (msg.type !== 'response') {
-        const clickClose = new MouseEvent('click');
-        document.querySelector('.settings-btn').dispatchEvent(clickClose);
+
+
+        if (!this.isLogged) {
+
+          const clickClose = new MouseEvent('click');
+          document.querySelector('.settings-btn').dispatchEvent(clickClose);
+
+        }
+
+      }
+
+      if (funcName === 'openPopup') {
+
+        this.openPopup().then(() => {
+
+          let urlreceived = msg.body.params.urlreceived;
+          this.openPopup(urlreceived).then((returnedValue) => {
+            let value = {type: 'execute', value: returnedValue, code: 200};
+            let replyMsg = {id: msg.id, type: 'response', to: msg.from, from: msg.to, body: value};
+            this._messageBus.postMessage(replyMsg);
+          });
+
+        });
+
+        return;
+
       }
 
       const callback = (identityInfo) => {
 
-        this._buildMessage(msg, identityInfo);
+        this.isLogged = true;
 
-        // this._getIdentities(callback);
+        this._buildMessage(msg, identityInfo);
 
       };
 
@@ -385,6 +411,9 @@ class IdentitiesGUI {
   showDefaultIdentity(identity) {
 
     if (identity) {
+
+      this.isLogged = true;
+
       const header = document.querySelector('.mdc-list--avatar-list');
 
       let itemEl = document.getElementById('item-' + identity.userProfile.userURL);
