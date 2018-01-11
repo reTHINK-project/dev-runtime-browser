@@ -271,7 +271,7 @@ class PoliciesGUI {
       $('.policy-add').off();
       $('.policy-add').on('click', (event) => { _this._addPolicy(); });
       $('.policy-delete').on('click', (event) => { _this._deletePolicy(); });
-    }); 
+    });
   }
 
   _goHome() {
@@ -445,7 +445,7 @@ class PoliciesGUI {
     $('.settings-btn').on('click', (event) => {
       parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
       $('.admin-page').removeClass('hide');
-      document.getElementsByTagName('body')[0].style = 'background-color:white;';
+      // document.getElementsByTagName('body')[0].style = 'background-color:white;';
     });
 
     $('.policies-page-show').on('click', (event) => {
@@ -458,7 +458,7 @@ class PoliciesGUI {
     $('.admin-page-exit').on('click', (event) => {
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
       $('.admin-page').addClass('hide');
-      document.getElementsByTagName('body')[0].style = 'background-color:transparent;';
+      // document.getElementsByTagName('body')[0].style = 'background-color:transparent;';
     });
 
     $('.exit-btn').on('click', (event) => {

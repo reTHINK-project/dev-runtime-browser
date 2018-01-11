@@ -20,98 +20,98 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import URI from 'urijs'
-import IdentitiesGUI from './admin/IdentitiesGUI'
-import PoliciesGUI from './admin/PoliciesGUI'
-import RuntimeFactory from './RuntimeFactory'
+import URI from 'urijs';
+import IdentitiesGUI from './admin/IdentitiesGUI';
+import PoliciesGUI from './admin/PoliciesGUI';
+import RuntimeFactory from './RuntimeFactory';
 
-try{
-	window.cordova = parent.cordova !== undefined
-	if(window.cordova)
-		window.open = function(url){ return parent.cordova.InAppBrowser.open(url, '_blank', 'location=no,toolbar=no')}
-}catch(err){ console.log('cordova not supported') }
+try {
+  window.cordova = parent.cordova !== undefined;
+  if (window.cordova) { window.open = function(url) { return parent.cordova.InAppBrowser.open(url, '_blank', 'location=no,toolbar=no'); }; }
+} catch (err) { console.log('cordova not supported'); }
 
-function returnHyperty(source, hyperty){
-	source.postMessage({to: 'runtime:loadedHyperty', body: hyperty}, '*')
+function returnHyperty(source, hyperty) {
+  source.postMessage({to: 'runtime:loadedHyperty', body: hyperty}, '*');
 }
 
-function searchHyperty(runtime, descriptor){
-	let hyperty = undefined
-	let index = 0
-	while(!hyperty && index<runtime.registry.hypertiesList.length){
-		if(runtime.registry.hypertiesList[index].descriptor === descriptor)
-			hyperty = runtime.registry.hypertiesList[index]
+function searchHyperty(runtime, descriptor) {
+  let hyperty = undefined;
+  let index = 0;
+  while (!hyperty && index < runtime.registry.hypertiesList.length) {
+    if (runtime.registry.hypertiesList[index].descriptor === descriptor) { hyperty = runtime.registry.hypertiesList[index]; }
 
-		index++
-	}
+    index++;
+  }
 
-	return hyperty
+  return hyperty;
 }
 
-let parameters = new URI(window.location).search(true)
-let runtimeURL = parameters.runtime
-let domain = parameters.domain
-let development = parameters.development === 'true'
-let catalogue = RuntimeFactory.createRuntimeCatalogue(development)
+let parameters = new URI(window.location).search(true);
+let runtimeURL = parameters.runtime;
+let domain = parameters.domain;
+let development = parameters.development === 'true';
+let catalogue = RuntimeFactory.createRuntimeCatalogue(development);
 let runtimeDescriptor;
 catalogue.getRuntimeDescriptor(runtimeURL)
-    .then(function(descriptor){
-      runtimeDescriptor = descriptor;
-        let sourcePackageURL = descriptor.sourcePackageURL;
-        if (sourcePackageURL === '/sourcePackage') {
-            return descriptor.sourcePackage;
-        }
-        return catalogue.getSourcePackageFromURL(sourcePackageURL);
-    })
-    .then(function(sourcePackage) {
-        eval.apply(window,[sourcePackage.sourceCode]);
+  .then(function(descriptor) {
+    runtimeDescriptor = descriptor;
+    let sourcePackageURL = descriptor.sourcePackageURL;
+    if (sourcePackageURL === '/sourcePackage') {
+      return descriptor.sourcePackage;
+    }
+    return catalogue.getSourcePackageFromURL(sourcePackageURL);
+  })
+  .then(function(sourcePackage) {
+    eval.apply(window, [sourcePackage.sourceCode]);
 
-        //let runtime = new Runtime(RuntimeFactory, window.location.host);
-        if (!domain) domain = window.location.host;
-        let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, domain);
-        window.runtime = runtime;
-        runtime.init().then( function(result){
+    //let runtime = new Runtime(RuntimeFactory, window.location.host);
+    if (!domain) domain = window.location.host;
+    let runtime = new Runtime(runtimeDescriptor, RuntimeFactory, domain);
+    window.runtime = runtime;
+    runtime.init().then(function(result) {
 
-            // TIAGO
-            if (!runtime.policyEngine) throw Error('Policy Engine is not set!');
-            let pepGuiURL = runtime.policyEngine.context.guiURL;
-            let pepURL = runtime.policyEngine.context.pepURL;
-            let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
+      // TIAGO
+      if (!runtime.policyEngine) throw Error('Policy Engine is not set!');
+      let pepGuiURL = runtime.policyEngine.context.guiURL;
+      let pepURL = runtime.policyEngine.context.pepURL;
+      let pepGUI = new PoliciesGUI(pepGuiURL, pepURL, runtime.policyEngine.messageBus, runtime.policyEngine);
 
-            pepGUI.prepareAttributes().then(() => {
-                let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
-                let idmURL = runtime.identityModule._runtimeURL + '/idm';
-                let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
+      pepGUI.prepareAttributes().then(() => {
+        let idmGuiURL = runtime.identityModule._runtimeURL + '/identity-gui';
+        let idmURL = runtime.identityModule._runtimeURL + '/idm';
+        let identitiesGUI = new IdentitiesGUI(idmGuiURL, idmURL, runtime.identityModule.messageBus);
 
-                window.addEventListener('message', function(event){
-                if(event.data.to==='core:loadHyperty'){
-                    let descriptor = event.data.body.descriptor;
-                    let reuseAddress = event.data.body.reuseAddress;
-                    let hyperty = searchHyperty(runtime, descriptor);
+        window.addEventListener('message', function(event) {
+          if (event.data.to === 'core:loadHyperty') {
+            let descriptor = event.data.body.descriptor;
+            let reuseAddress = event.data.body.reuseAddress;
+            let hyperty = searchHyperty(runtime, descriptor);
 
-    			  if(hyperty){
-    				  returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
-    			  }else{
-    				  runtime.loadHyperty(descriptor, reuseAddress)
-    					  .then(returnHyperty.bind(null, event.source));
-    			  }
-    		  }else if(event.data.to==='core:loadStub'){
-    			  runtime.loadStub(event.data.body.domain).then((result) => {
-    				console.log('Stub Loaded: ', result);
-    			  }).catch((error) => {
-    				console.error('Stub error:', error);
-    			  })
-    		  }else if(event.data.to==='core:close'){
-    			  runtime.close()
-    				  .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-    				  .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'))
-    		  }
-
-            }, false);
-            window.addEventListener('beforeunload', (e) => {
-                runtime.close()
+            if (hyperty) {
+              returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+            } else {
+              runtime.loadHyperty(descriptor, reuseAddress).then(returnHyperty.bind(null, event.source));
+            }
+          } else if (event.data.to === 'core:loadStub') {
+            runtime.loadStub(event.data.body.domain).then((result) => {
+              console.log('Stub Loaded: ', result);
+            }).catch((error) => {
+              console.error('Stub error:', error);
             });
-            parent.postMessage({to:'runtime:installed', body:{}}, '*');
-            });
+          } else if (event.data.to === 'core:close') {
+            runtime.close()
+              .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
+              .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+          }
+
+        }, false);
+
+        window.addEventListener('beforeunload', (e) => {
+          runtime.close();
         });
+
+        parent.postMessage({to: 'runtime:installed', body: {}}, '*');
+
+      });
     });
+  });

@@ -6,16 +6,70 @@
     <title></title>
 
     <!-- Compiled and minified CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css" rel="stylesheet">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://unpkg.com/material-components-web@0.27.0/dist/material-components-web.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+
+        overflow: hidden;
+      }
+
+      .mdc-temporary-drawer__header {
+        height: 100px;
+      }
+
+      .settings-btn {
+        width: 48px;
+        min-width: 48px;
+        height: 48px;
+        float: right;
+      }
+
+      #idps-list .mdc-list-item__start-detail,
+      #active-identities .mdc-list-item__start-detail {
+        width: 20px;
+        height: 20px;
+      }
+
+    </style>
 
   </head>
-  <body>
-    <div class="white-text">
-      <span><i class="settings-btn material-icons clickable-cell right" style="cursor: pointer; vertical-align: middle;">settings</i></span>
-    </div>
 
-    <div class="admin-page container hide">
+  <body class="mdc-typography mdc-drawer-scroll-lock">
+
+    <button class="settings-btn mdc-button "><i class="material-icons mdc-button__icon">settings</i></button>
+
+    <aside class="mdc-temporary-drawer">
+        <nav class="mdc-temporary-drawer__drawer">
+          <header class="mdc-temporary-drawer__header mdc-theme--dark">
+            <div class="mdc-temporary-drawer__header-content mdc-theme--primary-bg">
+              <ul id="default-identity" class="mdc-list mdc-list--avatar-list">
+                <li class="mdc-list-item"></li>
+              </ul>
+            </div>
+          </header>
+
+          <nav class="mdc-temporary-drawer__content mdc-list-group">
+
+            <div id="active-identities" class="mdc-list mdc-list--two-line mdc-list--dense mdc-list--avatar-list"></div>
+
+            <hr class="mdc-list-divider">
+
+            <div id="idps-list" class="mdc-list mdc-list--two-line mdc-list--dense mdc-list--avatar-list"></div>
+
+          </nav>
+        </nav>
+      </aside>
+
+    <!-- <div class="admin-page container hide">
         <div class="card" style="margin:0;">
           <div class="card-content white-text center-align">
             <div class="row">
@@ -308,11 +362,14 @@
         <div class="modal-footer">
           <button class="modal-close waves-effect waves-green btn-flat exit-btn" type="submit">Exit<i class="medium material-icons right">exit_to_app</i></button>
         </div>
-      </div>
+      </div> -->
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
-    <script src="./core.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script> -->
+
+    <script src="https://unpkg.com/material-components-web@0.27.0/dist/material-components-web.js"></script>
+    <script src="core.js"></script>
+
   </body>
 </html>
