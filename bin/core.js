@@ -9890,14 +9890,46 @@ exports.default = {
     var localStorage = window.localStorage;
     return new _PersistenceManager2.default(localStorage);
   },
-  storageManager: function storageManager() {
-    var db = new _dexie2.default('cache');
-    var storeName = 'objects';
+  storageManager: function storageManager(name, schemas) {
 
-    return new _StorageManager2.default(db, storeName);
+    if (!this.databases) {
+      this.databases = {};
+    }
+    if (!this.storeManager) {
+      this.storeManager = {};
+    }
+
+    // To make the storage persitent and now allow the system clear the storage when is under pressure;
+    if (navigator && navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then(function (persistent) {
+        if (persistent) {
+          console.log('Storage will not be cleared except by explicit user action');
+        } else {
+          console.log('Storage may be cleared by the UA under storage pressure.');
+        }
+      });
+    }
+
+    // Using the implementation of Service Framework
+    // Dexie is the IndexDB Wrapper
+    if (!this.databases.hasOwnProperty(name)) {
+      this.databases[name] = new _dexie2.default(name);
+    }
+
+    if (!this.storeManager.hasOwnProperty(name)) {
+      this.storeManager[name] = new _StorageManager2.default(this.databases[name], name, schemas);
+    }
+
+    return this.storeManager[name];
   },
-  runtimeCapabilities: function runtimeCapabilities(storageManager) {
-    return new _RuntimeCapabilities2.default(storageManager);
+  runtimeCapabilities: function runtimeCapabilities() {
+
+    if (!this.capabilitiesManager) {
+      var storageManager = this.storageManager('capabilities');
+      this.capabilitiesManager = new _RuntimeCapabilities2.default(storageManager);
+    }
+
+    return this.capabilitiesManager;
   }
 };
 
@@ -10064,7 +10096,7 @@ var SandboxWorker = exports.SandboxWorker = function (_Sandbox) {
   _createClass(SandboxWorker, null, [{
     key: 'capabilities',
     value: function capabilities() {
-      return _RuntimeFactory2.default.runtimeCapabilities(_RuntimeFactory2.default.storageManager()).getRuntimeCapabilities().then(function (capabilities) {
+      return _RuntimeFactory2.default.runtimeCapabilities().getRuntimeCapabilities().then(function (capabilities) {
         return _extends(capabilities, { mic: false, camera: false, windowSandbox: false });
       });
     }
@@ -10123,7 +10155,7 @@ var SandboxWindow = exports.SandboxWindow = function (_Sandbox2) {
   _createClass(SandboxWindow, null, [{
     key: 'capabilities',
     value: function capabilities() {
-      return _RuntimeFactory2.default.runtimeCapabilities(_RuntimeFactory2.default.storageManager()).getRuntimeCapabilities();
+      return _RuntimeFactory2.default.runtimeCapabilities().getRuntimeCapabilities();
     }
   }, {
     key: 'new',

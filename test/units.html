@@ -13,7 +13,7 @@
         <td colspan="3" title="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36">Browser: Chrome 63.0.3239 (Linux 0.0.0)</td>
       </tr>
       <tr class="overview">
-        <td colspan="3">Timestamp: 2018-1-11 09:18:52</td>
+        <td colspan="3">Timestamp: 2018-1-11 12:31:31</td>
       </tr>
       <tr>
         <td colspan="3">
@@ -21,7 +21,7 @@
           0 errors / 
           0 failures / 
           1 skipped / 
-          runtime: 1.485s
+          runtime: 1.454s
         </td>
       </tr>
       <tr class="header">
@@ -35,7 +35,7 @@
         <td>Request &raquo; mapping protocols</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.001s</td>
+        <td>Passed in 0s</td>
         <td>should map undefined://test protocol to https://test</td>
         <td>Request &raquo; mapping protocols</td>
       </tr>
@@ -65,12 +65,12 @@
         <td>Request &raquo; get</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.001s</td>
+        <td>Passed in 0s</td>
         <td>should send a post and receive a response</td>
         <td>Request &raquo; post</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.072s</td>
+        <td>Passed in 0.081s</td>
         <td>should return all available capabilities of the runtime</td>
         <td>RuntimeCapabilities &raquo; getRuntimeCapabilities</td>
       </tr>
@@ -80,7 +80,7 @@
         <td>RuntimeCapabilities &raquo; getRuntimeCapabilities</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.002s</td>
+        <td>Passed in 0.004s</td>
         <td>should return is a capability is available</td>
         <td>RuntimeCapabilities &raquo; isAvailable</td>
       </tr>
@@ -90,37 +90,37 @@
         <td>RuntimeCapabilities &raquo; update</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.028s</td>
+        <td>Passed in 0.013s</td>
         <td>should return SandboxWorker for a component with this constraints {"mic":false,"camera":false}</td>
         <td>RuntimeFactory &raquo; createSandbox</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.01s</td>
+        <td>Passed in 0.006s</td>
         <td>should return SandboxWindow for a component with this constraints {"mic":true,"camera":true}</td>
         <td>RuntimeFactory &raquo; createSandbox</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.009s</td>
+        <td>Passed in 0.003s</td>
         <td>should throw an error if none sandbox match the constraints</td>
         <td>RuntimeFactory &raquo; createSandbox</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 1.353s</td>
+        <td>Passed in 1.337s</td>
         <td>should returns required hyperty</td>
         <td>Service framework &raquo; Require Hyperty</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.001s</td>
+        <td>Passed in 0s</td>
         <td>should return default runtime path and domain  if it is in production mode and receives a domain</td>
         <td>RuntimeUAStub &raquo; getRuntime</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0s</td>
+        <td>Passed in 0.001s</td>
         <td>should return default runtime path and domain  if it is in develop mode and receives a domain</td>
         <td>RuntimeUAStub &raquo; getRuntime</td>
       </tr>
       <tr class="pass">
-        <td>Passed in 0.002s</td>
+        <td>Passed in 0.003s</td>
         <td>should return default runtime path and domain if it is in production mode and receives a runtimeURL</td>
         <td>RuntimeUAStub &raquo; getRuntime</td>
       </tr>
@@ -136,18 +136,14 @@
       </tr>
       <tr class="system-out">
         <td colspan="3"><strong>System output:</strong><br />Chrome 63.0.3239 (Linux 0.0.0) LOG: 'Capability browser is available? ', true
+<br />Chrome 63.0.3239 (Linux 0.0.0) LOG: 'Storage may be cleared by the UA under storage pressure.'
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: '[StorageManager] - set ', 'capabilities', Object{browser: true, node: false, mic: true, camera: true, windowSandbox: true}
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
-<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name cache with version no: 1'
+<br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Found database name capabilities with version no: 1'
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'Install: ', 'localhost', 'https://catalogue.localhost/.well-known/runtime/Runtime', true, undefined, undefined
 <br />Chrome 63.0.3239 (Linux 0.0.0) INFO: 'get Runtime: ', 'https://catalogue.localhost/.well-known/runtime/Runtime', 'localhost', 'https://localhost/.well-known/runtime/index.html', 'https://localhost/.well-known/runtime/sandbox.html'
 <br />Chrome 63.0.3239 (Linux 0.0.0) LOG: 'Runtime?!', Object{requireHyperty: function requireHyperty(hypertyDescriptor) { ... }, requireProtostub: function requireProtostub(domain) { ... }, close: function close() { ... }}
