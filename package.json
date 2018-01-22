@@ -1,6 +1,6 @@
 {
   "name": "runtime-browser",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "browser runtime development",
   "main": "src/rethink.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "dexie": "^1.5.1",
-    "runtime-core": "github:reTHINK-project/dev-runtime-core#v0.11.0",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#v0.11.1",
     "service-framework": "github:reTHINK-project/dev-service-framework#v0.8.0",
     "webrtcsupport": "2.2.0"
   },
