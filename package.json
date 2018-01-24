@@ -29,8 +29,12 @@
   },
   "homepage": "https://rethink-project.eu/",
   "dependencies": {
+    "babel-preset-react": "^6.24.1",
     "browserify": "^14.4.0",
     "dexie": "^1.5.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "^1.1.0",
     "runtime-core": "github:reTHINK-project/dev-runtime-core#v0.11.1",
     "service-framework": "github:reTHINK-project/dev-service-framework#v0.8.0",
     "webrtcsupport": "2.2.0"
