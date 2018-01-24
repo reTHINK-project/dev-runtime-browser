@@ -2,6 +2,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import IDPList from './components/IDPList';
+import IdentityList from './components/IdentityList';
+import DefaultIdentity from './components/DefaultIdentity';
+
+// TODO refresh page when adding new identityInfo
+// TODO change default identity?
 
 class IdentitiesGUI {
 
@@ -358,6 +363,7 @@ class IdentitiesGUI {
 
     ReactDOM.render(<IDPList idps={idps}
       login={(idp) => this.loginWithIDP(idp)}
+      callback={(idp) => this.callback(idp)}
     />,
     document.getElementById('idps-list'));
   }
@@ -368,40 +374,8 @@ class IdentitiesGUI {
 
       this.isLogged = true;
 
-      const header = document.querySelector('.mdc-list--avatar-list');
-
-      let itemEl = document.getElementById('item-' + identity.userProfile.userURL);
-
-      if (!itemEl) {
-
-        // TODO replace default identity
-
-        itemEl = document.createElement('li');
-        itemEl.id = 'item-' + identity.userProfile.userURL;
-        itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
-        itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
-
-        const profileImage = document.createElement('img');
-        profileImage.classList = 'mdc-list-item__start-detail';
-        profileImage.width = 56;
-        profileImage.height = 56;
-        profileImage.alt = identity.userProfile.name;
-        profileImage.src = identity.userProfile.picture;
-        itemEl.appendChild(profileImage);
-
-        const text1 = document.createElement('span');
-        text1.classList = 'name mdc-list-item__text';
-        text1.textContent = identity.userProfile.name;
-
-        const text2 = document.createElement('span');
-        text2.classList = 'email mdc-list-item__secondary-text';
-        text2.textContent = identity.userProfile.email;
-
-        text1.appendChild(text2);
-        itemEl.appendChild(text1);
-        header.appendChild(itemEl);
-
-      }
+      ReactDOM.render(<DefaultIdentity identity={identity} />,
+      document.querySelector('.mdc-list--avatar-list'));
 
     }
 
@@ -418,63 +392,12 @@ class IdentitiesGUI {
       const identities = iDs.identities;
       const current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
-      let activeIdentities = document.getElementById('active-identities');
+      ReactDOM.render(<IdentityList identities={identities}
+        callback={(idp) => this.callback(idp)}
+        current={current}
+      />,
+      document.getElementById('active-identities'));
 
-      Object.keys(identities).forEach((key) => {
-
-        // TODO use React here
-        const exist = document.getElementById('link-' + key);
-        if (exist) { return; }
-
-        const linkEl = document.createElement('a');
-        linkEl.href = '#';
-        linkEl.id = 'link-' + key;
-        linkEl.classList = 'mdc-list-item';
-        linkEl.setAttribute('data-userURL', key);
-
-        if (key === current) {
-          linkEl.classList += ' mdc-temporary-drawer--selected';
-        }
-
-        linkEl.addEventListener('click', (event) => {
-
-          event.preventDefault();
-
-          const el = event.currentTarget;
-          const userURL = el.getAttribute('data-userURL');
-
-          console.log('userURL:', userURL, callback, el);
-
-          if (callback) {
-            callback(userURL);
-          }
-
-        });
-
-        const profileImage = document.createElement('img');
-        profileImage.classList = 'mdc-list-item__start-detail';
-        profileImage.width = 40;
-        profileImage.height = 40;
-        profileImage.alt = identities[key].userProfile.name;
-        profileImage.src = identities[key].userProfile.picture;
-        profileImage.onerror = (e) => { e.srcElement.src = './assets/question.svg'; };
-
-        const text1 = document.createElement('span');
-        text1.classList = 'name mdc-list-item__text';
-        text1.textContent = identities[key].userProfile.name;
-
-        const text2 = document.createElement('span');
-        text2.classList = 'email mdc-list-item__secondary-text';
-        text2.textContent = identities[key].userProfile.email;
-
-        text1.appendChild(text2);
-
-        linkEl.appendChild(profileImage);
-        linkEl.appendChild(text1);
-
-        activeIdentities.appendChild(linkEl);
-
-      });
 
       if (identities.length === 1) {
 

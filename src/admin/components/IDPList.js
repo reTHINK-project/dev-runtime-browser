@@ -16,8 +16,11 @@ class IDPList extends Component {
           {
             Object
             .keys(this.props.idps)
-            .map(key => <IDPSingle idp={this.props.idps[key]} key={key.domain}
-              login={this.props.login}/>)
+            .map(key => <IDPSingle idp={this.props.idps[key]}
+              key={key.domain}
+              login={this.props.login}
+              callback={this.props.callback}
+            />)
           }
         </div>
 

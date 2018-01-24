@@ -18087,6 +18087,14 @@ var _IDPList = require('./components/IDPList');
 
 var _IDPList2 = _interopRequireDefault(_IDPList);
 
+var _IdentityList = require('./components/IdentityList');
+
+var _IdentityList2 = _interopRequireDefault(_IdentityList);
+
+var _DefaultIdentity = require('./components/DefaultIdentity');
+
+var _DefaultIdentity2 = _interopRequireDefault(_DefaultIdentity);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -18456,6 +18464,9 @@ var IdentitiesGUI = function () {
       _reactDom2.default.render(_react2.default.createElement(_IDPList2.default, { idps: idps,
         login: function login(idp) {
           return _this7.loginWithIDP(idp);
+        },
+        callback: function callback(idp) {
+          return _this7.callback(idp);
         }
       }), document.getElementById('idps-list'));
     }
@@ -18467,39 +18478,7 @@ var IdentitiesGUI = function () {
 
         this.isLogged = true;
 
-        var header = document.querySelector('.mdc-list--avatar-list');
-
-        var itemEl = document.getElementById('item-' + identity.userProfile.userURL);
-
-        if (!itemEl) {
-
-          // TODO replace default identity
-
-          itemEl = document.createElement('li');
-          itemEl.id = 'item-' + identity.userProfile.userURL;
-          itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
-          itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
-
-          var profileImage = document.createElement('img');
-          profileImage.classList = 'mdc-list-item__start-detail';
-          profileImage.width = 56;
-          profileImage.height = 56;
-          profileImage.alt = identity.userProfile.name;
-          profileImage.src = identity.userProfile.picture;
-          itemEl.appendChild(profileImage);
-
-          var text1 = document.createElement('span');
-          text1.classList = 'name mdc-list-item__text';
-          text1.textContent = identity.userProfile.name;
-
-          var text2 = document.createElement('span');
-          text2.classList = 'email mdc-list-item__secondary-text';
-          text2.textContent = identity.userProfile.email;
-
-          text1.appendChild(text2);
-          itemEl.appendChild(text1);
-          header.appendChild(itemEl);
-        }
+        _reactDom2.default.render(_react2.default.createElement(_DefaultIdentity2.default, { identity: identity }), document.querySelector('.mdc-list--avatar-list'));
       }
     }
 
@@ -18518,65 +18497,12 @@ var IdentitiesGUI = function () {
         var identities = iDs.identities;
         var current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
-        var activeIdentities = document.getElementById('active-identities');
-
-        Object.keys(identities).forEach(function (key) {
-
-          // TODO use React here
-          var exist = document.getElementById('link-' + key);
-          if (exist) {
-            return;
-          }
-
-          var linkEl = document.createElement('a');
-          linkEl.href = '#';
-          linkEl.id = 'link-' + key;
-          linkEl.classList = 'mdc-list-item';
-          linkEl.setAttribute('data-userURL', key);
-
-          if (key === current) {
-            linkEl.classList += ' mdc-temporary-drawer--selected';
-          }
-
-          linkEl.addEventListener('click', function (event) {
-
-            event.preventDefault();
-
-            var el = event.currentTarget;
-            var userURL = el.getAttribute('data-userURL');
-
-            console.log('userURL:', userURL, callback, el);
-
-            if (callback) {
-              callback(userURL);
-            }
-          });
-
-          var profileImage = document.createElement('img');
-          profileImage.classList = 'mdc-list-item__start-detail';
-          profileImage.width = 40;
-          profileImage.height = 40;
-          profileImage.alt = identities[key].userProfile.name;
-          profileImage.src = identities[key].userProfile.picture;
-          profileImage.onerror = function (e) {
-            e.srcElement.src = './assets/question.svg';
-          };
-
-          var text1 = document.createElement('span');
-          text1.classList = 'name mdc-list-item__text';
-          text1.textContent = identities[key].userProfile.name;
-
-          var text2 = document.createElement('span');
-          text2.classList = 'email mdc-list-item__secondary-text';
-          text2.textContent = identities[key].userProfile.email;
-
-          text1.appendChild(text2);
-
-          linkEl.appendChild(profileImage);
-          linkEl.appendChild(text1);
-
-          activeIdentities.appendChild(linkEl);
-        });
+        _reactDom2.default.render(_react2.default.createElement(_IdentityList2.default, { identities: identities,
+          callback: function callback(idp) {
+            return _this8.callback(idp);
+          },
+          current: current
+        }), document.getElementById('active-identities'));
 
         if (identities.length === 1) {
 
@@ -18788,7 +18714,77 @@ var IdentitiesGUI = function () {
 
 exports.default = IdentitiesGUI;
 
-},{"./components/IDPList":28,"react":26,"react-dom":23}],28:[function(require,module,exports){
+},{"./components/DefaultIdentity":28,"./components/IDPList":29,"./components/IdentityList":31,"react":26,"react-dom":23}],28:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var DefaultIdentity = function (_Component) {
+  _inherits(DefaultIdentity, _Component);
+
+  function DefaultIdentity(props) {
+    _classCallCheck(this, DefaultIdentity);
+
+    return _possibleConstructorReturn(this, (DefaultIdentity.__proto__ || Object.getPrototypeOf(DefaultIdentity)).call(this, props));
+  }
+
+  _createClass(DefaultIdentity, [{
+    key: 'render',
+    value: function render() {
+
+      var identity = this.props.identity;
+
+      return _react2.default.createElement(
+        'div',
+        { className: 'entity-single' },
+        _react2.default.createElement(
+          'li',
+          { id: 'item-' + identity.userProfile.userURL,
+            'class': "mdc-list-item item-" + identity.userProfile.userURL,
+            'data-userurl': identity.userProfile.userURL },
+          _react2.default.createElement('img', { className: 'mdc-list-item__start-detail',
+            width: '56', height: '56',
+            alt: identity.userProfile.name,
+            src: identity.userProfile.picture }),
+          _react2.default.createElement(
+            'span',
+            {
+              className: 'name mdc-list-item__text' },
+            identity.userProfile.name,
+            _react2.default.createElement(
+              'span',
+              {
+                className: 'email mdc-list-item__secondary-text' },
+              identity.userProfile.email
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return DefaultIdentity;
+}(_react.Component);
+
+exports.default = DefaultIdentity;
+
+},{"react":26}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18837,8 +18833,11 @@ var IDPList = function (_Component) {
           'div',
           { className: 'idps' },
           Object.keys(this.props.idps).map(function (key) {
-            return _react2.default.createElement(_IDPSingle2.default, { idp: _this2.props.idps[key], key: key.domain,
-              login: _this2.props.login });
+            return _react2.default.createElement(_IDPSingle2.default, { idp: _this2.props.idps[key],
+              key: key.domain,
+              login: _this2.props.login,
+              callback: _this2.props.callback
+            });
           })
         )
       );
@@ -18850,7 +18849,7 @@ var IDPList = function (_Component) {
 
 exports.default = IDPList;
 
-},{"./IDPSingle":29,"react":26}],29:[function(require,module,exports){
+},{"./IDPSingle":30,"react":26}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18915,10 +18914,10 @@ var IDPSingle = function (_Component) {
       // console.log('you clicked ' + login)
 
       // this.props.login.idp = idp
-      this.props.login(idp, idp, idp, idp).then(function (result) {
+      this.props.login(idp).then(function (result) {
 
-        if (_this2.callback) {
-          _this2.callback(result);
+        if (_this2.props.callback) {
+          _this2.props.callback(result);
         }
       });
     }
@@ -18960,6 +18959,158 @@ var IDPSingle = function (_Component) {
 }(_react.Component);
 
 exports.default = IDPSingle;
+
+},{"react":26}],31:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _IdentitySingle = require('./IdentitySingle');
+
+var _IdentitySingle2 = _interopRequireDefault(_IdentitySingle);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var IdentityList = function (_Component) {
+  _inherits(IdentityList, _Component);
+
+  function IdentityList(props) {
+    _classCallCheck(this, IdentityList);
+
+    return _possibleConstructorReturn(this, (IdentityList.__proto__ || Object.getPrototypeOf(IdentityList)).call(this, props));
+  }
+
+  _createClass(IdentityList, [{
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      return _react2.default.createElement(
+        'div',
+        { className: 'identities-list-react' },
+        _react2.default.createElement(
+          'div',
+          { className: 'identities' },
+          Object.keys(this.props.identities).map(function (key) {
+            return _react2.default.createElement(_IdentitySingle2.default, { identity: _this2.props.identities[key],
+              key: key.domain,
+              callback: _this2.props.callback,
+              current: _this2.props.current
+            });
+          })
+        )
+      );
+    }
+  }]);
+
+  return IdentityList;
+}(_react.Component);
+
+exports.default = IdentityList;
+
+},{"./IdentitySingle":32,"react":26}],32:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var IdentitySingle = function (_Component) {
+  _inherits(IdentitySingle, _Component);
+
+  function IdentitySingle(props) {
+    _classCallCheck(this, IdentitySingle);
+
+    return _possibleConstructorReturn(this, (IdentitySingle.__proto__ || Object.getPrototypeOf(IdentitySingle)).call(this, props));
+  }
+
+  _createClass(IdentitySingle, [{
+    key: 'handleClick',
+    value: function handleClick(userURL) {
+
+      if (this.props.callback) {
+        this.props.callback(userURL);
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this2 = this,
+          _React$createElement;
+
+      var key = this.props.identity;
+      var current = this.props.current;
+
+      var highlight = key.userURL === current ? ' mdc-temporary-drawer--selected' : '';
+      var classes = 'mdc-list-item ' + highlight;
+
+      return _react2.default.createElement(
+        'div',
+        { className: 'entity-single' },
+        _react2.default.createElement(
+          'a',
+          (_React$createElement = { id: 'active-identities',
+            href: '#'
+          }, _defineProperty(_React$createElement, 'id', 'link-' + key), _defineProperty(_React$createElement, 'data-userurl', key), _defineProperty(_React$createElement, 'className', classes), _defineProperty(_React$createElement, 'onClick', function onClick() {
+            return _this2.handleClick(key);
+          }), _React$createElement),
+          _react2.default.createElement('img', { className: 'mdc-list-item__start-detail',
+            width: '40', height: '40',
+            alt: this.props.identity.userProfile.name,
+            src: this.props.identity.userProfile.picture,
+            onError: function onError(e) {
+              return e.srcElement.src = './assets/question.svg';
+            }
+          }),
+          _react2.default.createElement(
+            'span',
+            { className: 'name mdc-list-item__text' },
+            this.props.identity.userProfile.name,
+            _react2.default.createElement(
+              'span',
+              { className: 'email mdc-list-item__secondary-text' },
+              this.props.identity.userProfile.email
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return IdentitySingle;
+}(_react.Component);
+
+exports.default = IdentitySingle;
 
 },{"react":26}]},{},[27])(27)
 });

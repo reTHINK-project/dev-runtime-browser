@@ -38,10 +38,10 @@ handleClick(idp) {
   // console.log('you clicked ' + login)
 
   // this.props.login.idp = idp
-  this.props.login(idp,idp,idp,idp).then((result) => {
-  
-    if (this.callback) {
-      this.callback(result);
+  this.props.login(idp).then((result) => {
+
+    if (this.props.callback) {
+      this.props.callback(result);
     }
 
   });
