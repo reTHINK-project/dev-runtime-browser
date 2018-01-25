@@ -452,8 +452,6 @@ class IdentitiesGUI {
 
     idp = arguments[0]
 
-    console.log("Logging in with " + idp)
-
     let _publicKey;
 
 

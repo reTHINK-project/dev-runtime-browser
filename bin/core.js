@@ -28318,6 +28318,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// TODO refresh page when adding new identityInfo
+// TODO change default identity?
+
 var IdentitiesGUI = function () {
   function IdentitiesGUI(guiURL, idmURL, messageBus) {
     var _this2 = this;
@@ -28776,8 +28779,6 @@ var IdentitiesGUI = function () {
       var _this9 = this;
 
       idp = arguments[0];
-
-      console.log("Logging in with " + idp);
 
       var _publicKey = void 0;
 
@@ -30246,7 +30247,7 @@ var DefaultIdentity = function (_Component) {
         _react2.default.createElement(
           'li',
           { id: 'item-' + identity.userProfile.userURL,
-            'class': "mdc-list-item item-" + identity.userProfile.userURL,
+            className: "mdc-list-item item-" + identity.userProfile.userURL,
             'data-userurl': identity.userProfile.userURL },
           _react2.default.createElement('img', { className: 'mdc-list-item__start-detail',
             width: '56', height: '56',
@@ -30366,34 +30367,8 @@ var IDPSingle = function (_Component) {
   function IDPSingle(props) {
     _classCallCheck(this, IDPSingle);
 
-    var _this = _possibleConstructorReturn(this, (IDPSingle.__proto__ || Object.getPrototypeOf(IDPSingle)).call(this, props));
-
-    console.log(_this.props.idp);
-    console.log(_this.props.login);
-    return _this;
+    return _possibleConstructorReturn(this, (IDPSingle.__proto__ || Object.getPrototypeOf(IDPSingle)).call(this, props));
   }
-
-  /**
-  
-  idps.forEach((key) => {
-  
-  let linkEl = document.getElementById('link-' + key.domain);
-  
-  if (!linkEl) {
-  
-  
-  
-  imgEl.onerror = (e) => { e.srcElement.src = './assets/question.svg'; };
-  
-  } else {
-  linkEl.removeEventListener('click', clickEvent);
-  }
-  
-  // listen to IdP selection
-  linkEl.addEventListener('click', clickEvent);
-  
-  });
-  **/
 
   _createClass(IDPSingle, [{
     key: 'handleClick',
@@ -30407,8 +30382,10 @@ var IDPSingle = function (_Component) {
       this.props.login(idp).then(function (result) {
 
         if (_this2.props.callback) {
-          _this2.props.callback(result);
+          _this2.props.callback.call(result);
         }
+
+        // window.location.reload();
       });
     }
   }, {
@@ -30437,7 +30414,11 @@ var IDPSingle = function (_Component) {
             onClick: function onClick() {
               return _this3.handleClick(key.domain);
             } },
-          _react2.default.createElement('img', { className: 'mdc-list-item__start-detail', src: './assets/' + name + '.svg', width: '30', height: '30' }),
+          _react2.default.createElement('img', { className: 'mdc-list-item__start-detail', src: './assets/' + name + '.svg', width: '30', height: '30',
+            onError: function onError(e) {
+              return e.srcElement.src = './assets/question.svg';
+            }
+          }),
           ' ',
           key.domain
         )
