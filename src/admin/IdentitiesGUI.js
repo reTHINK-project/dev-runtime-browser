@@ -1,4 +1,12 @@
 // jshint browser:true, jquery: true
+import React from 'react';
+import ReactDOM from 'react-dom';
+import IDPList from './components/IDPList';
+import IdentityList from './components/IdentityList';
+import DefaultIdentity from './components/DefaultIdentity';
+
+// TODO refresh page when adding new identityInfo
+// TODO change default identity?
 
 class IdentitiesGUI {
 
@@ -18,6 +26,7 @@ class IdentitiesGUI {
 
     this.isLogged = false;
 
+    // temporary drawer
     const drawerEl = document.querySelector('.mdc-temporary-drawer');
     const MDCTemporaryDrawer = mdc.drawer.MDCTemporaryDrawer;
     const drawer = new MDCTemporaryDrawer(drawerEl);
@@ -25,12 +34,14 @@ class IdentitiesGUI {
     this._drawerEl = drawerEl;
     this._drawer = drawer;
 
+    // handle click events on settings button
     document.querySelector('.settings-btn').addEventListener('click', function() {
       drawer.open = true;
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', () => {
       console.log('Received MDCTemporaryDrawer:open');
+      console.log('1234');
       this._isDrawerOpen = true;
     });
 
@@ -95,7 +106,6 @@ class IdentitiesGUI {
     });
 
     this._getIdentities();
-
   }
 
   _buildMessage(msg, identityInfo) {
@@ -109,15 +119,15 @@ class IdentitiesGUI {
 
     switch (identityInfo.type) {
       case 'idp':
-        value = { type: 'idp', value: identityInfo.value, code: 200 };
-        break;
+      value = { type: 'idp', value: identityInfo.value, code: 200 };
+      break;
 
       case 'identity':
-        value = { type: 'identity', value: identityInfo.value, code: 200 };
-        break;
+      value = { type: 'identity', value: identityInfo.value, code: 200 };
+      break;
 
       default:
-        value = { type: 'error', value: 'Error on identity GUI', code: 400 };
+      value = { type: 'error', value: 'Error on identity GUI', code: 400 };
     }
 
     replyMsg = {id: msg.id, type: 'response', to: from, from: to, body: value };
@@ -210,7 +220,7 @@ class IdentitiesGUI {
 
     return new Promise((resolve, reject) => {
       const message = { type: 'execute', to: _this._idmURL, from: _this._guiURL,
-        body: { resource: 'identity', method: methodName, params: parameters }};
+      body: { resource: 'identity', method: methodName, params: parameters }};
 
       this._messageBus.postMessage(message, (res) => {
         let result = res.body.value;
@@ -346,66 +356,16 @@ class IdentitiesGUI {
     });
   }
 
+  // show identity providers (fb, google, etc)
   showIdps(idps) {
 
     console.log('[IdentitiesGUI.showIdps] : ', idps);
 
-    let idpsListEl = document.getElementById('idps-list');
-
-    const clickEvent = (event) => {
-      const el = event.currentTarget;
-      const idp = el.getAttribute('data-idp');
-
-      this.loginWithIDP(idp).then((result) => {
-
-
-        if (this.callback) {
-          this.callback(result);
-        }
-
-      });
-    };
-
-    idps.forEach((key) => {
-
-      let linkEl = document.getElementById('link-' + key.domain);
-
-      if (!linkEl) {
-        linkEl = document.createElement('a');
-        linkEl.setAttribute('id', 'link-' + key.domain);
-        linkEl.setAttribute('data-idp', key.domain);
-        linkEl.classList = 'mdc-list-item link-' + key.domain;
-        linkEl.href = '#';
-
-        const linkElText = document.createTextNode(key.domain);
-
-        let name = key.domain;
-        if (name.indexOf('.') !== -1) {
-          name = name.substring(0, name.indexOf('.'));
-        } else {
-          name = 'question';
-        }
-
-        const imgEl = document.createElement('img');
-        imgEl.classList = 'mdc-list-item__start-detail';
-        imgEl.src = './assets/' + name + '.svg';
-        imgEl.width = 30;
-        imgEl.height = 30;
-
-        imgEl.onerror = (e) => { e.srcElement.src = './assets/question.svg'; };
-
-        linkEl.appendChild(imgEl);
-        linkEl.appendChild(linkElText);
-
-        idpsListEl.appendChild(linkEl);
-      } else {
-        linkEl.removeEventListener('click', clickEvent);
-      }
-
-      linkEl.addEventListener('click', clickEvent);
-
-    });
-
+    ReactDOM.render(<IDPList idps={idps}
+      login={(idp) => this.loginWithIDP(idp)}
+      callback={(idp) => this.callback(idp)}
+    />,
+    document.getElementById('idps-list'));
   }
 
   showDefaultIdentity(identity) {
@@ -414,43 +374,15 @@ class IdentitiesGUI {
 
       this.isLogged = true;
 
-      const header = document.querySelector('.mdc-list--avatar-list');
-
-      let itemEl = document.getElementById('item-' + identity.userProfile.userURL);
-
-      if (!itemEl) {
-
-        itemEl = document.createElement('li');
-        itemEl.id = 'item-' + identity.userProfile.userURL;
-        itemEl.classList = 'mdc-list-item item-' + identity.userProfile.userURL;
-        itemEl.setAttribute('data-userURL', identity.userProfile.userURL);
-
-        const profileImage = document.createElement('img');
-        profileImage.classList = 'mdc-list-item__start-detail';
-        profileImage.width = 56;
-        profileImage.height = 56;
-        profileImage.alt = identity.userProfile.name;
-        profileImage.src = identity.userProfile.picture;
-        itemEl.appendChild(profileImage);
-
-        const text1 = document.createElement('span');
-        text1.classList = 'name mdc-list-item__text';
-        text1.textContent = identity.userProfile.name;
-
-        const text2 = document.createElement('span');
-        text2.classList = 'email mdc-list-item__secondary-text';
-        text2.textContent = identity.userProfile.email;
-
-        text1.appendChild(text2);
-        itemEl.appendChild(text1);
-        header.appendChild(itemEl);
-
-      }
+      ReactDOM.render(<DefaultIdentity identity={identity} />,
+      document.querySelector('.mdc-list--avatar-list'));
 
     }
 
   }
 
+  // show current user Identities
+  // i.e. IdPs where he is registered
   showIdentities(iDs, callback) {
 
     return new Promise((resolve, reject) => {
@@ -460,62 +392,12 @@ class IdentitiesGUI {
       const identities = iDs.identities;
       const current = iDs.defaultIdentity ? iDs.defaultIdentity.userURL : '';
 
-      let activeIdentities = document.getElementById('active-identities');
+      ReactDOM.render(<IdentityList identities={identities}
+        callback={(idp) => this.callback(idp)}
+        current={current}
+      />,
+      document.getElementById('active-identities'));
 
-      Object.keys(identities).forEach((key) => {
-
-        const exist = document.getElementById('link-' + key);
-        if (exist) { return; }
-
-        const linkEl = document.createElement('a');
-        linkEl.href = '#';
-        linkEl.id = 'link-' + key;
-        linkEl.classList = 'mdc-list-item';
-        linkEl.setAttribute('data-userURL', key);
-
-        if (key === current) {
-          linkEl.classList += ' mdc-temporary-drawer--selected';
-        }
-
-        linkEl.addEventListener('click', (event) => {
-
-          event.preventDefault();
-
-          const el = event.currentTarget;
-          const userURL = el.getAttribute('data-userURL');
-
-          console.log('userURL:', userURL, callback, el);
-
-          if (callback) {
-            callback(userURL);
-          }
-
-        });
-
-        const profileImage = document.createElement('img');
-        profileImage.classList = 'mdc-list-item__start-detail';
-        profileImage.width = 40;
-        profileImage.height = 40;
-        profileImage.alt = identities[key].userProfile.name;
-        profileImage.src = identities[key].userProfile.picture;
-        profileImage.onerror = (e) => { e.srcElement.src = './assets/question.svg'; };
-
-        const text1 = document.createElement('span');
-        text1.classList = 'name mdc-list-item__text';
-        text1.textContent = identities[key].userProfile.name;
-
-        const text2 = document.createElement('span');
-        text2.classList = 'email mdc-list-item__secondary-text';
-        text2.textContent = identities[key].userProfile.email;
-
-        text1.appendChild(text2);
-
-        linkEl.appendChild(profileImage);
-        linkEl.appendChild(text1);
-
-        activeIdentities.appendChild(linkEl);
-
-      });
 
       if (identities.length === 1) {
 
@@ -568,60 +450,63 @@ class IdentitiesGUI {
 
   loginWithIDP(idp) {
 
+    idp = arguments[0]
 
     let _publicKey;
 
+
     return this.openPopup()
-      .then((result) => {
-        return this.callIdentityModuleFunc('getMyPublicKey', {});
-      }).then((publicKey) => {
-        _publicKey = publicKey;
-        const data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
-        return this.callIdentityModuleFunc('sendGenerateMessage', data);
-      })
-      .then((value) => {
-        console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
+    .then((result) => {
+      return this.callIdentityModuleFunc('getMyPublicKey', {});
+    }).then((publicKey) => {
+      _publicKey = publicKey;
+      const data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
+      return this.callIdentityModuleFunc('sendGenerateMessage', data);
+    })
+    .then((value) => {
+      console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
-        let url = value.loginUrl;
-        let finalURL;
+      let url = value.loginUrl;
+      let finalURL;
 
-        //check if the receivedURL contains the redirect field and replace it
-        if (url.indexOf('redirect_uri') !== -1) {
-          let firstPart = url.substring(0, url.indexOf('redirect_uri'));
-          let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+      //check if the receivedURL contains the redirect field and replace it
+      if (url.indexOf('redirect_uri') !== -1) {
+        let firstPart = url.substring(0, url.indexOf('redirect_uri'));
+        let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
 
-          let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+        let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
 
-          //check if the reddirect field is the last field of the URL
-          if (secondPart.indexOf('&') !== -1) {
-            finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
-          } else {
-            finalURL = firstPart + 'redirect_uri=' + location.origin;
-          }
+        //check if the reddirect field is the last field of the URL
+        if (secondPart.indexOf('&') !== -1) {
+          finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+        } else {
+          finalURL = firstPart + 'redirect_uri=' + location.origin;
         }
+      }
 
-        this.resultURL = finalURL || url;
+      this.resultURL = finalURL || url;
 
-        console.log('[IdentitiesGUI.openPopup]', this.resultURL);
-        return this.openPopup(this.resultURL);
-      }).then((identity) => {
+      console.log('[IdentitiesGUI.openPopup]', this.resultURL);
+      return this.openPopup(this.resultURL);
+    }).then((identity) => {
 
-        console.log('[IdentitiesGUI.openPopup.result]', identity);
+      console.log('[IdentitiesGUI.openPopup.result]', identity);
 
-        const data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
-        return this.callIdentityModuleFunc('sendGenerateMessage', data);
-      }).then((result) => {
+      const data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
+      return this.callIdentityModuleFunc('sendGenerateMessage', data);
+    }).then((result) => {
 
-        console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
-        return this.callIdentityModuleFunc('addAssertion', result);
-      }).then((value) => {
+      console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
+      return this.callIdentityModuleFunc('addAssertion', result);
+    }).then((value) => {
 
-        this._drawer.open = false;
-        const userURL = {type: 'identity', value: value.userProfile.userURL};
+      this._drawer.open = false;
+      const userURL = {type: 'identity', value: value.userProfile.userURL};
 
-        console.log('[IdentitiesGUI.loginWithIDP final]', value);
-        return userURL;
-      });
+      console.log('[IdentitiesGUI.loginWithIDP final]', value);
+      return userURL;
+    });
+
 
   }
 
@@ -693,7 +578,7 @@ class IdentitiesGUI {
       _this.openPopup(url).then((identity) => {
 
         _this.callIdentityModuleFunc('sendGenerateMessage',
-          { contents: publicKey, origin: origin, usernameHint: identity, idpDomain: idProvider }).then((result) => {
+        { contents: publicKey, origin: origin, usernameHint: identity, idpDomain: idProvider }).then((result) => {
 
           if (result) {
 
