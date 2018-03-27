@@ -102,7 +102,13 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             runtime.close()
               .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
               .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+          }  else if (event.data.to === 'core:login') {
+            console.log('core: logging with ', event.data.body.idp);
+            identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {
+              event.source.postMessage({to: 'runtime:loggedIn', body: result}, '*');
+            });
           }
+
 
         }, false);
 

@@ -68,7 +68,19 @@ let runtimeAdapter = {
   },
 
   login: (idp)=>{
-    console.log(idp);
+
+    return new Promise((resolve, reject)=>{
+      let loaded = (e)=>{
+        if (e.data.to === 'runtime:loggedIn') {
+          window.removeEventListener('message', loaded);
+          resolve(e.data.body);
+        }
+      };
+      window.addEventListener('message', loaded);
+      console.log('Logging with IDP: ', idp);
+      iframe.contentWindow.postMessage({to: 'core:login', body: {idp: idp}}, '*');
+    });
+
   },
 
   requireProtostub: (domain)=>{
@@ -140,7 +152,7 @@ let RethinkBrowser = {
   },
 
   _getRuntime(runtimeURL, domain, development, indexURL, sandboxURL) {
-    if (!!development) {
+    if (development) {
       runtimeURL = runtimeURL || 'hyperty-catalogue://catalogue.' + domain + '/.well-known/runtime/Runtime';
       domain = domain || new URI(runtimeURL).host();
       indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
