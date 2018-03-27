@@ -67,6 +67,10 @@ let runtimeAdapter = {
     });
   },
 
+  login: (idp)=>{
+    console.log(idp);
+  },
+
   requireProtostub: (domain)=>{
     iframe.contentWindow.postMessage({to: 'core:loadStub', body: {domain: domain}}, '*');
   },
