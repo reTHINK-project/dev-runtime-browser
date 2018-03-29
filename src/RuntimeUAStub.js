@@ -83,11 +83,13 @@ let runtimeAdapter = {
 
   },
 
+
   requireProtostub: (domain)=>{
     iframe.contentWindow.postMessage({to: 'core:loadStub', body: {domain: domain}}, '*');
   },
 
-  close: ()=>{
+  close: (logOut = false) => {
+    console.log('Stub - logging out: ', logOut);
     return new Promise((resolve, reject)=>{
       let loaded = (e)=>{
         if (e.data.to === 'runtime:runtimeClosed') {
@@ -96,7 +98,7 @@ let runtimeAdapter = {
         }
       };
       window.addEventListener('message', loaded);
-      iframe.contentWindow.postMessage({to: 'core:close', body: {}}, '*');
+      iframe.contentWindow.postMessage({to: 'core:close', body: {logOut: logOut}}, '*');
     });
   }
 };
@@ -126,11 +128,11 @@ let GuiManager = function() {
  * @property {function(Runtime domain: string, Runtime url: string, Development mode: boolean): Promise<RuntimeAdapter>} install - Installs a runtime locally
  */
 let RethinkBrowser = {
-  install: function({domain, runtimeURL, development, indexURL, sandboxURL} = {}) {
-    console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
+  install: function({domain, runtimeURL, development, indexURL, sandboxURL, hideAdmin} = {}) {
+    console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL, hideAdmin);
     return new Promise((resolve, reject)=>{
-      let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL);
-      iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`, 99999);
+      let runtime = this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL, hideAdmin);
+      iframe = createIframe(`${runtime.indexURL}?domain=${runtime.domain}&runtime=${runtime.url}&development=${development}`, 99999, hideAdmin);
       let installed = (e)=>{
         if (e.data.to === 'runtime:installed') {
           window.removeEventListener('message', installed);
@@ -140,7 +142,7 @@ let RethinkBrowser = {
       window.addEventListener('message', installed);
       window.addEventListener('message', (e) => {
         if (e.data.to && e.data.to === 'runtime:createSandboxWindow') {
-          const ifr = createIframe(runtime.sandboxURL);
+          const ifr = createIframe(runtime.sandboxURL, undefined, hideAdmin);
           ifr.addEventListener('load', () => {
             ifr.contentWindow.postMessage(e.data, '*', e.ports);
           }, false);

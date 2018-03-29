@@ -43,6 +43,20 @@ class IdentitiesGUI {
 
   }
 
+  logOut() {
+    let _this = this;
+    console.log('IdentitiesGUI: logging out');
+    return new Promise((resolve, reject) => {
+
+      console.log('Building drawer');
+      _this._buildDrawer();
+
+      resolve('Gui reset');
+
+
+    });
+  }
+
   _buildDrawer() {
 
     const guiURL = this._guiURL;
@@ -254,6 +268,7 @@ class IdentitiesGUI {
           try {
             if (win.closed) {
               clearInterval(pollTimer);
+
               // return reject('Some error occured when trying to get identity.');
             }
 
