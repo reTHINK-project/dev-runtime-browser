@@ -372,7 +372,8 @@ class IdentitiesGUI {
       const idp = el.getAttribute('data-idp');
 
       this.loginWithIDP(idp).then((result) => {
-
+        console.log('value here: ', result.value);
+        result.value = result.value.userURL
 
         if (this.callback) {
           this.callback(result);
@@ -632,10 +633,12 @@ class IdentitiesGUI {
       }).then((value) => {
 
         this._drawer.open = false;
-        const userURL = {type: 'identity', value: value.userProfile.userURL};
+        // const userURL = {type: 'identity', value: value.userProfile.userURL};
+        const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
-        return userURL;
+        // return userURL;
+        return userIdentity;
       });
 
   }
