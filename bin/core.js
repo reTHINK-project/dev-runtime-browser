@@ -10607,8 +10607,8 @@ var IdentitiesGUI = function () {
         var idp = el.getAttribute('data-idp');
 
         _this7.loginWithIDP(idp).then(function (result) {
-          console.log('value here: ', result.value);
-          result.value = result.value.userURL;
+          // console.log('value here: ', result.value);
+          // result.value = result.value.userURL
 
           if (_this7.callback) {
             _this7.callback(result);
@@ -10867,12 +10867,12 @@ var IdentitiesGUI = function () {
       }).then(function (value) {
 
         _this9._drawer.open = false;
-        // const userURL = {type: 'identity', value: value.userProfile.userURL};
-        var userIdentity = { type: 'identity', value: value.userProfile };
+        var userURL = { type: 'identity', value: value.userProfile.userURL };
+        // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
-        // return userURL;
-        return userIdentity;
+        return userURL;
+        // return userIdentity;
       });
     }
 
