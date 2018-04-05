@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57,6 +57,19 @@ var IdentitiesGUI = function () {
   }
 
   _createClass(IdentitiesGUI, [{
+    key: 'logOut',
+    value: function logOut() {
+      var _this = this;
+      console.log('IdentitiesGUI: logging out');
+      return new Promise(function (resolve, reject) {
+
+        console.log('Building drawer');
+        _this._buildDrawer();
+
+        resolve('Gui reset');
+      });
+    }
+  }, {
     key: '_buildDrawer',
     value: function _buildDrawer() {
       var _this3 = this;
@@ -269,6 +282,7 @@ var IdentitiesGUI = function () {
             try {
               if (win.closed) {
                 clearInterval(pollTimer);
+
                 // return reject('Some error occured when trying to get identity.');
               }
 
@@ -374,6 +388,8 @@ var IdentitiesGUI = function () {
         var idp = el.getAttribute('data-idp');
 
         _this7.loginWithIDP(idp).then(function (result) {
+          // console.log('value here: ', result.value);
+          // result.value = result.value.userURL
 
           if (_this7.callback) {
             _this7.callback(result);
@@ -633,9 +649,11 @@ var IdentitiesGUI = function () {
 
         _this9._drawer.open = false;
         var userURL = { type: 'identity', value: value.userProfile.userURL };
+        // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
         return userURL;
+        // return userIdentity;
       });
     }
 
