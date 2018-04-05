@@ -30,7 +30,7 @@
  * @param {string} src - Url to load into the iframe
  * @return {iframe} - iFrame element
  */
-export function create(src, zIndex = -10) {
+export function create(src, zIndex = -10, hideAdmin = false) {
   var iframe = document.createElement('iframe');
   iframe.setAttribute('id', 'rethink');
   iframe.style.position = 'absolute';
@@ -45,6 +45,9 @@ export function create(src, zIndex = -10) {
   iframe.setAttribute('src', src);
   iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation');
   iframe.style.display = 'block';
+  if (hideAdmin == true) {
+    iframe.style.display = 'none';
+  }
   document.querySelector('body').appendChild(iframe);
 
   return iframe;

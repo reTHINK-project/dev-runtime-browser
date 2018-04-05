@@ -99,10 +99,22 @@ catalogue.getRuntimeDescriptor(runtimeURL)
               console.error('Stub error:', error);
             });
           } else if (event.data.to === 'core:close') {
-            runtime.close()
+            runtime.close(event.data.body.logOut)
               .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
               .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+
+            //  send logout
+            identitiesGUI.logOut().then((result) => {
+              console.log(result);
+            });
+
+          } else if (event.data.to === 'core:login') {
+            console.log('core: logging with ', event.data.body.idp);
+            identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {
+              event.source.postMessage({to: 'runtime:loggedIn', body: result}, '*');
+            });
           }
+
 
         }, false);
 

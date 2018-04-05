@@ -43,6 +43,20 @@ class IdentitiesGUI {
 
   }
 
+  logOut() {
+    let _this = this;
+    console.log('IdentitiesGUI: logging out');
+    return new Promise((resolve, reject) => {
+
+      console.log('Building drawer');
+      _this._buildDrawer();
+
+      resolve('Gui reset');
+
+
+    });
+  }
+
   _buildDrawer() {
 
     const guiURL = this._guiURL;
@@ -254,6 +268,7 @@ class IdentitiesGUI {
           try {
             if (win.closed) {
               clearInterval(pollTimer);
+
               // return reject('Some error occured when trying to get identity.');
             }
 
@@ -357,7 +372,8 @@ class IdentitiesGUI {
       const idp = el.getAttribute('data-idp');
 
       this.loginWithIDP(idp).then((result) => {
-
+        // console.log('value here: ', result.value);
+        // result.value = result.value.userURL
 
         if (this.callback) {
           this.callback(result);
@@ -618,12 +634,14 @@ class IdentitiesGUI {
 
         this._drawer.open = false;
         const userURL = {type: 'identity', value: value.userProfile.userURL};
+        // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
         return userURL;
+        // return userIdentity;
       });
 
-  }
+  } 
 
   // obtainNewIdentity(event, callback, toRemoveID) {
   //   let _this = this;

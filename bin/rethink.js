@@ -5027,11 +5027,29 @@ var runtimeAdapter = {
     });
   },
 
+  login: function login(idp) {
+
+    return new Promise(function (resolve, reject) {
+      var loaded = function loaded(e) {
+        if (e.data.to === 'runtime:loggedIn') {
+          window.removeEventListener('message', loaded);
+          resolve(e.data.body);
+        }
+      };
+      window.addEventListener('message', loaded);
+      console.log('Logging with IDP: ', idp);
+      iframe.contentWindow.postMessage({ to: 'core:login', body: { idp: idp } }, '*');
+    });
+  },
+
   requireProtostub: function requireProtostub(domain) {
     iframe.contentWindow.postMessage({ to: 'core:loadStub', body: { domain: domain } }, '*');
   },
 
   close: function close() {
+    var logOut = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    console.log('Stub - logging out: ', logOut);
     return new Promise(function (resolve, reject) {
       var loaded = function loaded(e) {
         if (e.data.to === 'runtime:runtimeClosed') {
@@ -5040,7 +5058,7 @@ var runtimeAdapter = {
         }
       };
       window.addEventListener('message', loaded);
-      iframe.contentWindow.postMessage({ to: 'core:close', body: {} }, '*');
+      iframe.contentWindow.postMessage({ to: 'core:close', body: { logOut: logOut } }, '*');
     });
   }
 };
@@ -5077,12 +5095,13 @@ var RethinkBrowser = {
         runtimeURL = _ref.runtimeURL,
         development = _ref.development,
         indexURL = _ref.indexURL,
-        sandboxURL = _ref.sandboxURL;
+        sandboxURL = _ref.sandboxURL,
+        hideAdmin = _ref.hideAdmin;
 
-    console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL);
+    console.info('Install: ', domain, runtimeURL, development, indexURL, sandboxURL, hideAdmin);
     return new Promise(function (resolve, reject) {
-      var runtime = _this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL);
-      iframe = (0, _iframe.create)(runtime.indexURL + '?domain=' + runtime.domain + '&runtime=' + runtime.url + '&development=' + development, 99999);
+      var runtime = _this._getRuntime(runtimeURL, domain, development, indexURL, sandboxURL, hideAdmin);
+      iframe = (0, _iframe.create)(runtime.indexURL + '?domain=' + runtime.domain + '&runtime=' + runtime.url + '&development=' + development, 99999, hideAdmin);
       var installed = function installed(e) {
         if (e.data.to === 'runtime:installed') {
           window.removeEventListener('message', installed);
@@ -5092,7 +5111,7 @@ var RethinkBrowser = {
       window.addEventListener('message', installed);
       window.addEventListener('message', function (e) {
         if (e.data.to && e.data.to === 'runtime:createSandboxWindow') {
-          var ifr = (0, _iframe.create)(runtime.sandboxURL);
+          var ifr = (0, _iframe.create)(runtime.sandboxURL, undefined, hideAdmin);
           ifr.addEventListener('load', function () {
             ifr.contentWindow.postMessage(e.data, '*', e.ports);
           }, false);
@@ -5104,7 +5123,7 @@ var RethinkBrowser = {
   },
 
   _getRuntime: function _getRuntime(runtimeURL, domain, development, indexURL, sandboxURL) {
-    if (!!development) {
+    if (development) {
       runtimeURL = runtimeURL || 'hyperty-catalogue://catalogue.' + domain + '/.well-known/runtime/Runtime';
       domain = domain || new _urijs2.default(runtimeURL).host();
       indexURL = indexURL || 'https://' + domain + '/.well-known/runtime/index.html';
@@ -5170,6 +5189,7 @@ exports.create = create;
  */
 function create(src) {
   var zIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -10;
+  var hideAdmin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
   var iframe = document.createElement('iframe');
   iframe.setAttribute('id', 'rethink');
@@ -5185,6 +5205,9 @@ function create(src) {
   iframe.setAttribute('src', src);
   iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-popups-to-escape-sandbox allow-popups allow-same-origin allow-top-navigation');
   iframe.style.display = 'block';
+  if (hideAdmin == true) {
+    iframe.style.display = 'none';
+  }
   document.querySelector('body').appendChild(iframe);
 
   return iframe;
