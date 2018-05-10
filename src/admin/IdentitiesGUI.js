@@ -533,7 +533,7 @@ class IdentitiesGUI {
 
       });
 
-      if (identities.length === 1) {
+      if (Object.keys(identities).length === 1) {
 
         if (callback) {
           callback({type: 'identity', value: current});
@@ -641,7 +641,7 @@ class IdentitiesGUI {
         // return userIdentity;
       });
 
-  } 
+  }
 
   // obtainNewIdentity(event, callback, toRemoveID) {
   //   let _this = this;

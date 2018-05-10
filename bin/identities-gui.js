@@ -550,7 +550,7 @@ var IdentitiesGUI = function () {
           activeIdentities.appendChild(linkEl);
         });
 
-        if (identities.length === 1) {
+        if (Object.keys(identities).length === 1) {
 
           if (callback) {
             callback({ type: 'identity', value: current });
