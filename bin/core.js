@@ -8845,6 +8845,7 @@ var IdentitiesGUI = function () {
 
     _classCallCheck(this, IdentitiesGUI);
 
+    console.log('IdentitiesGUI', this);
     //if (!identityModule) throw Error('Identity Module not set!');
     if (!messageBus) throw Error('Message Bus not set!');
     var _this = this;
@@ -8873,13 +8874,14 @@ var IdentitiesGUI = function () {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', function () {
       console.log('Received MDCTemporaryDrawer:open');
+
       _this2._isDrawerOpen = true;
+      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', function () {
       console.log('Received MDCTemporaryDrawer:close');
       _this2._isDrawerOpen = false;
-
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
   }
@@ -8941,7 +8943,7 @@ var IdentitiesGUI = function () {
 
         _this3.callback = callback;
 
-        _this3._getIdentities(callback);
+        _this3._getIdentities(callback, true);
       });
 
       this._getIdentities();
@@ -8976,12 +8978,12 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: '_getIdentities',
-    value: function _getIdentities(callback) {
+    value: function _getIdentities(callback, oPenDrawer) {
       var _this4 = this;
 
       return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then(function (resultObject) {
         if (callback) {
-          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback)]);
+          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback, oPenDrawer)]);
         } else {
           return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
         }
@@ -9312,6 +9314,9 @@ var IdentitiesGUI = function () {
     value: function showIdentities(iDs, callback) {
       var _this8 = this;
 
+      var oPenDrawer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+
       return new Promise(function (resolve, reject) {
 
         console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
@@ -9378,18 +9383,19 @@ var IdentitiesGUI = function () {
           activeIdentities.appendChild(linkEl);
         });
 
-        if (Object.keys(identities).length === 1) {
-
-          if (callback) {
-            callback({ type: 'identity', value: current });
-          }
-
-          return resolve({ type: 'identity', value: current });
-        }
-
-        if (identities.length > 1) {
+        if (oPenDrawer) {
           _this8._drawer.open = true;
         }
+
+        /*
+              if (Object.keys(identities).length === 1) {
+        
+                if (callback) {
+                  callback({type: 'identity', value: current});
+                }
+        
+                return resolve({type: 'identity', value: current});
+              }*/
 
         // let callback = (identity) => {
         //   resolve(identity);

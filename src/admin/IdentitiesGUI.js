@@ -3,6 +3,7 @@
 class IdentitiesGUI {
 
   constructor(guiURL, idmURL, messageBus) {
+    console.log('IdentitiesGUI', this);
     //if (!identityModule) throw Error('Identity Module not set!');
     if (!messageBus) throw Error('Message Bus not set!');
     let _this = this;
@@ -31,13 +32,14 @@ class IdentitiesGUI {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', () => {
       console.log('Received MDCTemporaryDrawer:open');
+
       this._isDrawerOpen = true;
+      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', () => {
       console.log('Received MDCTemporaryDrawer:close');
       this._isDrawerOpen = false;
-
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
@@ -104,7 +106,7 @@ class IdentitiesGUI {
 
       this.callback = callback;
 
-      this._getIdentities(callback);
+      this._getIdentities(callback, true);
 
     });
 
@@ -139,11 +141,11 @@ class IdentitiesGUI {
     this._messageBus.postMessage(replyMsg);
   }
 
-  _getIdentities(callback) {
+  _getIdentities(callback, oPenDrawer) {
 
     return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then((resultObject) => {
       if (callback) {
-        return Promise.all([this.showIdps(resultObject.idps, callback), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject, callback)]);
+        return Promise.all([this.showIdps(resultObject.idps, callback), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject, callback, oPenDrawer)]);
       } else {
         return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
       }
@@ -467,7 +469,7 @@ class IdentitiesGUI {
 
   }
 
-  showIdentities(iDs, callback) {
+  showIdentities(iDs, callback, oPenDrawer = false) {
 
     return new Promise((resolve, reject) => {
 
@@ -533,6 +535,11 @@ class IdentitiesGUI {
 
       });
 
+      if (oPenDrawer) {
+        this._drawer.open = true
+      }
+
+/*
       if (Object.keys(identities).length === 1) {
 
         if (callback) {
@@ -540,11 +547,8 @@ class IdentitiesGUI {
         }
 
         return resolve({type: 'identity', value: current});
-      }
+      }*/
 
-      if (identities.length > 1) {
-        this._drawer.open = true;
-      }
 
       // let callback = (identity) => {
       //   resolve(identity);
