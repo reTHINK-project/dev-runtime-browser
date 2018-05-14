@@ -39,7 +39,11 @@ class IdentitiesGUI {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', () => {
       console.log('Received MDCTemporaryDrawer:close');
+
+      this._drawer.open = false;
+
       this._isDrawerOpen = false;
+
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 

@@ -8881,7 +8881,11 @@ var IdentitiesGUI = function () {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', function () {
       console.log('Received MDCTemporaryDrawer:close');
+
+      _this2._drawer.open = false;
+
       _this2._isDrawerOpen = false;
+
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
   }
