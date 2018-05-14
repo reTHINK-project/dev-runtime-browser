@@ -10,6 +10,7 @@ class IdentitiesGUI {
     _this._guiURL = guiURL;
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
+    _this._alreadyReLogin = false;
 
     this.callIdentityModuleFunc('deployGUI', {}).then((result) => {
       return this._buildDrawer();
@@ -32,18 +33,14 @@ class IdentitiesGUI {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', () => {
       console.log('Received MDCTemporaryDrawer:open');
-
+      this._alreadyReLogin = true;
       this._isDrawerOpen = true;
       parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', () => {
       console.log('Received MDCTemporaryDrawer:close');
-
-      this._drawer.open = false;
-
       this._isDrawerOpen = false;
-
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
@@ -539,7 +536,7 @@ class IdentitiesGUI {
 
       });
 
-      if (oPenDrawer) {
+      if (oPenDrawer && (! this._alreadyReLogin)) {
         this._drawer.open = true
       }
 

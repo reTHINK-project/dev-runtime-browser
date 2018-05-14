@@ -3651,6 +3651,19 @@ var runtimeAdapter = {
     });
   },
 
+  listenShowAdmin: function listenShowAdmin() {
+    return new Promise(function (resolve, reject) {
+
+      window.addEventListener('message', function (e) {
+        if (e.data.to === 'runtime:gui-manager') {
+          if (e.data.body.method === 'showAdminPage') {
+            resolve(true);
+          }
+        }
+      });
+    });
+  },
+
   requireProtostub: function requireProtostub(domain) {
     iframe.contentWindow.postMessage({ to: 'core:loadStub', body: { domain: domain } }, '*');
   },
