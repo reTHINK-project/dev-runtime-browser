@@ -83,6 +83,19 @@ let runtimeAdapter = {
 
   },
 
+  listenShowAdmin: () => {
+    return new Promise((resolve, reject) => {
+
+      window.addEventListener('message', (e) => {
+        if (e.data.to === 'runtime:gui-manager') {
+          if (e.data.body.method === 'showAdminPage') {
+            resolve(true);
+          }
+        }
+      });
+    });
+  },
+
 
   requireProtostub: (domain)=>{
     iframe.contentWindow.postMessage({to: 'core:loadStub', body: {domain: domain}}, '*');
