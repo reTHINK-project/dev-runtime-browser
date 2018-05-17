@@ -33,7 +33,6 @@ class IdentitiesGUI {
 
     drawerEl.addEventListener('MDCTemporaryDrawer:open', () => {
       console.log('Received MDCTemporaryDrawer:open');
-      this._alreadyReLogin = true;
       this._isDrawerOpen = true;
       parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
@@ -536,9 +535,17 @@ class IdentitiesGUI {
 
       });
 
-      if (oPenDrawer && (! this._alreadyReLogin)) {
+      if (oPenDrawer && (!this._alreadyReLogin)) {
         this._drawer.open = true
       }
+
+      if (oPenDrawer && (!this._alreadyReLogin)) {
+        this._alreadyReLogin = true;
+        parent.postMessage({ body: { method: 'tokenExpired' }, to: 'runtime:gui-manager' }, '*');
+      }
+
+
+
 
 /*
       if (Object.keys(identities).length === 1) {
