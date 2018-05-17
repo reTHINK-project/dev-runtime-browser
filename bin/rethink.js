@@ -3653,14 +3653,15 @@ var runtimeAdapter = {
 
   listenShowAdmin: function listenShowAdmin() {
     return new Promise(function (resolve, reject) {
-
-      window.addEventListener('message', function (e) {
+      var loaded = function loaded(e) {
         if (e.data.to === 'runtime:gui-manager') {
-          if (e.data.body.method === 'showAdminPage') {
+          if (e.data.body.method === 'tokenExpired') {
+            window.removeEventListener('message', loaded);
             resolve(true);
           }
         }
-      });
+      };
+      window.addEventListener('message', loaded);
     });
   },
 
