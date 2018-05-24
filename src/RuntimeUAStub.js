@@ -67,6 +67,22 @@ let runtimeAdapter = {
     });
   },
 
+  authorise: (idp, scope) => {
+
+    return new Promise((resolve, reject) => {
+      let loaded = (e) => {
+        if (e.data.to === 'runtime:authorised') {
+          window.removeEventListener('message', loaded);
+          resolve(e.data.body);
+        }
+      };
+      window.addEventListener('message', loaded);
+      console.log('Authorising IDP ', idp, ' with scope ', scope);
+      iframe.contentWindow.postMessage({ to: 'core:authorise', body: { idp: idp, scope: scope } }, '*');
+    });
+
+  },
+
   login: (idp)=>{
 
     return new Promise((resolve, reject)=>{
