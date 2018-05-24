@@ -11,6 +11,7 @@ class IdentitiesGUI {
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
     _this._alreadyReLogin = false;
+    _this._alreadyLogin = false;
 
     this.callIdentityModuleFunc('deployGUI', {}).then((result) => {
       return this._buildDrawer();
@@ -539,7 +540,7 @@ class IdentitiesGUI {
         this._drawer.open = true
       }
 
-      if (oPenDrawer && (!this._alreadyReLogin)) {
+      if (oPenDrawer && (!this._alreadyReLogin) && (!this._alreadyLogin)) {
         this._alreadyReLogin = true;
         parent.postMessage({ body: { method: 'tokenExpired' }, to: 'runtime:gui-manager' }, '*');
       }
@@ -649,6 +650,7 @@ class IdentitiesGUI {
         // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
+        this._alreadyLogin = true;
         return userURL;
         // return userIdentity;
       });
