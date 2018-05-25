@@ -595,6 +595,38 @@ class IdentitiesGUI {
 
   }
 
+  authorise(idp, resource) {
+
+
+    return this.openPopup()
+      .then((res) => {
+        const data = { scope: resource, idpDomain: idp };
+        return this.callIdentityModuleFunc('getAccessTokenAuthorisationEndpoint', data);
+      })
+      .then((value) => {
+        console.log('[IdentitiesGUI.authorise] receivedURL from idp Proxy: ' + value);
+
+        return this.openPopup(value);
+      }).then((result) => {
+
+        console.log('[IdentitiesGUI.authorise.openPopup.result]', result);
+
+        // resource as array
+
+
+        const data = { resources: [resource], idpDomain: idp, login: result };
+        return this.callIdentityModuleFunc('getAccessToken', data);
+      }).then((result) => {
+
+        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+        return this.callIdentityModuleFunc('addAccessToken', result);
+      }).then((value) => {
+        this._drawer.open = false;
+        return value;
+      });
+
+  }
+
   loginWithIDP(idp) {
 
 

@@ -115,12 +115,9 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             });
           } else if (event.data.to === 'core:authorise') {
             console.log('core:authorise ', event.data.body.idp, event.data.body.scope);
-            
-            /*
-            identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {
-              event.source.postMessage({ to: 'runtime:loggedIn', body: result }, '*');
+            identitiesGUI.authorise(event.data.body.idp, event.data.body.scope).then((result) => {
+              event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
             });
-            */
           }
 
 

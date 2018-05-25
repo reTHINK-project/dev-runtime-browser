@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -610,18 +610,48 @@ var IdentitiesGUI = function () {
       //_this.identityModule.unregisterIdentity(idToRemove);
     }
   }, {
+    key: 'authorise',
+    value: function authorise(idp, resource) {
+      var _this9 = this;
+
+      return this.openPopup().then(function (res) {
+        var data = { scope: resource, idpDomain: idp };
+        return _this9.callIdentityModuleFunc('getAccessTokenAuthorisationEndpoint', data);
+      }).then(function (value) {
+        console.log('[IdentitiesGUI.authorise] receivedURL from idp Proxy: ' + value);
+
+        return _this9.openPopup(value);
+      }).then(function (result) {
+
+        console.log('[IdentitiesGUI.authorise.openPopup.result]', result);
+
+        // resource as array
+
+
+        var data = { resources: [resource], idpDomain: idp, login: result };
+        return _this9.callIdentityModuleFunc('getAccessToken', data);
+      }).then(function (result) {
+
+        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+        return _this9.callIdentityModuleFunc('addAccessToken', result);
+      }).then(function (value) {
+        _this9._drawer.open = false;
+        return value;
+      });
+    }
+  }, {
     key: 'loginWithIDP',
     value: function loginWithIDP(idp) {
-      var _this9 = this;
+      var _this10 = this;
 
       var _publicKey = void 0;
 
       return this.openPopup().then(function (result) {
-        return _this9.callIdentityModuleFunc('getMyPublicKey', {});
+        return _this10.callIdentityModuleFunc('getMyPublicKey', {});
       }).then(function (publicKey) {
         _publicKey = publicKey;
         var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
-        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+        return _this10.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (value) {
         console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
@@ -643,28 +673,28 @@ var IdentitiesGUI = function () {
           }
         }
 
-        _this9.resultURL = finalURL || url;
+        _this10.resultURL = finalURL || url;
 
-        console.log('[IdentitiesGUI.openPopup]', _this9.resultURL);
-        return _this9.openPopup(_this9.resultURL);
+        console.log('[IdentitiesGUI.openPopup]', _this10.resultURL);
+        return _this10.openPopup(_this10.resultURL);
       }).then(function (identity) {
 
         console.log('[IdentitiesGUI.openPopup.result]', identity);
 
         var data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
-        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+        return _this10.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (result) {
 
         console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
-        return _this9.callIdentityModuleFunc('addAssertion', result);
+        return _this10.callIdentityModuleFunc('addAssertion', result);
       }).then(function (value) {
 
-        _this9._drawer.open = false;
+        _this10._drawer.open = false;
         var userURL = { type: 'identity', value: value.userProfile.userURL };
         // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
-        _this9._alreadyLogin = true;
+        _this10._alreadyLogin = true;
         return userURL;
         // return userIdentity;
       });
