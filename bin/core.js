@@ -12400,12 +12400,17 @@ catalogue.getRuntimeDescriptor(runtimeURL).then(function (descriptor) {
         if (event.data.to === 'core:loadHyperty') {
           var descriptor = event.data.body.descriptor;
           var reuseAddress = event.data.body.reuseAddress;
+          var requireHypertyID = event.data.body.id;
+
           var hyperty = searchHyperty(runtime, descriptor);
 
           if (hyperty) {
-            returnHyperty(event.source, { runtimeHypertyURL: hyperty.hypertyURL });
+            returnHyperty(event.source, { runtimeHypertyURL: hyperty.hypertyURL, id: requireHypertyID });
           } else {
-            runtime.loadHyperty(descriptor, reuseAddress).then(returnHyperty.bind(null, event.source));
+            runtime.loadHyperty(descriptor, reuseAddress).then(function (hyperty) {
+              hyperty.id = requireHypertyID;
+              returnHyperty(event.source, hyperty);
+            });
           }
         } else if (event.data.to === 'core:loadStub') {
           runtime.loadStub(event.data.body.domain).then(function (result) {

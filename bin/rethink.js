@@ -5005,6 +5005,8 @@ var buildMsg = function buildMsg(hypertyComponent, msg) {
   };
 };
 
+var requireHypertyID = 0;
+
 /**
  * @typedef {Object} RuntimeAdapter
  * @property {function(Hyperty descriptor: string, Hyperty addresses to be reused or empty in other case: string): Promise<Hyperty>} requireHyperty - Loads and returns a Hyperty
@@ -5012,18 +5014,24 @@ var buildMsg = function buildMsg(hypertyComponent, msg) {
  * @property {function(): Promise} close - Unloads and closes the installed runtime
  */
 var runtimeAdapter = {
+
   requireHyperty: function requireHyperty(hypertyDescriptor) {
     var reuseAddress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
     return new Promise(function (resolve, reject) {
+      // keep current requireHypertyID
+      var callbackID = requireHypertyID;
+      requireHypertyID += 1;
       var loaded = function loaded(e) {
         if (e.data.to === 'runtime:loadedHyperty') {
-          window.removeEventListener('message', loaded);
-          resolve(buildMsg(_ContextApp2.default.getHyperty(e.data.body.runtimeHypertyURL), e.data));
+          if (e.data.body.id === callbackID) {
+            window.removeEventListener('message', loaded);
+            resolve(buildMsg(_ContextApp2.default.getHyperty(e.data.body.runtimeHypertyURL), e.data));
+          }
         }
       };
       window.addEventListener('message', loaded);
-      iframe.contentWindow.postMessage({ to: 'core:loadHyperty', body: { descriptor: hypertyDescriptor, reuseAddress: reuseAddress } }, '*');
+      iframe.contentWindow.postMessage({ to: 'core:loadHyperty', body: { descriptor: hypertyDescriptor, reuseAddress: reuseAddress, id: callbackID } }, '*');
     });
   },
 
@@ -5032,7 +5040,6 @@ var runtimeAdapter = {
     return new Promise(function (resolve, reject) {
       var loaded = function loaded(e) {
         if (e.data.to === 'runtime:authorised') {
-          debugger;
           window.removeEventListener('message', loaded);
           resolve(e.data.body);
         }
