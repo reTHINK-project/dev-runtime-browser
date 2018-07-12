@@ -24,50 +24,6 @@ import { Sandbox, SandboxType } from 'runtime-core/dist/sandbox';
 import MiniBus from 'runtime-core/dist/minibus';
 import RuntimeFactory from './RuntimeFactory';
 
-/**
- * Proxy for a WebWorker
- * */
-export class SandboxWorker extends Sandbox {
-  static capabilities() {
-    return RuntimeFactory.runtimeCapabilities().getRuntimeCapabilities()
-      .then(capabilities =>Object.assign(capabilities, { mic: false, camera: false, windowSandbox: false }));
-  }
-
-  static new(capabilities) {
-    return new SandboxWorker(capabilities, './context-service.js');
-  }
-
-  /**
-	 * @param {string} script - Script that will be loaded in the web worker
-	 */
-  constructor(capabilities, script) {
-    super(capabilities);
-
-    /**
-		 * @type {runtime-core/dist/sandbox/SandboxType}
-		 */
-    this.type = SandboxType.NORMAL;
-    if (Worker) {
-      this._worker = new Worker(script);
-      this._worker.addEventListener('message', function(e) {
-        this._onMessage(e.data);
-      }.bind(this));
-
-      this._worker.addEventListener('error', function(error) {
-        console.log('[Sandbox Worker] - Error: ', error);
-        throw JSON.stringify(error);
-      }.bind(this));
-
-      this._worker.postMessage('');
-    } else {
-      throw new Error('Your environment does not support worker \n');
-    }
-  }
-
-  _onPostMessage(msg) {
-    this._worker.postMessage(msg);
-  }
-}
 
 export class SandboxWindow extends Sandbox {
   static capabilities() {
@@ -97,7 +53,7 @@ export class SandboxWindow extends Sandbox {
 }
 
 export function createSandbox(constraints) {
-  const sandboxes = [SandboxWorker, SandboxWindow];
+  const sandboxes = [SandboxWindow];
   let diff = (a, b) => Object.keys(a).filter(x => a[x] !== b[x]);
 
   return Promise.all(sandboxes.map(s => s.capabilities().then(c=>{ return {capabilities: c, sandbox: s}; })))
