@@ -10319,7 +10319,9 @@ exports.default = SandboxApp;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SandboxWindow = undefined;
+exports.SandboxWindow = exports.SandboxWorker = undefined;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -10365,8 +10367,70 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                **/
 
 
-var SandboxWindow = exports.SandboxWindow = function (_Sandbox) {
-  _inherits(SandboxWindow, _Sandbox);
+/**
+ * Proxy for a WebWorker
+ * */
+var SandboxWorker = exports.SandboxWorker = function (_Sandbox) {
+  _inherits(SandboxWorker, _Sandbox);
+
+  _createClass(SandboxWorker, null, [{
+    key: 'capabilities',
+    value: function capabilities() {
+      return _RuntimeFactory2.default.runtimeCapabilities().getRuntimeCapabilities().then(function (capabilities) {
+        return _extends(capabilities, { mic: false, camera: false, windowSandbox: false });
+      });
+    }
+  }, {
+    key: 'new',
+    value: function _new(capabilities) {
+      return new SandboxWorker(capabilities, './context-service.js');
+    }
+
+    /**
+    * @param {string} script - Script that will be loaded in the web worker
+    */
+
+  }]);
+
+  function SandboxWorker(capabilities, script) {
+    _classCallCheck(this, SandboxWorker);
+
+    /**
+    * @type {runtime-core/dist/sandbox/SandboxType}
+    */
+    var _this = _possibleConstructorReturn(this, (SandboxWorker.__proto__ || Object.getPrototypeOf(SandboxWorker)).call(this, capabilities));
+
+    _this.type = _sandbox.SandboxType.NORMAL;
+    if (Worker) {
+      _this._worker = new Worker(script);
+      _this._worker.addEventListener('message', function (e) {
+        this._onMessage(e.data);
+      }.bind(_this));
+
+      _this._worker.addEventListener('error', function (error) {
+        console.log('[Sandbox Worker] - Error: ', error);
+        throw JSON.stringify(error);
+      }.bind(_this));
+
+      _this._worker.postMessage('');
+    } else {
+      throw new Error('Your environment does not support worker \n');
+    }
+    return _this;
+  }
+
+  _createClass(SandboxWorker, [{
+    key: '_onPostMessage',
+    value: function _onPostMessage(msg) {
+      this._worker.postMessage(msg);
+    }
+  }]);
+
+  return SandboxWorker;
+}(_sandbox.Sandbox);
+
+var SandboxWindow = exports.SandboxWindow = function (_Sandbox2) {
+  _inherits(SandboxWindow, _Sandbox2);
 
   _createClass(SandboxWindow, null, [{
     key: 'capabilities',
@@ -10383,17 +10447,17 @@ var SandboxWindow = exports.SandboxWindow = function (_Sandbox) {
   function SandboxWindow(capabilities) {
     _classCallCheck(this, SandboxWindow);
 
-    var _this = _possibleConstructorReturn(this, (SandboxWindow.__proto__ || Object.getPrototypeOf(SandboxWindow)).call(this, capabilities));
+    var _this2 = _possibleConstructorReturn(this, (SandboxWindow.__proto__ || Object.getPrototypeOf(SandboxWindow)).call(this, capabilities));
 
-    _this.type = _sandbox.SandboxType.WINDOW;
-    _this.channel = new MessageChannel();
+    _this2.type = _sandbox.SandboxType.WINDOW;
+    _this2.channel = new MessageChannel();
 
-    _this.channel.port1.onmessage = function (e) {
+    _this2.channel.port1.onmessage = function (e) {
       this._onMessage(e.data);
-    }.bind(_this);
+    }.bind(_this2);
 
-    parent.postMessage({ to: 'runtime:createSandboxWindow' }, '*', [_this.channel.port2]);
-    return _this;
+    parent.postMessage({ to: 'runtime:createSandboxWindow' }, '*', [_this2.channel.port2]);
+    return _this2;
   }
 
   _createClass(SandboxWindow, [{
@@ -10407,7 +10471,7 @@ var SandboxWindow = exports.SandboxWindow = function (_Sandbox) {
 }(_sandbox.Sandbox);
 
 function createSandbox(constraints) {
-  var sandboxes = [SandboxWindow];
+  var sandboxes = [SandboxWorker, SandboxWindow];
   var diff = function diff(a, b) {
     return Object.keys(a).filter(function (x) {
       return a[x] !== b[x];
