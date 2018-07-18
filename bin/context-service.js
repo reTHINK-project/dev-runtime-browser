@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.contextService = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 // version: 0.12.0
-// date: Tue Jul 10 2018 11:14:30 GMT+0100 (Western European Summer Time)
+// date: Wed Jul 18 2018 10:13:19 GMT+0100 (Western European Summer Time)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -27,7 +27,7 @@
 
 
 // version: 0.12.0
-// date: Tue Jul 10 2018 11:14:30 GMT+0100 (Western European Summer Time)
+// date: Wed Jul 18 2018 10:13:19 GMT+0100 (Western European Summer Time)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -750,7 +750,7 @@ function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});va
 t.exports=e.default}])});
 },{}],2:[function(require,module,exports){
 // version: 0.12.0
-// date: Tue Jul 10 2018 11:14:30 GMT+0100 (Western European Summer Time)
+// date: Wed Jul 18 2018 10:13:19 GMT+0100 (Western European Summer Time)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -777,7 +777,7 @@ t.exports=e.default}])});
 
 
 // version: 0.12.0
-// date: Tue Jul 10 2018 11:14:30 GMT+0100 (Western European Summer Time)
+// date: Wed Jul 18 2018 10:13:19 GMT+0100 (Western European Summer Time)
 // licence: 
 /**
 * Copyright 2016 PT Inovação e Sistemas SA
@@ -1500,15 +1500,15 @@ function(e,t,n){"use strict";function _interopRequireDefault(e){return e&&e.__es
    * @param  {Config} configuration Config parameters of the component
    * @return {Promise<string>} return deployed if successful, or any other string with an error
    */
-return(0,_.default)(Sandbox,e),(0,p.default)(Sandbox,[{key:"deployComponent",value:function(e,t,n){var r=this;
+return(0,_.default)(Sandbox,e),(0,p.default)(Sandbox,[{key:"deployComponent",value:function(e,t,n,r){var o=this;
 // let messageFactory = _this.messageFactory;
-return new u.default(function(o,i){
+return new u.default(function(i,u){
 //FLOW-OUT: deploy message for the internal SandboxRegistry -> _onDeploy
-var u={type:"create",from:b.default.ExternalDeployAddress,to:b.default.InternalDeployAddress,body:{url:t,sourceCode:e,config:n}};
+var s={type:"create",from:b.default.ExternalDeployAddress,to:b.default.InternalDeployAddress,body:{url:t,sourceCode:e,config:n,libs:r}};
 //send message into the sandbox internals and wait for reply
-r.postMessage(u,function(e){200===e.body.code?
+o.postMessage(s,function(e){200===e.body.code?
 //is this response complaint with the spec?
-o("deployed"):i(e.body.desc)})})}},{key:"removeComponent",value:function(e){var t=this;return new u.default(function(n,r){
+i("deployed"):u(e.body.desc)})})}},{key:"removeComponent",value:function(e){var t=this;return new u.default(function(n,r){
 //FLOW-OUT: un-deploy message for the internal SandboxRegistry -> _onRemove
 var o={type:"delete",from:b.default.ExternalDeployAddress,to:b.default.InternalDeployAddress,body:{url:e}};
 //send message into the sandbox internals and wait for reply
