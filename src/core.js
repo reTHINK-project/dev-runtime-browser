@@ -104,9 +104,12 @@ catalogue.getRuntimeDescriptor(runtimeURL)
               console.error('Stub error:', error);
             });
           } else if (event.data.to === 'core:close') {
-            runtime.close(event.data.body.logOut)
-              .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-              .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+            runtime.close(event.data.body.logOut).then((result)=>{
+                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
+              })
+              .catch((result)=>{
+                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
+              });
 
             //  send logout
             identitiesGUI.logOut().then((result) => {
@@ -114,9 +117,9 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             });
 
           } else if (event.data.to === 'core:reset') {
-            runtime.reset()
-              .then(event.source.postMessage({to: 'runtime:runtimeReset', body: true}, '*'))
-              .catch(event.source.postMessage({to: 'runtime:runtimeReset', body: false}, '*'));
+            runtime.reset().then(function(result) {
+                event.source.postMessage({to: 'runtime:runtimeReset', body: result}, '*')
+              });
 
             //  send logout
             identitiesGUI.logOut().then((result) => {

@@ -3660,15 +3660,15 @@ var runtimeAdapter = {
   },
 
   reset: function reset() {
-    console.log('Runtime Browser - reseting ');
+    console.log('Runtime Browser - reset ');
     return new Promise(function (resolve, reject) {
-      var reset = function reset(e) {
+      var resetEvt = function resetEvt(e) {
         if (e.data.to === 'runtime:runtimeReset') {
-          window.removeEventListener('message', reset);
-          resolve(resolve(e.data.body));
+          window.removeEventListener('message', resetEvt);
+          resolve(e.data.body);
         }
       };
-      window.addEventListener('message', reset);
+      window.addEventListener('message', resetEvt);
       iframe.contentWindow.postMessage({ to: 'core:reset', body: {} }, '*');
     });
   },
