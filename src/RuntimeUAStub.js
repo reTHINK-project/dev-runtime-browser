@@ -96,11 +96,11 @@ let runtimeAdapter = {
     return new Promise((resolve, reject) => {
       let reset = (e) => {
         if (e.data.to === 'runtime:runtimeReset') {
-          window.removeEventListener('message', loaded);
+          window.removeEventListener('message', reset);
           resolve(resolve(e.data.body));
         }
       };
-      window.addEventListener('message', loaded);
+      window.addEventListener('message', reset);
       iframe.contentWindow.postMessage({ to: 'core:reset', body: { } }, '*');
     });
   },
