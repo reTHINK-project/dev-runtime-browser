@@ -113,6 +113,16 @@ catalogue.getRuntimeDescriptor(runtimeURL)
               console.log(result);
             });
 
+          } else if (event.data.to === 'core:reset') {
+            runtime.reset()
+              .then(event.source.postMessage({to: 'runtime:runtimeReset', body: true}, '*'))
+              .catch(event.source.postMessage({to: 'runtime:runtimeReset', body: false}, '*'));
+
+            //  send logout
+            identitiesGUI.logOut().then((result) => {
+              console.log(result);
+            });
+
           } else if (event.data.to === 'core:login') {
             console.log('core: logging with ', event.data.body.idp);
             identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {

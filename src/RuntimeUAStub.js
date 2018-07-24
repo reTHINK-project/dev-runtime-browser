@@ -91,6 +91,20 @@ let runtimeAdapter = {
 
   },
 
+  reset: () => {
+    console.log('Runtime Browser - reseting ');
+    return new Promise((resolve, reject) => {
+      let reset = (e) => {
+        if (e.data.to === 'runtime:runtimeReset') {
+          window.removeEventListener('message', loaded);
+          resolve(resolve(e.data.body));
+        }
+      };
+      window.addEventListener('message', loaded);
+      iframe.contentWindow.postMessage({ to: 'core:reset', body: { } }, '*');
+    });
+  },
+
   login: (idp) => {
 
     return new Promise((resolve, reject) => {
