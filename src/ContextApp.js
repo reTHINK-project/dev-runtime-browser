@@ -35,16 +35,16 @@ function create(iframe) {
   }, false);
 
   window._registry = new SandboxRegistry(window._miniBus);
-  window._registry._create = function(url, sourceCode, config) {
+  window._registry._create = function(url, sourceCode, config, factory) {
     try {
       eval.apply(window, [sourceCode]);
 
       if (typeof activate === 'function') {
-        return activate(url, window._miniBus, config);
+        return activate(url, window._miniBus, config, factory);
       }
 
       if (typeof activate.default === 'function') {
-        return activate.default(url, window._miniBus, config);
+        return activate.default(url, window._miniBus, config, factory);
       }
 
     } catch (error) {

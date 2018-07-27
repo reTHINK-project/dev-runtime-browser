@@ -3473,16 +3473,16 @@ function create(iframe) {
   }, false);
 
   window._registry = new _sandbox.SandboxRegistry(window._miniBus);
-  window._registry._create = function (url, sourceCode, config) {
+  window._registry._create = function (url, sourceCode, config, factory) {
     try {
       eval.apply(window, [sourceCode]);
 
       if (typeof activate === 'function') {
-        return activate(url, window._miniBus, config);
+        return activate(url, window._miniBus, config, factory);
       }
 
       if (typeof activate.default === 'function') {
-        return activate.default(url, window._miniBus, config);
+        return activate.default(url, window._miniBus, config, factory);
       }
     } catch (error) {
       console.error('[Context APP Create] - Error: ', error);
@@ -3656,6 +3656,20 @@ var runtimeAdapter = {
       window.addEventListener('message', loaded);
       console.log('Authorising IDP ', idp, ' with scope ', scope);
       iframe.contentWindow.postMessage({ to: 'core:authorise', body: { idp: idp, scope: scope } }, '*');
+    });
+  },
+
+  reset: function reset() {
+    console.log('Runtime Browser - reset ');
+    return new Promise(function (resolve, reject) {
+      var resetEvt = function resetEvt(e) {
+        if (e.data.to === 'runtime:runtimeReset') {
+          window.removeEventListener('message', resetEvt);
+          resolve(e.data.body);
+        }
+      };
+      window.addEventListener('message', resetEvt);
+      iframe.contentWindow.postMessage({ to: 'core:reset', body: {} }, '*');
     });
   },
 

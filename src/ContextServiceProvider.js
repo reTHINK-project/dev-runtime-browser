@@ -35,16 +35,17 @@ self.addEventListener('error', function(reason) {
 });
 
 self._registry = new SandboxRegistry(self._miniBus);
-self._registry._create = function(url, sourceCode, config) {
+self._registry._create = function(url, sourceCode, config, factory) {
+  console.log('ContextServiceProvider: create factory:', factory);
   try {
     eval.apply(self, [sourceCode]);
 
     if (typeof activate === 'function') {
-      return activate(url, self._miniBus, config);
+      return activate(url, self._miniBus, config, factory);
     }
 
     if (typeof activate.default === 'function') {
-      return activate.default(url, self._miniBus, config);
+      return activate.default(url, self._miniBus, config, factory);
     }
 
   } catch (error) {
