@@ -239,7 +239,17 @@ class IdentitiesGUI {
 
   openPopup(urlreceived) {
 
+    
+
     return new Promise((resolve, reject) => {
+
+      function wait(ms) {
+        var start = new Date().getTime();
+        var end = start;
+        while (end < start + ms) {
+          end = new Date().getTime();
+        }
+      }
 
       let win;
       if (!urlreceived) {
@@ -247,6 +257,7 @@ class IdentitiesGUI {
         this.win = win;
         resolve();
       } else {
+        wait(1000);  
         win = this.win;
         win.location.href = urlreceived;
       }

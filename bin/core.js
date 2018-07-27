@@ -9349,12 +9349,21 @@ var IdentitiesGUI = function () {
 
       return new Promise(function (resolve, reject) {
 
+        function wait(ms) {
+          var start = new Date().getTime();
+          var end = start;
+          while (end < start + ms) {
+            end = new Date().getTime();
+          }
+        }
+
         var win = void 0;
         if (!urlreceived) {
           win = window.open('', 'openIDrequest', 'location=1,status=1');
           _this6.win = win;
           resolve();
         } else {
+          wait(1000);
           win = _this6.win;
           win.location.href = urlreceived;
         }
