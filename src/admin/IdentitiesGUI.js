@@ -148,7 +148,10 @@ class IdentitiesGUI {
       if (callback) {
         return Promise.all([this.showIdps(resultObject.idps, callback), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject, callback, oPenDrawer)]);
       } else {
-        return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
+        return new Promise ((resolve)=>{
+          resolve();
+        });
+ //       return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
       }
     });
 
