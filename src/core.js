@@ -85,12 +85,17 @@ catalogue.getRuntimeDescriptor(runtimeURL)
           if (event.data.to === 'core:loadHyperty') {
             let descriptor = event.data.body.descriptor;
             let reuseAddress = event.data.body.reuseAddress;
+            let requireHypertyID = event.data.body.id;
+
             let hyperty = searchHyperty(runtime, descriptor);
 
             if (hyperty) {
-              returnHyperty(event.source, {runtimeHypertyURL: hyperty.hypertyURL});
+              returnHyperty(event.source, { runtimeHypertyURL: hyperty.hypertyURL, id: requireHypertyID});
             } else {
-              runtime.loadHyperty(descriptor, reuseAddress).then(returnHyperty.bind(null, event.source));
+              runtime.loadHyperty(descriptor, reuseAddress).then(function(hyperty) {
+                hyperty.id = requireHypertyID;
+                returnHyperty(event.source, hyperty);
+              });
             }
           } else if (event.data.to === 'core:loadStub') {
             runtime.loadStub(event.data.body.domain).then((result) => {
@@ -99,10 +104,40 @@ catalogue.getRuntimeDescriptor(runtimeURL)
               console.error('Stub error:', error);
             });
           } else if (event.data.to === 'core:close') {
-            runtime.close()
-              .then(event.source.postMessage({to: 'runtime:runtimeClosed', body: true}, '*'))
-              .catch(event.source.postMessage({to: 'runtime:runtimeClosed', body: false}, '*'));
+            runtime.close(event.data.body.logOut).then((result)=>{
+                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
+              })
+              .catch((result)=>{
+                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
+              });
+
+            //  send logout
+            identitiesGUI.logOut().then((result) => {
+              console.log(result);
+            });
+
+          } else if (event.data.to === 'core:reset') {
+            runtime.reset().then(function(result) {
+                event.source.postMessage({to: 'runtime:runtimeReset', body: result}, '*')
+              });
+
+            //  send logout
+            identitiesGUI.logOut().then((result) => {
+              console.log(result);
+            });
+
+          } else if (event.data.to === 'core:login') {
+            console.log('core: logging with ', event.data.body.idp);
+            identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {
+              event.source.postMessage({to: 'runtime:loggedIn', body: result}, '*');
+            });
+          } else if (event.data.to === 'core:authorise') {
+            console.log('core:authorise ', event.data.body.idp, event.data.body.scope);
+            identitiesGUI.authorise(event.data.body.idp, event.data.body.scope).then((result) => {
+              event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
+            });
           }
+
 
         }, false);
 

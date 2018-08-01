@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.identitiesGui = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -17,12 +17,15 @@ var IdentitiesGUI = function () {
 
     _classCallCheck(this, IdentitiesGUI);
 
+    console.log('IdentitiesGUI', this);
     //if (!identityModule) throw Error('Identity Module not set!');
     if (!messageBus) throw Error('Message Bus not set!');
     var _this = this;
     _this._guiURL = guiURL;
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
+    _this._alreadyReLogin = false;
+    _this._alreadyLogin = false;
 
     this.callIdentityModuleFunc('deployGUI', {}).then(function (result) {
       return _this2._buildDrawer();
@@ -46,17 +49,30 @@ var IdentitiesGUI = function () {
     drawerEl.addEventListener('MDCTemporaryDrawer:open', function () {
       console.log('Received MDCTemporaryDrawer:open');
       _this2._isDrawerOpen = true;
+      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', function () {
       console.log('Received MDCTemporaryDrawer:close');
       _this2._isDrawerOpen = false;
-
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
   }
 
   _createClass(IdentitiesGUI, [{
+    key: 'logOut',
+    value: function logOut() {
+      var _this = this;
+      console.log('IdentitiesGUI: logging out');
+      return new Promise(function (resolve, reject) {
+
+        console.log('Building drawer');
+        _this._buildDrawer();
+
+        resolve('Gui reset');
+      });
+    }
+  }, {
     key: '_buildDrawer',
     value: function _buildDrawer() {
       var _this3 = this;
@@ -100,7 +116,7 @@ var IdentitiesGUI = function () {
 
         _this3.callback = callback;
 
-        _this3._getIdentities(callback);
+        _this3._getIdentities(callback, true);
       });
 
       this._getIdentities();
@@ -135,14 +151,17 @@ var IdentitiesGUI = function () {
     }
   }, {
     key: '_getIdentities',
-    value: function _getIdentities(callback) {
+    value: function _getIdentities(callback, oPenDrawer) {
       var _this4 = this;
 
       return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then(function (resultObject) {
         if (callback) {
-          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback)]);
+          return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback, oPenDrawer)]);
         } else {
-          return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
+          return new Promise(function (resolve) {
+            resolve();
+          });
+          //       return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
         }
       });
     }
@@ -239,12 +258,21 @@ var IdentitiesGUI = function () {
 
       return new Promise(function (resolve, reject) {
 
+        function wait(ms) {
+          var start = new Date().getTime();
+          var end = start;
+          while (end < start + ms) {
+            end = new Date().getTime();
+          }
+        }
+
         var win = void 0;
         if (!urlreceived) {
           win = window.open('', 'openIDrequest', 'location=1,status=1');
           _this6.win = win;
           resolve();
         } else {
+          wait(1000);
           win = _this6.win;
           win.location.href = urlreceived;
         }
@@ -269,6 +297,7 @@ var IdentitiesGUI = function () {
             try {
               if (win.closed) {
                 clearInterval(pollTimer);
+
                 // return reject('Some error occured when trying to get identity.');
               }
 
@@ -374,6 +403,8 @@ var IdentitiesGUI = function () {
         var idp = el.getAttribute('data-idp');
 
         _this7.loginWithIDP(idp).then(function (result) {
+          // console.log('value here: ', result.value);
+          // result.value = result.value.userURL
 
           if (_this7.callback) {
             _this7.callback(result);
@@ -468,6 +499,9 @@ var IdentitiesGUI = function () {
     value: function showIdentities(iDs, callback) {
       var _this8 = this;
 
+      var oPenDrawer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+
       return new Promise(function (resolve, reject) {
 
         console.log('[IdentitiesGUI.showMyIdentities] : ', iDs.identities, iDs.defaultIdentity);
@@ -534,18 +568,24 @@ var IdentitiesGUI = function () {
           activeIdentities.appendChild(linkEl);
         });
 
-        if (identities.length === 1) {
-
-          if (callback) {
-            callback({ type: 'identity', value: current });
-          }
-
-          return resolve({ type: 'identity', value: current });
-        }
-
-        if (identities.length > 1) {
+        if (oPenDrawer && !_this8._alreadyReLogin) {
           _this8._drawer.open = true;
         }
+
+        if (oPenDrawer && !_this8._alreadyReLogin && !_this8._alreadyLogin) {
+          _this8._alreadyReLogin = true;
+          parent.postMessage({ body: { method: 'tokenExpired' }, to: 'runtime:gui-manager' }, '*');
+        }
+
+        /*
+              if (Object.keys(identities).length === 1) {
+        
+                if (callback) {
+                  callback({type: 'identity', value: current});
+                }
+        
+                return resolve({type: 'identity', value: current});
+              }*/
 
         // let callback = (identity) => {
         //   resolve(identity);
@@ -582,18 +622,48 @@ var IdentitiesGUI = function () {
       //_this.identityModule.unregisterIdentity(idToRemove);
     }
   }, {
+    key: 'authorise',
+    value: function authorise(idp, resource) {
+      var _this9 = this;
+
+      return this.openPopup().then(function (res) {
+        var data = { scope: resource, idpDomain: idp };
+        return _this9.callIdentityModuleFunc('getAccessTokenAuthorisationEndpoint', data);
+      }).then(function (value) {
+        console.log('[IdentitiesGUI.authorise] receivedURL from idp Proxy: ' + value);
+
+        return _this9.openPopup(value);
+      }).then(function (result) {
+
+        console.log('[IdentitiesGUI.authorise.openPopup.result]', result);
+
+        // resource as array
+
+
+        var data = { resources: [resource], idpDomain: idp, login: result };
+        return _this9.callIdentityModuleFunc('getAccessToken', data);
+      }).then(function (result) {
+
+        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+        return _this9.callIdentityModuleFunc('addAccessToken', result);
+      }).then(function (value) {
+        _this9._drawer.open = false;
+        return value;
+      });
+    }
+  }, {
     key: 'loginWithIDP',
     value: function loginWithIDP(idp) {
-      var _this9 = this;
+      var _this10 = this;
 
       var _publicKey = void 0;
 
       return this.openPopup().then(function (result) {
-        return _this9.callIdentityModuleFunc('getMyPublicKey', {});
+        return _this10.callIdentityModuleFunc('getMyPublicKey', {});
       }).then(function (publicKey) {
         _publicKey = publicKey;
         var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
-        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+        return _this10.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (value) {
         console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
@@ -615,27 +685,30 @@ var IdentitiesGUI = function () {
           }
         }
 
-        _this9.resultURL = finalURL || url;
+        _this10.resultURL = finalURL || url;
 
-        console.log('[IdentitiesGUI.openPopup]', _this9.resultURL);
-        return _this9.openPopup(_this9.resultURL);
+        console.log('[IdentitiesGUI.openPopup]', _this10.resultURL);
+        return _this10.openPopup(_this10.resultURL);
       }).then(function (identity) {
 
         console.log('[IdentitiesGUI.openPopup.result]', identity);
 
         var data = { contents: _publicKey, origin: 'origin', usernameHint: identity, idpDomain: idp };
-        return _this9.callIdentityModuleFunc('sendGenerateMessage', data);
+        return _this10.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (result) {
 
         console.log('[IdentitiesGUI.sendGenerateMessage.result]', result);
-        return _this9.callIdentityModuleFunc('addAssertion', result);
+        return _this10.callIdentityModuleFunc('addAssertion', result);
       }).then(function (value) {
 
-        _this9._drawer.open = false;
+        _this10._drawer.open = false;
         var userURL = { type: 'identity', value: value.userProfile.userURL };
+        // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
+        _this10._alreadyLogin = true;
         return userURL;
+        // return userIdentity;
       });
     }
 

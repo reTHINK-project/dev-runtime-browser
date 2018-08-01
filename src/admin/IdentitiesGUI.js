@@ -3,12 +3,15 @@
 class IdentitiesGUI {
 
   constructor(guiURL, idmURL, messageBus) {
+    console.log('IdentitiesGUI', this);
     //if (!identityModule) throw Error('Identity Module not set!');
     if (!messageBus) throw Error('Message Bus not set!');
     let _this = this;
     _this._guiURL = guiURL;
     _this._idmURL = idmURL;
     _this._messageBus = messageBus;
+    _this._alreadyReLogin = false;
+    _this._alreadyLogin = false;
 
     this.callIdentityModuleFunc('deployGUI', {}).then((result) => {
       return this._buildDrawer();
@@ -32,15 +35,29 @@ class IdentitiesGUI {
     drawerEl.addEventListener('MDCTemporaryDrawer:open', () => {
       console.log('Received MDCTemporaryDrawer:open');
       this._isDrawerOpen = true;
+      parent.postMessage({ body: { method: 'showAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
     drawerEl.addEventListener('MDCTemporaryDrawer:close', () => {
       console.log('Received MDCTemporaryDrawer:close');
       this._isDrawerOpen = false;
-
       parent.postMessage({ body: { method: 'hideAdminPage' }, to: 'runtime:gui-manager' }, '*');
     });
 
+  }
+
+  logOut() {
+    let _this = this;
+    console.log('IdentitiesGUI: logging out');
+    return new Promise((resolve, reject) => {
+
+      console.log('Building drawer');
+      _this._buildDrawer();
+
+      resolve('Gui reset');
+
+
+    });
   }
 
   _buildDrawer() {
@@ -90,7 +107,7 @@ class IdentitiesGUI {
 
       this.callback = callback;
 
-      this._getIdentities(callback);
+      this._getIdentities(callback, true);
 
     });
 
@@ -125,13 +142,16 @@ class IdentitiesGUI {
     this._messageBus.postMessage(replyMsg);
   }
 
-  _getIdentities(callback) {
+  _getIdentities(callback, oPenDrawer) {
 
     return this.callIdentityModuleFunc('getIdentitiesToChoose', {}).then((resultObject) => {
       if (callback) {
-        return Promise.all([this.showIdps(resultObject.idps, callback), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject, callback)]);
+        return Promise.all([this.showIdps(resultObject.idps, callback), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject, callback, oPenDrawer)]);
       } else {
-        return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
+        return new Promise ((resolve)=>{
+          resolve();
+        });
+ //       return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
       }
     });
 
@@ -222,7 +242,17 @@ class IdentitiesGUI {
 
   openPopup(urlreceived) {
 
+    
+
     return new Promise((resolve, reject) => {
+
+      function wait(ms) {
+        var start = new Date().getTime();
+        var end = start;
+        while (end < start + ms) {
+          end = new Date().getTime();
+        }
+      }
 
       let win;
       if (!urlreceived) {
@@ -230,6 +260,7 @@ class IdentitiesGUI {
         this.win = win;
         resolve();
       } else {
+        wait(1000);  
         win = this.win;
         win.location.href = urlreceived;
       }
@@ -254,6 +285,7 @@ class IdentitiesGUI {
           try {
             if (win.closed) {
               clearInterval(pollTimer);
+
               // return reject('Some error occured when trying to get identity.');
             }
 
@@ -357,7 +389,8 @@ class IdentitiesGUI {
       const idp = el.getAttribute('data-idp');
 
       this.loginWithIDP(idp).then((result) => {
-
+        // console.log('value here: ', result.value);
+        // result.value = result.value.userURL
 
         if (this.callback) {
           this.callback(result);
@@ -451,7 +484,7 @@ class IdentitiesGUI {
 
   }
 
-  showIdentities(iDs, callback) {
+  showIdentities(iDs, callback, oPenDrawer = false) {
 
     return new Promise((resolve, reject) => {
 
@@ -517,18 +550,28 @@ class IdentitiesGUI {
 
       });
 
-      if (identities.length === 1) {
+      if (oPenDrawer && (!this._alreadyReLogin)) {
+        this._drawer.open = true
+      }
+
+      if (oPenDrawer && (!this._alreadyReLogin) && (!this._alreadyLogin)) {
+        this._alreadyReLogin = true;
+        parent.postMessage({ body: { method: 'tokenExpired' }, to: 'runtime:gui-manager' }, '*');
+      }
+
+
+
+
+/*
+      if (Object.keys(identities).length === 1) {
 
         if (callback) {
           callback({type: 'identity', value: current});
         }
 
         return resolve({type: 'identity', value: current});
-      }
+      }*/
 
-      if (identities.length > 1) {
-        this._drawer.open = true;
-      }
 
       // let callback = (identity) => {
       //   resolve(identity);
@@ -563,6 +606,38 @@ class IdentitiesGUI {
     });
 
     //_this.identityModule.unregisterIdentity(idToRemove);
+
+  }
+
+  authorise(idp, resource) {
+
+
+    return this.openPopup()
+      .then((res) => {
+        const data = { scope: resource, idpDomain: idp };
+        return this.callIdentityModuleFunc('getAccessTokenAuthorisationEndpoint', data);
+      })
+      .then((value) => {
+        console.log('[IdentitiesGUI.authorise] receivedURL from idp Proxy: ' + value);
+
+        return this.openPopup(value);
+      }).then((result) => {
+
+        console.log('[IdentitiesGUI.authorise.openPopup.result]', result);
+
+        // resource as array
+
+
+        const data = { resources: [resource], idpDomain: idp, login: result };
+        return this.callIdentityModuleFunc('getAccessToken', data);
+      }).then((result) => {
+
+        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+        return this.callIdentityModuleFunc('addAccessToken', result);
+      }).then((value) => {
+        this._drawer.open = false;
+        return value;
+      });
 
   }
 
@@ -618,9 +693,12 @@ class IdentitiesGUI {
 
         this._drawer.open = false;
         const userURL = {type: 'identity', value: value.userProfile.userURL};
+        // const userIdentity = {type: 'identity', value: value.userProfile};
 
         console.log('[IdentitiesGUI.loginWithIDP final]', value);
+        this._alreadyLogin = true;
         return userURL;
+        // return userIdentity;
       });
 
   }
