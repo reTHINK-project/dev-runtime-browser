@@ -158,7 +158,10 @@ var IdentitiesGUI = function () {
         if (callback) {
           return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback, oPenDrawer)]);
         } else {
-          return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
+          return new Promise(function (resolve) {
+            resolve();
+          });
+          //       return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
         }
       });
     }
