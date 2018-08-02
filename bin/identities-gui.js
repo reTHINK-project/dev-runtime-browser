@@ -158,7 +158,10 @@ var IdentitiesGUI = function () {
         if (callback) {
           return Promise.all([_this4.showIdps(resultObject.idps, callback), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject, callback, oPenDrawer)]);
         } else {
-          return Promise.all([_this4.showIdps(resultObject.idps), _this4.showDefaultIdentity(resultObject.defaultIdentity), _this4.showIdentities(resultObject)]);
+          return new Promise(function (resolve) {
+            resolve();
+          });
+          //       return Promise.all([this.showIdps(resultObject.idps), this.showDefaultIdentity(resultObject.defaultIdentity), this.showIdentities(resultObject)]);
         }
       });
     }
@@ -255,12 +258,21 @@ var IdentitiesGUI = function () {
 
       return new Promise(function (resolve, reject) {
 
+        function wait(ms) {
+          var start = new Date().getTime();
+          var end = start;
+          while (end < start + ms) {
+            end = new Date().getTime();
+          }
+        }
+
         var win = void 0;
         if (!urlreceived) {
           win = window.open('', 'openIDrequest', 'location=1,status=1');
           _this6.win = win;
           resolve();
         } else {
+          wait(1000);
           win = _this6.win;
           win.location.href = urlreceived;
         }
