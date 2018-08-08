@@ -31,8 +31,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "dexie": "^1.5.1",
-    "runtime-core": "github:reTHINK-project/dev-runtime-core#develop",
-    "service-framework": "github:reTHINK-project/dev-service-framework#develop",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#framework2core",
     "webrtcsupport": "2.2.0"
   },
   "devDependencies": {
