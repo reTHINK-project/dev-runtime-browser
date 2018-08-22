@@ -20,14 +20,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-import PersistenceManager from 'service-framework/dist/PersistenceManager';
+//import PersistenceManager from 'service-framework/dist/PersistenceManager';
 import { createSandbox } from './Sandboxes';
 import SandboxApp from './SandboxApp';
 import Request from './Request';
 import RuntimeCapabilities from './RuntimeCapabilities';
-import StorageManager from 'service-framework/dist/StorageManager';
+import StorageManager from 'runtime-core/dist/StorageManager';
 import Dexie from 'dexie';
-import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
+//import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
 
 /**
  * Is a bridge to isolate the runtime from the specific platform
@@ -54,21 +54,21 @@ export default {
     let request = new Request();
     return request;
   },
-
+/*
   createRuntimeCatalogue() {
     if (!this.catalogue) { this.catalogue = new RuntimeCatalogue(this); }
 
     return this.catalogue;
-  },
+  },*/
 
   atob(b64) {
     return atob(b64);
   },
-
+/*
   persistenceManager() {
     let localStorage = window.localStorage;
     return new PersistenceManager(localStorage);
-  },
+  },*/
   storageManager(name, schemas) {
 
     if (!this.databases) { this.databases = {}; }

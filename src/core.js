@@ -24,6 +24,7 @@ import URI from 'urijs';
 import IdentitiesGUI from './admin/IdentitiesGUI';
 import PoliciesGUI from './admin/PoliciesGUI';
 import RuntimeFactory from './RuntimeFactory';
+import RuntimeCatalogue from 'runtime-core/dist/RuntimeCatalogue';
 
 try {
   window.cordova = parent.cordova !== undefined;
@@ -50,7 +51,7 @@ let parameters = new URI(window.location).search(true);
 let runtimeURL = parameters.runtime;
 let domain = parameters.domain;
 let development = parameters.development === 'true';
-let catalogue = RuntimeFactory.createRuntimeCatalogue(development);
+let catalogue = new RuntimeCatalogue(RuntimeFactory);
 let runtimeDescriptor;
 catalogue.getRuntimeDescriptor(runtimeURL)
   .then(function(descriptor) {
