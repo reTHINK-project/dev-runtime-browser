@@ -301,7 +301,8 @@ var IdentitiesGUI = function () {
                 // return reject('Some error occured when trying to get identity.');
               }
 
-              if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
+              //            if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
+              if (win.document.URL.indexOf(location.origin) !== -1) {
                 window.clearInterval(pollTimer);
                 var url = win.document.URL;
 
