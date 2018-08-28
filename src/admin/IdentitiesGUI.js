@@ -233,8 +233,13 @@ class IdentitiesGUI {
         body: { resource: 'identity', method: methodName, params: parameters }};
 
       this._messageBus.postMessage(message, (res) => {
-        let result = res.body.value;
-        resolve(result);
+
+        if (res.body.code < 299) {
+          let result = res.body.value;
+          resolve(result);
+        } else {
+          resolve(res.body);
+        }
       });
 
     });
@@ -633,8 +638,15 @@ class IdentitiesGUI {
         return this.callIdentityModuleFunc('getAccessToken', data);
       }).then((result) => {
 
-        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
-        return this.callIdentityModuleFunc('addAccessToken', result);
+        if (result.hasOwnProperty('code') && result.code > 299) {
+          console.error('[IdentitiesGUI.authorise.getAccessToken] error', result);
+          return (result);
+
+        } else {
+          console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+          return this.callIdentityModuleFunc('addAccessToken', result);
+        }
+
       }).then((value) => {
         this._drawer.open = false;
         return value;
@@ -656,30 +668,35 @@ class IdentitiesGUI {
         return this.callIdentityModuleFunc('sendGenerateMessage', data);
       })
       .then((value) => {
-        console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
-        let url = value.loginUrl;
-        let finalURL;
+        console.log('[IdentitiesGUI.loginWithIDP] received reply to request for Login URL from idp Proxy: ' + value + '...');
 
-        //check if the receivedURL contains the redirect field and replace it
-        if (url.indexOf('redirect_uri') !== -1) {
-          let firstPart = url.substring(0, url.indexOf('redirect_uri'));
-          let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
-
-          let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
-
-          //check if the reddirect field is the last field of the URL
-          if (secondPart.indexOf('&') !== -1) {
-            finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
-          } else {
-            finalURL = firstPart + 'redirect_uri=' + location.origin;
+        if (value.hasOwnProperty('description') && value.description.hasOwnProperty('loginUrl')) {
+          let url = value.description.loginUrl;
+          let finalURL;
+  
+          //check if the receivedURL contains the redirect field and replace it
+          if (url.indexOf('redirect_uri') !== -1) {
+            let firstPart = url.substring(0, url.indexOf('redirect_uri'));
+            let secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+  
+            let secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+  
+            //check if the reddirect field is the last field of the URL
+            if (secondPart.indexOf('&') !== -1) {
+              finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+            } else {
+              finalURL = firstPart + 'redirect_uri=' + location.origin;
+            }
           }
+  
+          this.resultURL = finalURL || url;
+  
+          console.log('[IdentitiesGUI.openPopup]', this.resultURL);
+          return this.openPopup(this.resultURL);          
         }
 
-        this.resultURL = finalURL || url;
 
-        console.log('[IdentitiesGUI.openPopup]', this.resultURL);
-        return this.openPopup(this.resultURL);
       }).then((identity) => {
 
         console.log('[IdentitiesGUI.openPopup.result]', identity);

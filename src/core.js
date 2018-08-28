@@ -135,7 +135,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
           } else if (event.data.to === 'core:authorise') {
             console.log('core:authorise ', event.data.body.idp, event.data.body.scope);
             identitiesGUI.authorise(event.data.body.idp, event.data.body.scope).then((result) => {
-              event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
+              if (result.hasOwnProperty('code') && result.code > 299) {
+                event.source.postMessage({ to: 'runtime:not-authorised', body: JSON.stringify(result) }, '*');
+              } else {
+                event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
+              }
             });
           }
 
