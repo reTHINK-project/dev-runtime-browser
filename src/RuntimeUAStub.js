@@ -79,9 +79,16 @@ let runtimeAdapter = {
 
     return new Promise((resolve, reject) => {
       let loaded = (e) => {
+        console.log('[RuntimeBrowser.RuntimeUAStub.Authorise] reply:', e.data);
         if (e.data.to === 'runtime:authorised') {
           window.removeEventListener('message', loaded);
+
           resolve(e.data.body);
+        } else if (e.data.to === 'runtime:not-authorised') {
+          window.removeEventListener('message', loaded);
+
+          console.error('[RuntimeBrowser.RuntimeUAStub.Authorise] Error:', e.data);
+          reject(e.data.body);
         }
       };
       window.addEventListener('message', loaded);

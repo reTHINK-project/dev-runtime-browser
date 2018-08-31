@@ -246,8 +246,13 @@ var IdentitiesGUI = function () {
           body: { resource: 'identity', method: methodName, params: parameters } };
 
         _this5._messageBus.postMessage(message, function (res) {
-          var result = res.body.value;
-          resolve(result);
+
+          if (res.body.code < 299) {
+            var result = res.body.value;
+            resolve(result);
+          } else {
+            resolve(res.body);
+          }
         });
       });
     }
@@ -301,7 +306,8 @@ var IdentitiesGUI = function () {
                 // return reject('Some error occured when trying to get identity.');
               }
 
-              if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
+              //            if ((win.document.URL.indexOf('access_token') !== -1 || win.document.URL.indexOf('code') !== -1) && win.document.URL.indexOf(location.origin) !== -1) {
+              if (win.document.URL.indexOf(location.origin) !== -1) {
                 window.clearInterval(pollTimer);
                 var url = win.document.URL;
 
@@ -644,8 +650,13 @@ var IdentitiesGUI = function () {
         return _this9.callIdentityModuleFunc('getAccessToken', data);
       }).then(function (result) {
 
-        console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
-        return _this9.callIdentityModuleFunc('addAccessToken', result);
+        if (result.hasOwnProperty('code') && result.code > 299) {
+          console.error('[IdentitiesGUI.authorise.getAccessToken] error', result);
+          return result;
+        } else {
+          console.log('[IdentitiesGUI.authorise.getAccessToken.result]', result);
+          return _this9.callIdentityModuleFunc('addAccessToken', result);
+        }
       }).then(function (value) {
         _this9._drawer.open = false;
         return value;
@@ -665,30 +676,33 @@ var IdentitiesGUI = function () {
         var data = { contents: publicKey, origin: 'origin', usernameHint: undefined, idpDomain: idp };
         return _this10.callIdentityModuleFunc('sendGenerateMessage', data);
       }).then(function (value) {
-        console.log('[IdentitiesGUI.obtainNewIdentity] receivedURL from idp Proxy: ' + value.loginUrl.substring(0, 20) + '...');
 
-        var url = value.loginUrl;
-        var finalURL = void 0;
+        console.log('[IdentitiesGUI.loginWithIDP] received reply to request for Login URL from idp Proxy: ' + value + '...');
 
-        //check if the receivedURL contains the redirect field and replace it
-        if (url.indexOf('redirect_uri') !== -1) {
-          var firstPart = url.substring(0, url.indexOf('redirect_uri'));
-          var secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
+        if (value.hasOwnProperty('description') && value.description.hasOwnProperty('loginUrl')) {
+          var url = value.description.loginUrl;
+          var finalURL = void 0;
 
-          var secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+          //check if the receivedURL contains the redirect field and replace it
+          if (url.indexOf('redirect_uri') !== -1) {
+            var firstPart = url.substring(0, url.indexOf('redirect_uri'));
+            var secondAuxPart = url.substring(url.indexOf('redirect_uri'), url.length);
 
-          //check if the reddirect field is the last field of the URL
-          if (secondPart.indexOf('&') !== -1) {
-            finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
-          } else {
-            finalURL = firstPart + 'redirect_uri=' + location.origin;
+            var secondPart = secondAuxPart.substring(secondAuxPart.indexOf('&'), url.length);
+
+            //check if the reddirect field is the last field of the URL
+            if (secondPart.indexOf('&') !== -1) {
+              finalURL = firstPart + 'redirect_uri=' + location.origin + secondPart;
+            } else {
+              finalURL = firstPart + 'redirect_uri=' + location.origin;
+            }
           }
+
+          _this10.resultURL = finalURL || url;
+
+          console.log('[IdentitiesGUI.openPopup]', _this10.resultURL);
+          return _this10.openPopup(_this10.resultURL);
         }
-
-        _this10.resultURL = finalURL || url;
-
-        console.log('[IdentitiesGUI.openPopup]', _this10.resultURL);
-        return _this10.openPopup(_this10.resultURL);
       }).then(function (identity) {
 
         console.log('[IdentitiesGUI.openPopup.result]', identity);

@@ -24,6 +24,7 @@ import URI from 'urijs';
 import IdentitiesGUI from './admin/IdentitiesGUI';
 import PoliciesGUI from './admin/PoliciesGUI';
 import RuntimeFactory from './RuntimeFactory';
+import RuntimeCatalogue from 'runtime-core/dist/RuntimeCatalogue';
 
 try {
   window.cordova = parent.cordova !== undefined;
@@ -50,7 +51,7 @@ let parameters = new URI(window.location).search(true);
 let runtimeURL = parameters.runtime;
 let domain = parameters.domain;
 let development = parameters.development === 'true';
-let catalogue = RuntimeFactory.createRuntimeCatalogue(development);
+let catalogue = new RuntimeCatalogue(RuntimeFactory);
 let runtimeDescriptor;
 catalogue.getRuntimeDescriptor(runtimeURL)
   .then(function(descriptor) {
@@ -134,7 +135,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
           } else if (event.data.to === 'core:authorise') {
             console.log('core:authorise ', event.data.body.idp, event.data.body.scope);
             identitiesGUI.authorise(event.data.body.idp, event.data.body.scope).then((result) => {
-              event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
+              if (result.hasOwnProperty('code') && result.code > 299) {
+                event.source.postMessage({ to: 'runtime:not-authorised', body: JSON.stringify(result) }, '*');
+              } else {
+                event.source.postMessage({ to: 'runtime:authorised', body: JSON.stringify(result) }, '*');
+              }
             });
           }
 
