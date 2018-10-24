@@ -1,6 +1,6 @@
 {
   "name": "runtime-browser",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "browser runtime development",
   "main": "src/rethink.js",
   "scripts": {
@@ -30,8 +30,9 @@
   "homepage": "https://rethink-project.eu/",
   "dependencies": {
     "browserify": "^14.4.0",
-    "dexie": "^1.5.1",
-    "runtime-core": "github:reTHINK-project/dev-runtime-core#v0.13.0",
+    "dexie": "^2.0.4",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#master",
+    "sync-client": "github:rethink-project/sync_client#develop",
     "webrtcsupport": "2.2.0"
   },
   "devDependencies": {
@@ -59,7 +60,7 @@
     "karma-browserify": "^5.0.3",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.1",
-    "karma-htmlfile-reporter": "^0.3.6",
+    "karma-htmlfile-reporter": "^0.3.7",
     "karma-jspm": "^2.0.2",
     "karma-mocha": "^0.2.2",
     "karma-mocha-reporter": "^1.1.1",
