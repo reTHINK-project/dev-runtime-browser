@@ -21749,6 +21749,8 @@ var _syncClient = require('sync-client/dist/sync-client');
 
 var _syncClient2 = _interopRequireDefault(_syncClient);
 
+var _core = require('./core');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 //import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
@@ -21765,6 +21767,29 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @property {function():StorageManager} storageManager Returns a new StorageManager
  * @property {function():RuntimeCapabilities} runtimeCapabilities Returns a new RuntimeCapabilities
  */
+/**
+* Copyright 2016 PT Inovação e Sistemas SA
+* Copyright 2016 INESC-ID
+* Copyright 2016 QUOBIS NETWORKS SL
+* Copyright 2016 FRAUNHOFER-GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG E.V
+* Copyright 2016 ORANGE SA
+* Copyright 2016 Deutsche Telekom AG
+* Copyright 2016 Apizee
+* Copyright 2016 TECHNISCHE UNIVERSITAT BERLIN
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
+//import PersistenceManager from 'service-framework/dist/PersistenceManager';
 exports.default = {
   createSandbox: function createSandbox(constraints) {
     return (0, _Sandboxes.createSandbox)(constraints);
@@ -21777,12 +21802,12 @@ exports.default = {
     return request;
   },
 
+
   /*
-    createRuntimeCatalogue() {
-      if (!this.catalogue) { this.catalogue = new RuntimeCatalogue(this); }
-  
+  createRuntimeCatalogue() {
+    if (!this.catalogue) { this.catalogue = new RuntimeCatalogue(this); }
       return this.catalogue;
-    },*/
+  },*/
 
   atob: function (_atob) {
     function atob(_x) {
@@ -21798,11 +21823,12 @@ exports.default = {
     return atob(b64);
   }),
 
+
   /*
-    persistenceManager() {
-      let localStorage = window.localStorage;
-      return new PersistenceManager(localStorage);
-    },*/
+  persistenceManager() {
+    let localStorage = window.localStorage;
+    return new PersistenceManager(localStorage);
+  },*/
   storageManager: function storageManager(name, schemas, runtimeUA) {
     var remote = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
@@ -21821,6 +21847,7 @@ exports.default = {
           console.log('Storage will not be cleared except by explicit user action');
         } else {
           console.log('Storage may be cleared by the UA under storage pressure.');
+          (0, _core.sendNotification)('Storage may be cleared by the UA under storage pressure.');
         }
       });
     }
@@ -21867,31 +21894,9 @@ exports.default = {
 
     return this.capabilitiesManager;
   }
-}; /**
-   * Copyright 2016 PT Inovação e Sistemas SA
-   * Copyright 2016 INESC-ID
-   * Copyright 2016 QUOBIS NETWORKS SL
-   * Copyright 2016 FRAUNHOFER-GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG E.V
-   * Copyright 2016 ORANGE SA
-   * Copyright 2016 Deutsche Telekom AG
-   * Copyright 2016 Apizee
-   * Copyright 2016 TECHNISCHE UNIVERSITAT BERLIN
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   *   http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   **/
-//import PersistenceManager from 'service-framework/dist/PersistenceManager';
+};
 
-},{"./Request":15,"./RuntimeCapabilities":16,"./SandboxApp":18,"./Sandboxes":19,"dexie":3,"dexie-observable":1,"dexie-syncable":2,"runtime-core/dist/StorageManager":6,"sync-client/dist/sync-client":9}],18:[function(require,module,exports){
+},{"./Request":15,"./RuntimeCapabilities":16,"./SandboxApp":18,"./Sandboxes":19,"./core":23,"dexie":3,"dexie-observable":1,"dexie-syncable":2,"runtime-core/dist/StorageManager":6,"sync-client/dist/sync-client":9}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24278,6 +24283,11 @@ exports.default = PoliciesManager;
 },{}],23:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.sendNotification = sendNotification;
+
 var _urijs = require('urijs');
 
 var _urijs2 = _interopRequireDefault(_urijs);
@@ -24451,6 +24461,51 @@ catalogue.getRuntimeDescriptor(runtimeURL).then(function (descriptor) {
     });
   });
 });
+
+function sendNotification() {
+  var notificationText = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'notification';
+
+  // wait for registration
+  navigator.serviceWorker.ready.then(function (registration) {
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission(function (status) {
+        registration.showNotification(notificationText);
+      });
+    } else {
+      registration.showNotification(notificationText);
+    }
+  });
+  navigator.serviceWorker.getRegistration().then(function (reg) {});
+}
+
+function handleNotifications() {
+
+  Notification.requestPermission(function (status) {
+    console.log('Notification permission status:', status);
+    if (Notification.permission == 'granted') {
+      console.log('Push notifications activated');
+    }
+  });
+}
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+
+  window.addEventListener('load', function () {
+
+    // register service worker
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (registration) {
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      handleNotifications();
+    }, function (err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    }).catch(function (err) {
+      console.log(err);
+    });
+  });
+} else {
+  console.log('service worker is not supported');
+}
 
 },{"./RuntimeFactory":17,"./admin/IdentitiesGUI":20,"./admin/PoliciesGUI":21,"runtime-core/dist/RuntimeCatalogue":5,"urijs":13}]},{},[23])(23)
 });
