@@ -1,6 +1,6 @@
 {
   "name": "runtime-browser",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "browser runtime development",
   "main": "src/rethink.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "dexie": "^2.0.4",
-    "runtime-core": "github:reTHINK-project/dev-runtime-core#storageBackup",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#master",
     "sync-client": "github:rethink-project/sync_client#develop",
     "webrtcsupport": "2.2.0"
   },

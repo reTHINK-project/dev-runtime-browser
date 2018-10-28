@@ -32,6 +32,8 @@ import 'dexie-observable';
 import 'dexie-syncable';
 
 import SyncClient from 'sync-client/dist/sync-client';
+import { sendNotification } from './core';
+
 //import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
 
 /**
@@ -59,7 +61,8 @@ export default {
     let request = new Request();
     return request;
   },
-/*
+
+  /*
   createRuntimeCatalogue() {
     if (!this.catalogue) { this.catalogue = new RuntimeCatalogue(this); }
 
@@ -69,7 +72,8 @@ export default {
   atob(b64) {
     return atob(b64);
   },
-/*
+
+  /*
   persistenceManager() {
     let localStorage = window.localStorage;
     return new PersistenceManager(localStorage);
@@ -82,7 +86,12 @@ export default {
     // To make the storage persitent and now allow the system clear the storage when is under pressure;
     if (navigator && navigator.storage && navigator.storage.persist) {
       navigator.storage.persist().then(function(persistent) {
-        if (persistent) { console.log('Storage will not be cleared except by explicit user action'); } else { console.log('Storage may be cleared by the UA under storage pressure.'); }
+        if (persistent) {
+          console.log('Storage will not be cleared except by explicit user action');
+        } else {
+          console.log('Storage may be cleared by the UA under storage pressure.');
+          sendNotification('Storage may be cleared by the UA under storage pressure.');
+        }
       });
     }
 
@@ -99,7 +108,7 @@ export default {
       }
 
       if (!remote) {
-        this.databases[name] =  new Dexie(name, {addons:[]});
+        this.databases[name] =  new Dexie(name, {addons: []});
         this.databases[name].version(1).stores(stores);
       } else {
 
@@ -109,7 +118,7 @@ export default {
         }];
 
         this.databases[name] =  new SyncClient(name, versions);
-      } 
+      }
     }
 
     if (!this.storeManager.hasOwnProperty(name)) {

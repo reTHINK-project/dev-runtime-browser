@@ -116,6 +116,9 @@ function bundle(file_name, bundle_name, dest) {
 gulp.task('bundle:rethink', function(){
     return bundle('./src/RuntimeLoader.js', 'rethink', 'bin')
 });
+gulp.task('bundle:sw', function () {
+  return bundle('./src/sw.js', 'sw', 'bin')
+});
 gulp.task('bundle:core', function(){
     return bundle('./src/core.js', 'core', 'bin')
 });
@@ -131,7 +134,7 @@ gulp.task('bundle:policies-gui', function () {
 gulp.task('bundle:identities-gui', function () {
   return bundle('./src/admin/IdentitiesGUI.js', 'identities-gui', 'bin');
 });
-gulp.task('bundle', ['bundle:rethink', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui']);
+gulp.task('bundle', ['bundle:rethink', 'bundle:sw', 'bundle:core', 'bundle:sandbox', 'bundle:context', 'bundle:policies-gui', 'bundle:identities-gui']);
 
 /**
  * Bumping version number and tagging the repository with it.

@@ -32,7 +32,7 @@ try {
 } catch (err) { console.log('cordova not supported'); }
 
 function returnHyperty(source, hyperty) {
-  source.postMessage({to: 'runtime:loadedHyperty', body: hyperty}, '*');
+  source.postMessage({ to: 'runtime:loadedHyperty', body: hyperty }, '*');
 }
 
 function searchHyperty(runtime, descriptor) {
@@ -91,7 +91,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
             let hyperty = searchHyperty(runtime, descriptor);
 
             if (hyperty) {
-              returnHyperty(event.source, { runtimeHypertyURL: hyperty.hypertyURL, id: requireHypertyID});
+              returnHyperty(event.source, { runtimeHypertyURL: hyperty.hypertyURL, id: requireHypertyID });
             } else {
               runtime.loadHyperty(descriptor, reuseAddress).then(function(hyperty) {
                 hyperty.id = requireHypertyID;
@@ -105,11 +105,11 @@ catalogue.getRuntimeDescriptor(runtimeURL)
               console.error('Stub error:', error);
             });
           } else if (event.data.to === 'core:close') {
-            runtime.close(event.data.body.logOut).then((result)=>{
-                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
-              })
-              .catch((result)=>{
-                event.source.postMessage({to: 'runtime:runtimeClosed', body: result}, '*')
+            runtime.close(event.data.body.logOut).then((result) => {
+              event.source.postMessage({ to: 'runtime:runtimeClosed', body: result }, '*');
+            })
+              .catch((result) => {
+                event.source.postMessage({ to: 'runtime:runtimeClosed', body: result }, '*');
               });
 
             //  send logout
@@ -119,8 +119,8 @@ catalogue.getRuntimeDescriptor(runtimeURL)
 
           } else if (event.data.to === 'core:reset') {
             runtime.reset().then(function(result) {
-                event.source.postMessage({to: 'runtime:runtimeReset', body: result}, '*')
-              });
+              event.source.postMessage({ to: 'runtime:runtimeReset', body: result }, '*');
+            });
 
             //  send logout
             identitiesGUI.logOut().then((result) => {
@@ -130,7 +130,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
           } else if (event.data.to === 'core:login') {
             console.log('core: logging with ', event.data.body.idp);
             identitiesGUI.loginWithIDP(event.data.body.idp).then((result) => {
-              event.source.postMessage({to: 'runtime:loggedIn', body: result}, '*');
+              event.source.postMessage({ to: 'runtime:loggedIn', body: result }, '*');
             });
           } else if (event.data.to === 'core:authorise') {
             console.log('core:authorise ', event.data.body.idp, event.data.body.scope);
@@ -150,8 +150,57 @@ catalogue.getRuntimeDescriptor(runtimeURL)
           runtime.close();
         });
 
-        parent.postMessage({to: 'runtime:installed', body: {}}, '*');
+        parent.postMessage({ to: 'runtime:installed', body: {} }, '*');
 
       });
     });
   });
+
+export function sendNotification(notificationText = 'notification') {
+  // wait for registration
+  navigator.serviceWorker.ready.then(registration => {
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission(status => {
+        registration.showNotification(notificationText);
+
+      });
+    } else {
+      registration.showNotification(notificationText);
+    }
+
+  });
+  navigator.serviceWorker.getRegistration().then(reg => {
+  });
+}
+
+function handleNotifications() {
+
+
+  Notification.requestPermission(status => {
+    console.log('Notification permission status:', status);
+    if (Notification.permission == 'granted') {
+      console.log('Push notifications activated');
+    }
+  });
+}
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+
+  window.addEventListener('load', function() {
+
+    // register service worker
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(registration) {
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      handleNotifications();
+    }, function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    }).catch(function(err) {
+      console.log(err);
+    });
+
+  });
+} else {
+  console.log('service worker is not supported');
+}
+
