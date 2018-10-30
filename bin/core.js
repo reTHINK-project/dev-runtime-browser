@@ -21806,7 +21806,7 @@ exports.default = {
   /*
   createRuntimeCatalogue() {
     if (!this.catalogue) { this.catalogue = new RuntimeCatalogue(this); }
-      return this.catalogue;
+     return this.catalogue;
   },*/
 
   atob: function (_atob) {

@@ -31,7 +31,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "dexie": "^2.0.4",
-    "runtime-core": "github:reTHINK-project/dev-runtime-core#master",
+    "runtime-core": "github:reTHINK-project/dev-runtime-core#offline",
     "sync-client": "github:rethink-project/sync_client#develop",
     "webrtcsupport": "2.2.0"
   },
