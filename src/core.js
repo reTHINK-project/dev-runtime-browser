@@ -184,23 +184,23 @@ function handleNotifications() {
   });
 }
 
-if ('serviceWorker' in navigator && 'PushManager' in window) {
+// if ('serviceWorker' in navigator && 'PushManager' in window) {
 
-  window.addEventListener('load', function() {
+//   window.addEventListener('load', function() {
 
-    // register service worker
-    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(registration) {
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      handleNotifications();
-    }, function(err) {
-      // registration failed :(
-      console.log('ServiceWorker registration failed: ', err);
-    }).catch(function(err) {
-      console.log(err);
-    });
+//     // register service worker
+//     navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(registration) {
+//       console.log('ServiceWorker registration successful with scope: ', registration.scope);
+//       handleNotifications();
+//     }, function(err) {
+//       // registration failed :(
+//       console.log('ServiceWorker registration failed: ', err);
+//     }).catch(function(err) {
+//       console.log(err);
+//     });
 
-  });
-} else {
-  console.log('service worker is not supported');
-}
+//   });
+// } else {
+//   console.log('service worker is not supported');
+// }
 
