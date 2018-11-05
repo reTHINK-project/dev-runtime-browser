@@ -32,7 +32,7 @@ import 'dexie-observable';
 import 'dexie-syncable';
 
 import SyncClient from 'sync-client/dist/sync-client';
-import { sendNotification } from './core';
+// import { sendNotification } from './core';
 
 //import { RuntimeCatalogue } from 'service-framework/dist/RuntimeCatalogue';
 
@@ -90,7 +90,7 @@ export default {
           console.log('Storage will not be cleared except by explicit user action');
         } else {
           console.log('Storage may be cleared by the UA under storage pressure.');
-          sendNotification('Storage may be cleared by the UA under storage pressure.');
+          // sendNotification('Storage may be cleared by the UA under storage pressure.');
         }
       });
     }
