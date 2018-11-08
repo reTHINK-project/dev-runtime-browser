@@ -155,7 +155,7 @@ catalogue.getRuntimeDescriptor(runtimeURL)
       });
     });
   });
-
+/*
 export function sendNotification(notificationText = 'notification') {
   // wait for registration
   navigator.serviceWorker.ready.then(registration => {
@@ -182,7 +182,7 @@ function handleNotifications() {
       console.log('Push notifications activated');
     }
   });
-}
+}*/
 
 // if ('serviceWorker' in navigator && 'PushManager' in window) {
 
